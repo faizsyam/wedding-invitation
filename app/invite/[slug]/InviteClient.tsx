@@ -323,7 +323,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     if (!opened) return
     const obs = new IntersectionObserver(
       (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
-      { threshold: 0.07 },
+      { threshold: 0.04 },
     )
     const id = setTimeout(() => {
       document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => obs.observe(el))
@@ -408,7 +408,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           position: 'relative', overflow: 'hidden',
         }}>
           <SongketBand color={C.gold} opacity={0.14} />
-          <div style={{ padding: '40px 34px 38px', textAlign: 'center', position: 'relative' }}>
+          <div style={{ padding: '24px 34px 38px', textAlign: 'center', position: 'relative' }}>
             <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '22px' }}>
               <Diamond size={3} color={C.gold} style={{ opacity: 0.4 }} />
@@ -421,7 +421,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 Kepada Yth. Bapak/Ibu/Saudara/i
               </p>
               <p style={{
-                fontFamily: F.display, fontSize: '28px', fontWeight: 600,
+                fontFamily: F.display, fontSize: '24px', fontWeight: 600,
                 color: C.burgundy, lineHeight: 1.2,
                 textShadow: '0 1px 3px rgba(125,37,53,0.10)',
               }}>
@@ -429,13 +429,47 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </p>
             </div>
             <PucukRebungDivider />
-            <p style={{ fontFamily: F.display, fontSize: '38px', fontWeight: 300, color: C.textDark, letterSpacing: '0.5px', lineHeight: 1.04 }}>
-              Vanya
-            </p>
-            <p style={{ fontFamily: F.display, fontSize: '17px', color: C.gold, fontStyle: 'italic', margin: '5px 0' }}>dan</p>
-            <p style={{ fontFamily: F.display, fontSize: '38px', fontWeight: 300, color: C.textDark, letterSpacing: '0.5px', lineHeight: 1.04, marginBottom: '22px' }}>
-              Faiz
-            </p>
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                gap: '16px', // adjust this to taste
+                marginBottom: '22px'
+                }}>
+                <p style={{
+                    fontFamily: F.display,
+                    fontSize: '38px',
+                    fontWeight: 300,
+                    color: C.textDark,
+                    letterSpacing: '0.5px',
+                    lineHeight: 1.04,
+                    margin: 0
+                }}>
+                    Vanya
+                </p>
+
+                <p style={{
+                    fontFamily: F.display,
+                    fontSize: '17px',
+                    color: C.gold,
+                    fontStyle: 'italic',
+                    margin: 0
+                }}>
+                    dan
+                </p>
+
+                <p style={{
+                    fontFamily: F.display,
+                    fontSize: '38px',
+                    fontWeight: 300,
+                    color: C.textDark,
+                    letterSpacing: '0.5px',
+                    lineHeight: 1.04,
+                    margin: 0
+                }}>
+                    Faiz
+                </p>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '34px' }}>
               <div style={{ height: '1px', width: '20px', background: `${C.gold}50` }} />
               <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2.5px' }}>
@@ -630,7 +664,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   background: `linear-gradient(135deg, rgba(125,37,53,0.07), rgba(30,58,95,0.07))`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '44px',
-                }}>🤵</div>
+                }}>👰</div>
               </div>
               <div style={{
                 position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%)',
@@ -698,11 +732,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 borderRadius: '50%', border: `1.5px solid ${C.white}`,
               }} />
             </div>
-            <p style={{
-              fontFamily: F.display, fontSize: '26px', fontWeight: 600,
-              color: C.burgundy, marginBottom: '8px',
-              whiteSpace: 'nowrap',
-            }}>
+            <p style={{ fontFamily: F.display, fontSize: '32px', fontWeight: 600, color: C.burgundy, marginBottom: '8px' }}>
               Faizuddarain Syam, S.Kom, M.Sc.
             </p>
             <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.6 }}>
@@ -1195,17 +1225,51 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               "Semoga Allah memberkahi kalian berdua dan mengumpulkan kalian dalam kebaikan."
             </p>
             <PucukRebungDivider color="rgba(196,151,59,0.48)" />
-            <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px, 10vw, 48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05 }}>
-              Vanya
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: '8px 0' }}>
-              <div style={{ height: '1px', flex: 1, maxWidth: '36px', background: 'rgba(196,151,59,0.3)' }} />
-              <p style={{ fontFamily: F.display, fontSize: '18px', opacity: 0.42 }}>&amp;</p>
-              <div style={{ height: '1px', flex: 1, maxWidth: '36px', background: 'rgba(196,151,59,0.3)' }} />
-            </div>
-            <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px, 10vw, 48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, marginBottom: '40px' }}>
-              Faiz
-            </p>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
+                <p className="footer-name-shimmer" style={{
+                    fontFamily: F.display,
+                    fontSize: 'clamp(36px, 10vw, 48px)',
+                    fontWeight: 300,
+                    letterSpacing: '2px',
+                    lineHeight: 1.05,
+                    margin: 0
+                    }}
+                >
+                    Vanya
+                </p>
+
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px'
+                }}>
+                    <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
+                    
+                    <p style={{
+                    fontFamily: F.display,
+                    fontSize: '18px',
+                    opacity: 0.42,
+                    margin: 0
+                    }}>
+                    &amp;
+                    </p>
+                    
+                    <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
+                </div>
+
+                <p className="footer-name-shimmer" style={{
+                    fontFamily: F.display,
+                    fontSize: 'clamp(36px, 10vw, 48px)',
+                    fontWeight: 300,
+                    letterSpacing: '2px',
+                    lineHeight: 1.05,
+                    margin: 0
+                    }}
+                >
+                    Faiz
+                </p>
+                </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
               <Diamond size={3} color="rgba(196,151,59,0.38)" />
               <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.38, letterSpacing: '3px', textTransform: 'uppercase' }}>
