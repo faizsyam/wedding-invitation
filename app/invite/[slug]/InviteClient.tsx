@@ -1,6 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+
 type Guest   = { id: number; name: string; slug: string; created_at: string }
 type Message = { id?: number; guest_name: string; message: string; created_at?: string }
 type Countdown = { d: number; h: number; m: number; s: number }
@@ -302,6 +303,29 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [msgLoading,  setMsgLoading]  = useState(false)
   const [copied,      setCopied]      = useState('')
   const [hovered,     setHovered]     = useState<string | null>(null)
+  const [muted,       setMuted]       = useState(false)
+
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  
+  useEffect(() => {
+    const audio = new Audio('/it_aint_over_til_its_over.mp3')
+    audio.loop = true
+    audio.volume = 0.4
+    audioRef.current = audio
+    const tryPlay = () => { audio.play().catch(() => {}) }
+    document.addEventListener('click', tryPlay, { once: true })
+    return () => {
+      audio.pause()
+      document.removeEventListener('click', tryPlay)
+    }
+  }, [])
+  
+  function toggleMute() {
+    if (!audioRef.current) return
+    audioRef.current.muted = !audioRef.current.muted
+    setMuted(prev => !prev)
+  }
+
   // Countdown timer
   useEffect(() => {
     const target = new Date('2026-06-26T08:00:00+07:00').getTime()
@@ -507,6 +531,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   // MAIN INVITATION CONTENT
   // ═══════════════════════════════════════════════════════════════════════════
   return (
+    <>
     <div style={{ background: C.cream }} className="page-enter">
       {/* ── HERO ─────────────────────────────────────────────────────────────*/}
       <section className="reveal" style={{
@@ -529,7 +554,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             className="arabic-glow"
             style={{
               fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
-              lineHeight: 2.1, marginBottom: '8px', marginTop: '-6px'
+              lineHeight: 2.1, marginBottom: '8px', marginTop: '-8px'
             }}
           >
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
@@ -541,6 +566,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)',
             fontWeight: 300, color: C.textDark,
             lineHeight: 1.0, letterSpacing: '0.5px',
+            marginTop: '-2px',
             marginBottom: '-2px',
           }}>
             <span className="name-float gold-shimmer-text">Vanya</span>
@@ -579,6 +605,56 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div className="cd-heartbeat" style={{ animationDelay: '0.24s' }}>
               <CdBox value={cd.s} label="Detik" />
             </div>
+          </div>
+          {/* ── SAVE THE DATE ── */}
+          <div style={{ marginTop: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <p style={{
+              fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px',
+              color: C.textLight, textTransform: 'uppercase', margin: 0,
+            }}>
+              Tandai Kalendarmu
+            </p>
+              <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+16.00+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="save-date-btn shimmer-btn"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '10px',
+                padding: '13px 28px',
+                background: 'transparent',
+                border: `1.5px solid ${C.gold}`,
+                color: C.gold,
+                borderRadius: '4px',
+                fontFamily: F.body, fontSize: '10px',
+                letterSpacing: '3px', textTransform: 'uppercase',
+                textDecoration: 'none',
+                position: 'relative', overflow: 'hidden',
+                transition: 'background 0.3s ease, color 0.3s ease',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = C.gold
+                ;(e.currentTarget as HTMLAnchorElement).style.color = C.white
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
+                ;(e.currentTarget as HTMLAnchorElement).style.color = C.gold
+              }}
+            >
+              <svg viewBox="0 0 18 18" width="14" height="14" fill="none" style={{ flexShrink: 0 }}>
+                <rect x="1" y="3" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
+                <line x1="1" y1="7" x2="17" y2="7" stroke="currentColor" strokeWidth="1.2"/>
+                <line x1="5.5" y1="1" x2="5.5" y2="5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                <line x1="12.5" y1="1" x2="12.5" y2="5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                <circle cx="9" cy="12" r="1.3" fill="currentColor"/>
+              </svg>
+              Save the Date
+            </a>
+            <p style={{
+              fontFamily: F.display, fontSize: '12px', fontStyle: 'italic',
+              color: C.textGhost, margin: 0, letterSpacing: '0.5px',
+            }}>
+              26 Juni 2026
+            </p>
           </div>
         </div>
       </section>
@@ -623,140 +699,222 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
           <SongketBand color={C.gold} opacity={0.09} />
         </div>
-        <p style={{ fontFamily: F.body, fontSize: '14px', color: C.textDark, lineHeight: 2.1, marginBottom: '18px' }}>
-          Dengan memohon rahmat dan ridho Allah Subhanahu Wa Ta'ala, kami mengundang Bapak/Ibu/Saudara/i
-        </p>
-        <div style={{ display: 'inline-block', position: 'relative', marginBottom: '18px', padding: '4px 8px' }}>
-          <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.burgundy, lineHeight: 1.2 }}>
-            {guest.name}
+        <div style={{ marginBottom: '36px' }}>
+          <p style={{
+            fontFamily: F.display, fontSize: '16px', color: C.textMid,
+            lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+          }}>
+            Dengan memohon rahmat dan ridho Allah Subhanahu Wa Ta'ala,
+            kami mengundang
           </p>
-          <div style={{
-            position: 'absolute', bottom: 0, left: '8%', right: '8%',
-            height: '1.5px',
-            background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
-          }} />
+
+          <div style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
+            <p style={{
+              fontFamily: F.display, fontSize: '30px', fontWeight: 600,
+              color: C.burgundy, lineHeight: 1.2, margin: 0,
+            }}>
+              {guest.name}
+            </p>
+            <div style={{
+              position: 'absolute', bottom: 0, left: '8%', right: '8%',
+              height: '1.5px',
+              background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
+            }} />
+          </div>
+
+          <p style={{
+            fontFamily: F.display, fontSize: '16px', color: C.textMid,
+            lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+          }}>
+            untuk hadir memberikan do'a restu pada acara pernikahan kami.
+            Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat
+            berarti bagi kami sekeluarga.
+          </p>
         </div>
-        <p style={{ fontFamily: F.body, fontSize: '14px', color: C.textDark, lineHeight: 2.1, marginBottom: '32px' }}>
-          untuk hadir memberikan do'a restu pada acara pernikahan kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
-        </p>
         <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase' }}>
           Wassalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
       </section>
       {/* ── MEMPELAI ─────────────────────────────────────────────────────────*/}
-      <section className="reveal" style={{ background: C.white, padding: '68px 24px' }}>
-        <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
-          <SectionLabel>Mempelai</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, marginBottom: '52px', lineHeight: 1.1, fontStyle: 'italic' }}>
-            Kami yang berbahagia
-          </p>
+      <section
+        className="reveal"
+        style={{
+          background: `linear-gradient(160deg, #fdfdfd 0%, #f5f7fa 60%, #fdfdfd 100%)`,
+          padding: '72px 0 80px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: 0.06,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")`,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '-80px',
+            left: '-80px',
+            width: '300px',
+            height: '300px',
+            borderRadius: '50%',
+            background:
+              'radial-gradient(circle, rgba(200,150,120,0.12) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-80px',
+            right: '-80px',
+            width: '300px',
+            height: '300px',
+            borderRadius: '50%',
+            background:
+              'radial-gradient(circle, rgba(120,160,200,0.12) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '52px' }}>
+            <SectionLabel>Mempelai</SectionLabel>
+            <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, fontStyle: 'italic', lineHeight: 1.2 }}>
+              Kami yang berbahagia
+            </p>
+          </div>
+
           {/* ── Wanita ── */}
-          <div className="reveal-left">
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '22px' }}>
-              <div className="ring-pulse" style={{
-                width: '122px', height: '122px', borderRadius: '50%',
-                border: `1px solid ${C.gold}80`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <div style={{
-                  width: '108px', height: '108px', borderRadius: '50%',
-                  border: `3px solid rgba(125,37,53,0.18)`,
-                  background: `linear-gradient(135deg, rgba(125,37,53,0.07), rgba(30,58,95,0.07))`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '44px',
-                }}>👰</div>
-              </div>
+          <div className="reveal-left" style={{ marginBottom: '20px' }}>
+            <div style={{
+              position: 'relative', borderRadius: '6px', overflow: 'hidden',
+              height: '480px', boxShadow: '0 20px 60px rgba(125,37,53,0.18)',
+            }}>
+              {/* Photo */}
+              <img
+                src="/bride.png" alt="Vanya Alverissa"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+              />
+              {/* Gradient overlay */}
               <div style={{
-                position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%)',
-                width: '7px', height: '7px', background: C.gold,
-                borderRadius: '50%', border: `1.5px solid ${C.white}`,
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.02) 40%, rgba(20,8,12,0.72) 100%)',
               }} />
-            </div>
-            <p style={{ fontFamily: F.display, fontSize: '32px', fontWeight: 600, color: C.burgundy, marginBottom: '8px' }}>
-              Vanya Alverissa, SE.
-            </p>
-            <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.6 }}>
-              Putri ke 3
-            </p>
-            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{
-                display: 'block', fontFamily: F.body, fontSize: '14px',
-                color: C.burgundy, fontWeight: 700, letterSpacing: '0.01em',
+              {/* Gold corner accents */}
+              {['tl','tr','bl','br'].map(p => {
+                const t = p[0]==='t', l = p[1]==='l'
+                return <div key={p} style={{
+                  position: 'absolute',
+                  [t?'top':'bottom']: '14px', [l?'left':'right']: '14px',
+                  width: '28px', height: '28px',
+                  borderTop: t ? `1.5px solid ${C.gold}` : 'none',
+                  borderBottom: !t ? `1.5px solid ${C.gold}` : 'none',
+                  borderLeft: l ? `1.5px solid ${C.gold}` : 'none',
+                  borderRight: !l ? `1.5px solid ${C.gold}` : 'none',
+                  opacity: 0.75,
+                }} />
+              })}
+              {/* Tag */}
+              <div style={{
+                position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
+                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+                border: `1px solid rgba(255,255,255,0.3)`,
+                borderRadius: '2px', padding: '5px 16px',
               }}>
-                Bapak Darmasyah Yusuf
-              </span>
-              <span style={{
-                display: 'block', fontFamily: F.body, fontSize: '13px',
-                color: C.textMid, fontStyle: 'italic',
-              }}>&amp;</span>
-              <span style={{
-                display: 'block', fontFamily: F.body, fontSize: '14px',
-                color: C.burgundy, fontWeight: 700, letterSpacing: '0.01em',
-              }}>
-                Ibu Marlina Susanti, SE.
-              </span>
+                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0 }}>
+                  Mempelai Wanita
+                </p>
+              </div>
+              {/* Info overlay */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px 28px' }}>
+                <p style={{ fontFamily: F.display, fontSize: '34px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>
+                  Vanya Alverissa, SE.
+                </p>
+                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '12px', letterSpacing: '0.5px' }}>
+                  Putri ke-3 dari
+                </p>
+                <div style={{ height: '1px', background: `${C.gold}60`, marginBottom: '12px' }} />
+                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 2 }}>
+                  Bapak Darmasyah Yusuf<br />
+                  <span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />
+                  Ibu Marlina Susanti, SE.
+                </p>
+              </div>
             </div>
           </div>
-          {/* ── Central ornament ── */}
-          <div style={{ margin: '28px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
-            <div style={{ height: '1px', flex: 1, maxWidth: '72px', background: `${C.gold}38` }} />
+
+          {/* ── Separator ── */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', margin: '8px 0' }}>
+            <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
             <div style={{ textAlign: 'center' }}>
-              <div className="wajik-rotate">
-                <WajikBadge size={38} />
-              </div>
-              <p style={{ fontFamily: F.display, fontSize: '13px', color: C.gold, fontStyle: 'italic', marginTop: '-2px' }}>
-                bersama
-              </p>
+              <div className="wajik-rotate"><WajikBadge size={34} /></div>
+              <p style={{ fontFamily: F.display, fontSize: '13px', color: C.gold, fontStyle: 'italic', marginTop: '-2px' }}>bersama</p>
             </div>
-            <div style={{ height: '1px', flex: 1, maxWidth: '72px', background: `${C.gold}38` }} />
+            <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
           </div>
+
           {/* ── Pria ── */}
-          <div className="reveal-right">
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '22px' }}>
-              <div className="ring-pulse" style={{
-                width: '122px', height: '122px', borderRadius: '50%',
-                border: `1px solid ${C.gold}80`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <div style={{
-                  width: '108px', height: '108px', borderRadius: '50%',
-                  border: `3px solid rgba(125,37,53,0.18)`,
-                  background: `linear-gradient(135deg, rgba(125,37,53,0.07), rgba(30,58,95,0.07))`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '44px',
-                }}>🤵</div>
-              </div>
+          <div className="reveal-right" style={{ marginTop: '20px' }}>
+            <div style={{
+              position: 'relative', borderRadius: '6px', overflow: 'hidden',
+              height: '480px', boxShadow: '0 20px 60px rgba(30,58,95,0.18)',
+            }}>
+              {/* Photo */}
+              <img
+                src="/groom.png" alt="Faizuddarain Syam"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+              />
+              {/* Gradient overlay */}
               <div style={{
-                position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%)',
-                width: '7px', height: '7px', background: C.gold,
-                borderRadius: '50%', border: `1.5px solid ${C.white}`,
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.02) 40%, rgba(10,16,28,0.75) 100%)',
               }} />
-            </div>
-            <p style={{ fontFamily: F.display, fontSize: '32px', fontWeight: 600, color: C.burgundy, marginBottom: '8px' }}>
-              Faizuddarain Syam, S.Kom, M.Sc.
-            </p>
-            <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.6 }}>
-              Putra ke 1
-            </p>
-            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{
-                display: 'block', fontFamily: F.body, fontSize: '14px',
-                color: C.burgundy, fontWeight: 700, letterSpacing: '0.01em',
+              {/* Gold corner accents */}
+              {['tl','tr','bl','br'].map(p => {
+                const t = p[0]==='t', l = p[1]==='l'
+                return <div key={p} style={{
+                  position: 'absolute',
+                  [t?'top':'bottom']: '14px', [l?'left':'right']: '14px',
+                  width: '28px', height: '28px',
+                  borderTop: t ? `1.5px solid ${C.gold}` : 'none',
+                  borderBottom: !t ? `1.5px solid ${C.gold}` : 'none',
+                  borderLeft: l ? `1.5px solid ${C.gold}` : 'none',
+                  borderRight: !l ? `1.5px solid ${C.gold}` : 'none',
+                  opacity: 0.75,
+                }} />
+              })}
+              {/* Tag */}
+              <div style={{
+                position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
+                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+                border: `1px solid rgba(255,255,255,0.3)`,
+                borderRadius: '2px', padding: '5px 16px',
               }}>
-                Bapak Prof. Dr. Syamsudhuha, M.Sc.
-              </span>
-              <span style={{
-                display: 'block', fontFamily: F.body, fontSize: '13px',
-                color: C.textMid, fontStyle: 'italic',
-              }}>&amp;</span>
-              <span style={{
-                display: 'block', fontFamily: F.body, fontSize: '14px',
-                color: C.burgundy, fontWeight: 700, letterSpacing: '0.01em',
-              }}>
-                Ibu Dr. Nurhayati, M.Sc.
-              </span>
+                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0 }}>
+                  Mempelai Pria
+                </p>
+              </div>
+              {/* Info overlay */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px 28px' }}>
+                <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>
+                  Faizuddarain Syam,<br />S.Kom, M.Sc.
+                </p>
+                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '12px', letterSpacing: '0.5px' }}>
+                  Putra ke-1 dari
+                </p>
+                <div style={{ height: '1px', background: `${C.gold}60`, marginBottom: '12px' }} />
+                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 2 }}>
+                  Bapak Prof. Dr. Syamsudhuha, M.Sc.<br />
+                  <span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />
+                  Ibu Dr. Nurhayati, M.Sc.
+                </p>
+              </div>
             </div>
           </div>
+
         </div>
       </section>
       {/* ── EVENTS ───────────────────────────────────────────────────────────*/}
@@ -869,18 +1027,28 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </p>
           
             <a href="https://maps.app.goo.gl/bxiGv4QxUE3u2bNPA"
-            target="_blank" rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '13px 28px',
-              border: `1.5px solid ${C.navy}`, color: C.navy,
-              fontFamily: F.body, fontSize: '11px',
-              letterSpacing: '2px', textTransform: 'uppercase',
-              textDecoration: 'none', borderRadius: '4px',
-            }}
-          >
-            📍 Buka di Google Maps
-          </a>
+              target="_blank" rel="noopener noreferrer"
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = C.navy
+                ;(e.currentTarget as HTMLAnchorElement).style.color = C.white
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
+                ;(e.currentTarget as HTMLAnchorElement).style.color = C.navy
+              }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '13px 28px',
+                border: `1.5px solid ${C.navy}`, color: C.navy,
+                background: 'transparent',
+                fontFamily: F.body, fontSize: '11px',
+                letterSpacing: '2px', textTransform: 'uppercase',
+                textDecoration: 'none', borderRadius: '4px',
+                transition: 'background 0.3s ease, color 0.3s ease',
+              }}
+            >
+              📍 Buka di Google Maps
+            </a>
         </div>
       </section>
       {/* ── RSVP ─────────────────────────────────────────────────────────────*/}
@@ -922,6 +1090,18 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   <button
                     key={label}
                     onClick={() => setAttending(val)}
+                    onMouseEnter={e => {
+                      if (attending !== val) {
+                        (e.currentTarget as HTMLButtonElement).style.background = color
+                        ;(e.currentTarget as HTMLButtonElement).style.color = C.white
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (attending !== val) {
+                        (e.currentTarget as HTMLButtonElement).style.background = C.white
+                        ;(e.currentTarget as HTMLButtonElement).style.color = color
+                      }
+                    }}
                     style={{
                       flex: 1, padding: '15px 8px',
                       background: attending === val ? color : C.white,
@@ -988,6 +1168,22 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 onClick={submitRsvp}
                 disabled={attending === null || rsvpLoading}
                 className={attending !== null ? 'shimmer-btn' : ''}
+                onMouseEnter={e => {
+                  if (attending !== null) {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      `linear-gradient(135deg, ${C.burgundyDeep}, #3a0f1a)`
+                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
+                      `0 8px 28px rgba(125,37,53,0.44)`
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (attending !== null) {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`
+                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
+                      `0 4px 18px rgba(125,37,53,0.26)`
+                  }
+                }}
                 style={{
                   width: '100%', padding: '16px',
                   background: attending !== null
@@ -1032,28 +1228,41 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </p>
           </div>
           <div style={{ padding: '24px 24px 26px' }}>
-            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, marginBottom: '-2px' }}>
+            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark }}>
               Bank BCA
             </p>
-            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginBottom: '5px' }}>
+            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginTop: '-8px',marginBottom: '5px' }}>
               8288061851
             </p>
             <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>
               a.n. Vanya Alverissa
             </p>
             <button
-              onClick={() => copyText('[Nomor Rekening]', 'rek')}
+              onClick={() => copyText('8288061851', 'rek')}
               className={copied === 'rek' ? '' : 'shimmer-btn'}
+              onMouseEnter={e => {
+                if (copied !== 'rek') {
+                  (e.currentTarget as HTMLButtonElement).style.background = C.burgundy
+                  ;(e.currentTarget as HTMLButtonElement).style.color = C.white
+                }
+              }}
+              onMouseLeave={e => {
+                if (copied !== 'rek') {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                  ;(e.currentTarget as HTMLButtonElement).style.color = C.burgundy
+                }
+              }}
               style={{
                 padding: '10px 22px',
                 background: copied === 'rek'
                   ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`
                   : 'transparent',
                 border: `1.5px solid ${C.burgundy}`,
-                color:  copied === 'rek' ? C.white : C.burgundy,
+                color: copied === 'rek' ? C.white : C.burgundy,
                 borderRadius: '4px',
                 fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px',
-                cursor: 'pointer', transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
               }}
             >
               {copied === 'rek' ? '✓ Tersalin!' : 'Salin Nomor'}
@@ -1134,6 +1343,22 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 onClick={submitMessage}
                 disabled={!msgText.trim() || msgLoading}
                 className={msgText.trim() ? 'shimmer-btn' : ''}
+                onMouseEnter={e => {
+                  if (msgText.trim()) {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`
+                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
+                      `0 8px 28px rgba(30,58,95,0.44)`
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (msgText.trim()) {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
+                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
+                      `0 4px 18px rgba(30,58,95,0.26)`
+                  }
+                }}
                 style={{
                   width: '100%', padding: '15px',
                   background: msgText.trim()
@@ -1282,5 +1507,25 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         <SongketBand color="rgba(255,255,255,1)" opacity={0.07} />
       </footer>
     </div>
+    {/* FLOATING MUSIC BUTTON */}
+    <button
+      onClick={toggleMute}
+      title={muted ? 'Nyalakan musik' : 'Matikan musik'}
+      style={{
+        position: 'fixed', bottom: '24px', right: '24px', zIndex: 999,
+        width: '48px', height: '48px', borderRadius: '50%',
+        background: C.cream, border: `2px solid rgba(255,255,255,0.3)`,
+        color: C.white, fontSize: '20px', cursor: 'pointer',
+        boxShadow: '0 4px 20px rgba(125,37,53,0.35)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'transform 0.2s ease, opacity 0.2s ease',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
+      onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+    >
+      {muted ? '🔇' : '🎵'}
+    </button>
+
+  </>
   )
 }
