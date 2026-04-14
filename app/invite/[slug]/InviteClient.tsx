@@ -3,7 +3,22 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
-// ─── DESIGN TOKENS ────────────────────────────
+type Guest = {
+  id: number
+  name: string
+  slug: string
+  created_at: string
+}
+
+type Message = {
+  id?: number
+  guest_name: string
+  message: string
+  created_at?: string
+}
+
+type Countdown = { d: number; h: number; m: number; s: number }
+
 const C = {
   cream: '#FAF7F0',
   white: '#FFFFFF',
@@ -19,8 +34,7 @@ const F = {
   arabic: "'Scheherazade New', serif",
 }
 
-// ─── DECORATIVE HELPERS ───────────────────────
-function Diamond({ size = 7, color = C.gold, style = {} }) {
+function Diamond({ size = 7, color = C.gold, style = {} }: { size?: number; color?: string; style?: React.CSSProperties }) {
   return (
     <span style={{
       display: 'inline-block', width: size, height: size,
@@ -29,7 +43,7 @@ function Diamond({ size = 7, color = C.gold, style = {} }) {
   )
 }
 
-function Divider({ color = C.gold }) {
+function Divider({ color = C.gold }: { color?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px auto', maxWidth: '220px' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${color})` }} />
@@ -39,7 +53,7 @@ function Divider({ color = C.gold }) {
   )
 }
 
-function Corner({ pos }) {
+function Corner({ pos }: { pos: string }) {
   const t = pos[0] === 't', l = pos[1] === 'l'
   return (
     <div style={{
@@ -56,7 +70,7 @@ function Corner({ pos }) {
   )
 }
 
-function CdBox({ value, label }) {
+function CdBox({ value, label }: { value: number; label: string }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{
@@ -73,23 +87,15 @@ function CdBox({ value, label }) {
   )
 }
 
-// ─── MAIN COMPONENT ───────────────────────────
-type Guest = {
-    id: number
-    name: string
-    slug: string
-    created_at: string
-  }
-  
-  export default function InviteClient({ guest }: { guest: Guest }) {
+export default function InviteClient({ guest }: { guest: Guest }) {
   const [opened, setOpened] = useState(false)
-  const [cd, setCd] = useState({ d: 0, h: 0, m: 0, s: 0 })
-  const [attending, setAttending] = useState(null)
+  const [cd, setCd] = useState<Countdown>({ d: 0, h: 0, m: 0, s: 0 })
+  const [attending, setAttending] = useState<boolean | null>(null)
   const [pax, setPax] = useState(1)
   const [note, setNote] = useState('')
   const [rsvpDone, setRsvpDone] = useState(false)
   const [rsvpLoading, setRsvpLoading] = useState(false)
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [msgText, setMsgText] = useState('')
   const [msgDone, setMsgDone] = useState(false)
   const [msgLoading, setMsgLoading] = useState(false)
@@ -114,7 +120,7 @@ type Guest = {
   useEffect(() => {
     if (!opened) return
     const obs = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
       { threshold: 0.1 }
     )
     setTimeout(() => {
@@ -152,16 +158,15 @@ type Guest = {
     loadMessages()
   }
 
-  function copyText(text, key) {
+  function copyText(text: string, key: string) {
     navigator.clipboard.writeText(text)
     setCopied(key)
     setTimeout(() => setCopied(''), 2000)
   }
 
-  const S = { maxWidth: '480px', margin: '0 auto', padding: '56px 24px' }
+  const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '56px 24px' }
   const bgPattern = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect x='14' y='1' width='4' height='4' transform='rotate(45 16 3)' fill='%23C4973B'/%3E%3C/svg%3E")`
 
-  // ── COVER ─────────────────────────────────────
   if (!opened) return (
     <div style={{
       minHeight: '100vh', background: C.cream,
@@ -178,24 +183,19 @@ type Guest = {
           boxShadow: '0 8px 48px rgba(125,37,53,0.08)',
         }}>
           <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
-
           <div style={{ marginBottom: '20px' }}>
             <Diamond size={5} color={C.gold} style={{ margin: '0 5px' }} />
             <Diamond size={8} color={C.gold} style={{ margin: '0 5px' }} />
             <Diamond size={5} color={C.gold} style={{ margin: '0 5px' }} />
           </div>
-
           <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '24px' }}>
             Undangan Pernikahan
           </p>
-
           <p style={{ fontFamily: F.display, fontSize: '13px', color: C.textLight, fontStyle: 'italic', marginBottom: '4px' }}>Kepada Yth.</p>
           <p style={{ fontFamily: F.display, fontSize: '24px', fontWeight: 600, color: C.burgundy, marginBottom: '24px', lineHeight: 1.3 }}>
             {guest.name}
           </p>
-
           <Divider />
-
           <p style={{ fontFamily: F.display, fontSize: '34px', fontWeight: 300, color: C.textDark, letterSpacing: '1px', lineHeight: 1.1 }}>
             [Nama Pria]
           </p>
@@ -203,11 +203,9 @@ type Guest = {
           <p style={{ fontFamily: F.display, fontSize: '34px', fontWeight: 300, color: C.textDark, letterSpacing: '1px', lineHeight: 1.1, marginBottom: '24px' }}>
             [Nama Wanita]
           </p>
-
           <p style={{ fontFamily: F.body, fontSize: '12px', color: C.textLight, letterSpacing: '2px', marginBottom: '32px' }}>
             26 Juni 2026 · Jakarta
           </p>
-
           <button onClick={() => setOpened(true)} style={{
             display: 'block', width: '100%', padding: '15px',
             background: C.burgundy, color: C.white, border: 'none',
@@ -221,11 +219,9 @@ type Guest = {
     </div>
   )
 
-  // ── MAIN INVITATION ───────────────────────────
   return (
     <div style={{ background: C.cream }}>
 
-      {/* HERO */}
       <section className="reveal" style={{
         background: `linear-gradient(180deg, rgba(125,37,53,0.06) 0%, ${C.cream} 100%)`,
         padding: '72px 24px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden',
@@ -259,7 +255,6 @@ type Guest = {
         </div>
       </section>
 
-      {/* SALAM & AYAT */}
       <section className="reveal" style={{ ...S, textAlign: 'center' }}>
         <p style={{ fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', color: C.textLight, textTransform: 'uppercase', marginBottom: '32px' }}>
           Assalamu'alaikum Warahmatullahi Wabarakatuh
@@ -291,7 +286,6 @@ type Guest = {
         </p>
       </section>
 
-      {/* MEMPELAI */}
       <section className="reveal" style={{ background: C.white, padding: '56px 24px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
           <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '40px' }}>
@@ -324,7 +318,6 @@ type Guest = {
         </div>
       </section>
 
-      {/* ACARA */}
       <section className="reveal" style={{ ...S }}>
         <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
           Rangkaian Acara
@@ -354,7 +347,6 @@ type Guest = {
         ))}
       </section>
 
-      {/* LOKASI */}
       <section className="reveal" style={{ paddingBottom: '56px' }}>
         <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '24px', textAlign: 'center' }}>
           Lokasi
@@ -385,7 +377,6 @@ type Guest = {
         </div>
       </section>
 
-      {/* RSVP */}
       <section className="reveal" style={{ background: C.white, padding: '56px 24px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
           <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '8px' }}>
@@ -410,7 +401,10 @@ type Guest = {
           ) : (
             <>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-                {[{ val: true, label: '✓  Hadir', color: C.burgundy }, { val: false, label: '✗  Tidak Hadir', color: '#8B7D78' }].map(({ val, label, color }) => (
+                {[
+                  { val: true, label: '✓  Hadir', color: C.burgundy },
+                  { val: false, label: '✗  Tidak Hadir', color: '#8B7D78' }
+                ].map(({ val, label, color }) => (
                   <button key={label} onClick={() => setAttending(val)} style={{
                     flex: 1, padding: '14px 8px',
                     background: attending === val ? color : C.white,
@@ -428,11 +422,7 @@ type Guest = {
                     Jumlah tamu yang hadir
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    {[
-                      { op: () => setPax(p => Math.max(1, p - 1)), label: '−' },
-                    ].map(({ op, label }) => (
-                      <button key={label} onClick={op} style={{ width: '40px', height: '40px', borderRadius: '3px', border: `1px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>{label}</button>
-                    ))}
+                    <button onClick={() => setPax(p => Math.max(1, p - 1))} style={{ width: '40px', height: '40px', borderRadius: '3px', border: `1px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>−</button>
                     <span style={{ fontFamily: F.display, fontSize: '32px', color: C.textDark }}>{pax}</span>
                     <button onClick={() => setPax(p => Math.min(10, p + 1))} style={{ width: '40px', height: '40px', borderRadius: '3px', border: `1px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>+</button>
                     <span style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight }}>orang</span>
@@ -466,7 +456,6 @@ type Guest = {
         </div>
       </section>
 
-      {/* AMPLOP DIGITAL */}
       <section className="reveal" style={{ ...S }}>
         <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
           Amplop Digital
@@ -512,7 +501,6 @@ type Guest = {
         </div>
       </section>
 
-      {/* UCAPAN */}
       <section className="reveal" style={{ background: C.white, padding: '56px 24px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
           <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', color: C.gold, textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
@@ -558,7 +546,7 @@ type Guest = {
                 Jadilah yang pertama mengucapkan selamat 🤍
               </p>
             ) : messages.map((msg, i) => (
-              <div key={msg.id || i} style={{ background: '#FAFAF8', borderRadius: '6px', padding: '18px 20px', border: `1px solid rgba(196,151,59,0.18)` }}>
+              <div key={msg.id ?? i} style={{ background: '#FAFAF8', borderRadius: '6px', padding: '18px 20px', border: `1px solid rgba(196,151,59,0.18)` }}>
                 <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, marginBottom: '4px' }}>
                   {msg.guest_name}
                 </p>
@@ -571,7 +559,6 @@ type Guest = {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer style={{ background: C.burgundy, color: C.white, padding: '56px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
           <p style={{ fontFamily: F.arabic, fontSize: '28px', lineHeight: 2, marginBottom: '6px' }}>
