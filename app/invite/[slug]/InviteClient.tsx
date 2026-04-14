@@ -1032,14 +1032,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </p>
           </div>
           <div style={{ padding: '24px 24px 26px' }}>
-            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, marginBottom: '6px' }}>
-              Bank [Nama Bank]
+            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, marginBottom: '-2px' }}>
+              Bank BCA
             </p>
-            <p style={{ fontFamily: F.body, fontSize: '24px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginBottom: '5px' }}>
-              [Nomor Rekening]
+            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginBottom: '5px' }}>
+              8288061851
             </p>
             <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>
-              a.n. [Nama Pemilik]
+              a.n. Vanya Alverissa
             </p>
             <button
               onClick={() => copyText('[Nomor Rekening]', 'rek')}
