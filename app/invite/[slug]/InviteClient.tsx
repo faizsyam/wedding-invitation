@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 
 type Guest   = { id: number; name: string; slug: string; created_at: string }
@@ -277,7 +277,7 @@ function SectionLabel({ children, color = C.gold }: { children: React.ReactNode;
     }}>
       <Diamond size={3} color={color} style={{ opacity: 0.5 }} />
       <p style={{
-        fontFamily: F.body, fontSize: '9.5px', letterSpacing: '4px',
+        fontFamily: F.body, fontSize: '10px', letterSpacing: '5px',
         color, textTransform: 'uppercase', margin: 0,
       }}>
         {children}
@@ -304,6 +304,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [copied,      setCopied]      = useState('')
   const [hovered,     setHovered]     = useState<string | null>(null)
   const [muted,       setMuted]       = useState(false)
+  const [mapLoaded,   setMapLoaded]   = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   
@@ -342,7 +344,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [])
+
   // Scroll reveal
+
   useEffect(() => {
     if (!opened) return
     const obs = new IntersectionObserver(
@@ -350,10 +354,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       { threshold: 0.04 },
     )
     const id = setTimeout(() => {
-      document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => obs.observe(el))
+      document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .msg-card').forEach(el => obs.observe(el))
     }, 120)
     return () => { clearTimeout(id); obs.disconnect() }
   }, [opened])
+
   useEffect(() => { loadMessages() }, [])
   async function loadMessages() {
     const { data } = await supabase
@@ -361,6 +366,22 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       .order('created_at', { ascending: false }).limit(50)
     if (data) setMessages(data)
   }
+
+  useEffect(() => {
+    if (!opened) return
+    const handleScroll = () => {
+      const y = window.scrollY
+      document.querySelectorAll<HTMLElement>('.parallax-slow').forEach(el => {
+        el.style.transform = `translateY(${y * 0.16}px)`
+      })
+      document.querySelectorAll<HTMLElement>('.parallax-med').forEach(el => {
+        el.style.transform = `translateY(${y * 0.06}px)`
+      })
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [opened])
+
   function openInvite() {
     setFlashing(true)
     setClosing(true)
@@ -374,8 +395,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       attending, pax: attending ? pax : 0, note,
     })
     setRsvpDone(true)
+    // setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 5500)
     setRsvpLoading(false)
   }
+
   async function submitMessage() {
     if (!msgText.trim()) return
     setMsgLoading(true)
@@ -391,7 +415,64 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     setCopied(key)
     setTimeout(() => setCopied(''), 2500)
   }
-  const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '64px 24px' }
+
+  function ConfettiParticle({ x, y, color, delay }: {
+    x: number; y: number; color: string; delay: number
+  }) {
+    const shapeRoll = Math.random()
+    const isCircle  = shapeRoll > 0.78
+    const isRibbon  = !isCircle && shapeRoll > 0.42
+  
+    const w = isCircle ? 8 : isRibbon ? 3 + Math.random() * 2 : 6 + Math.random() * 8
+    const h = isCircle ? 8 : isRibbon ? 14 + Math.random() * 10 : 5 + Math.random() * 7
+  
+    // Physics — precompute all CSS var values so they never change on re-render
+    const tx     = (Math.random() - 0.5) * Math.min(window.innerWidth * 0.9, 700)
+    const peakY  = -(Math.random() * 340 + 160)
+    const finalY = (window.innerHeight - y) + Math.random() * 100 + 100
+    const rot    = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 1080)
+    const duration = 2.8 + Math.random() * 1.6
+  
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          left: x,
+          top: y,
+          width: `${w}px`,
+          height: `${h}px`,
+          background: color,
+          borderRadius: isCircle ? '50%' : '1.5px',
+          pointerEvents: 'none',
+          zIndex: 9999,
+          transformOrigin: 'center center',
+          ['--tx' as string]     : `${tx}px`,
+          ['--tx30' as string]   : `${tx * 0.3}px`,
+          ['--peak-y' as string] : `${peakY}px`,
+          ['--final-y' as string]: `${finalY}px`,
+          ['--rot' as string]    : `${rot}deg`,
+          ['--rot30' as string]  : `${rot * 0.3}deg`,
+          animation: `confettiArc ${duration}s ${delay}s forwards`,
+        } as React.CSSProperties}
+      />
+    )
+  }
+
+  const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
+
+  const confettiParticles = useMemo(() => {
+    if (!showConfetti) return []
+    const colors = [C.gold, C.burgundy, C.goldPale, C.goldBright, '#F2E8E4', '#E8C4B0', C.burgundy, C.gold]
+    return Array.from({ length: 90 }, (_, i) => ({
+      id: i,
+      // tight cluster near submit button, not random scatter
+      x: window.innerWidth  * 0.5 + (Math.random() - 0.5) * 90,
+      y: window.innerHeight * 0.65,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      delay: i * 0.022,
+    }))
+  }, [showConfetti])
+
   // ═══════════════════════════════════════════════════════════════════════════
   // COVER PAGE
   // ═══════════════════════════════════════════════════════════════════════════
@@ -540,9 +621,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Woven texture */}
-        <div className="wajik-bg-animate" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
+        <div className="wajik-bg-animate parallax-slow" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
         {/* Ambient glow orb */}
-        <div className="orb-pulse" style={{
+        <div className="orb-pulse parallax-med" style={{
           position: 'absolute', top: '-60px', left: '50%', transform: 'translateX(-50%)',
           width: '560px', height: '480px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(196,151,59,0.05) 0%, transparent 68%)',
@@ -554,7 +635,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             className="arabic-glow"
             style={{
               fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
-              lineHeight: 2.1, marginBottom: '8px', marginTop: '-8px'
+              lineHeight: 2.1, marginBottom: '8px', marginTop: '-16px'
             }}
           >
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
@@ -569,9 +650,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             marginTop: '-2px',
             marginBottom: '-2px',
           }}>
-            <span className="name-float gold-shimmer-text">Vanya</span>
+            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.2s' }}>Vanya</span>
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '8px 0', opacity: 0, animation: 'nameReveal 0.8s 0.45s cubic-bezier(0.16,1,0.3,1) both' }}>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
             <p style={{ fontFamily: F.display, fontSize: '20px', color: C.gold, fontStyle: 'italic' }}>dan</p>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
@@ -583,7 +664,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             marginTop: '-2px',
             marginBottom: '32px',
           }}>
-            <span className="name-float gold-shimmer-text">Faiz</span>
+            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.65s' }}>Faiz</span>
           </p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, letterSpacing: '2px', marginBottom: '52px' }}>
             Jum'at, 26 Juni 2026 · Jakarta
@@ -655,6 +736,24 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             }}>
               26 Juni 2026
             </p>
+          </div>
+          <div style={{ marginTop: '36px' }}>
+            <button
+              onClick={() => document.getElementById('rsvp-section')?.scrollIntoView({ behavior: 'smooth' })}
+              style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                margin: '0 auto', padding: '8px 16px',
+                fontFamily: F.body, fontSize: '9px', letterSpacing: '3px',
+                color: C.textLight, textTransform: 'uppercase',
+                animation: 'nudgeDown 2.4s ease-in-out infinite',
+              }}
+            >
+              Konfirmasi Kehadiran
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                <path d="M3 6l5 5 5-5" stroke={C.gold} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </section>
@@ -788,7 +887,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
 
           {/* ── Wanita ── */}
-          <div className="reveal-left" style={{ marginBottom: '20px' }}>
+          <div className="portrait-card reveal-left" style={{ marginBottom: '20px' }}>
             <div style={{
               position: 'relative', borderRadius: '6px', overflow: 'hidden',
               height: '480px', boxShadow: '0 20px 60px rgba(125,37,53,0.18)',
@@ -801,7 +900,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               {/* Gradient overlay */}
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.02) 40%, rgba(20,8,12,0.72) 100%)',
+                background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%),
+                radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)`,
               }} />
               {/* Gold corner accents */}
               {['tl','tr','bl','br'].map(p => {
@@ -838,7 +938,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 </p>
                 <div style={{ height: '1px', background: `${C.gold}60`, marginBottom: '12px' }} />
                 <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 2 }}>
-                  Bapak Darmasyah Yusuf<br />
+                  Bapak Darmansyah Yusuf<br />
                   <span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />
                   Ibu Marlina Susanti, SE.
                 </p>
@@ -857,7 +957,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
 
           {/* ── Pria ── */}
-          <div className="reveal-right" style={{ marginTop: '20px' }}>
+          <div className="portrait-card reveal-right" style={{ marginTop: '20px' }}>
             <div style={{
               position: 'relative', borderRadius: '6px', overflow: 'hidden',
               height: '480px', boxShadow: '0 20px 60px rgba(30,58,95,0.18)',
@@ -870,7 +970,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               {/* Gradient overlay */}
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.02) 40%, rgba(10,16,28,0.75) 100%)',
+                background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%),
+                radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)`,
               }} />
               {/* Gold corner accents */}
               {['tl','tr','bl','br'].map(p => {
@@ -1007,9 +1108,19 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </p>
         </div>
         {/* Map with songket frame */}
-        <div className="reveal" style={{ position: 'relative', boxShadow: '0 4px 28px rgba(44,24,16,0.09)', transformOrigin: 'center top' }}>
+        <div style={{ position: 'relative' }}>
           <SongketBand color={C.gold} opacity={0.11} />
+          {!mapLoaded && (
+            <div style={{
+              position: 'absolute', inset: 0, height: '280px',
+              background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`,
+              backgroundSize: '200% 100%',
+              animation: 'shimmerSweepBg 1.8s infinite linear',
+              zIndex: 1,
+            }} />
+          )}
           <iframe
+            onLoad={() => setMapLoaded(true)}
             src="https://maps.google.com/maps?q=Pejaten+Terrace+Jl+Warung+Jati+Barat+No+39+Jakarta+Selatan&output=embed&hl=id"
             width="100%" height="280"
             style={{ border: 'none', display: 'block' }}
@@ -1052,7 +1163,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         </div>
       </section>
       {/* ── RSVP ─────────────────────────────────────────────────────────────*/}
-      <section className="reveal" style={{ background: C.white, padding: '68px 24px' }}>
+      <section className="reveal" id="rsvp-section" style={{ background: C.white, padding: '80px 28px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
           <SectionLabel>Konfirmasi Kehadiran</SectionLabel>
           <p style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, marginBottom: '10px', lineHeight: 1.05 }}>
@@ -1067,7 +1178,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               border: `1px solid rgba(125,37,53,0.18)`, borderRadius: '8px',
               overflow: 'hidden', background: 'rgba(125,37,53,0.025)',
               position: 'relative',
-            }}>
+            }}
+            className="success-bounce"
+            >
               <SongketBand color={C.burgundy} opacity={0.05} />
               <div style={{ padding: '44px 24px' }}>
                 <p style={{ fontSize: '42px', marginBottom: '18px' }}>🤍</p>
@@ -1129,6 +1242,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <button
                       onClick={() => setPax(p => Math.max(1, p - 1))}
+                      className="pax-btn"
                       style={{
                         width: '40px', height: '40px', borderRadius: '4px',
                         border: `1.5px solid ${C.burgundy}`, background: C.white,
@@ -1140,6 +1254,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     </span>
                     <button
                       onClick={() => setPax(p => Math.min(10, p + 1))}
+                      className="pax-btn"
                       style={{
                         width: '40px', height: '40px', borderRadius: '4px',
                         border: `1.5px solid ${C.burgundy}`, background: C.white,
@@ -1254,6 +1369,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               }}
               style={{
                 padding: '10px 22px',
+                position: 'relative',
+                overflow: 'hidden',  
                 background: copied === 'rek'
                   ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`
                   : 'transparent',
@@ -1265,6 +1382,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 transition: 'all 0.3s ease',
               }}
             >
+              {copied === 'rek' && <span className="copy-ripple" />}
               {copied === 'rek' ? '✓ Tersalin!' : 'Salin Nomor'}
             </button>
           </div>
@@ -1298,7 +1416,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         </div>
       </section>
       {/* ── MESSAGES ─────────────────────────────────────────────────────────*/}
-      <section className="reveal" style={{ background: C.white, padding: '68px 24px' }}>
+      <section className="reveal" style={{ background: C.white, padding: '80px 28px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
           <SectionLabel>Ucapan &amp; Doa</SectionLabel>
           <p style={{ fontFamily: F.display, fontSize: '36px', color: C.textDark, textAlign: 'center', marginBottom: '42px' }}>
@@ -1395,7 +1513,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   borderRadius: '8px', padding: '18px 20px',
                   border: `1px solid rgba(196,151,59,0.13)`,
                   boxShadow: '0 2px 10px rgba(44,24,16,0.03)',
-                  animationDelay: `${i * 0.08}s`,
+                  transitionDelay: `${i * 0.07}s`,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -1438,7 +1556,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             pointerEvents: 'none',
           }} />
           <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '-14px', marginBottom: '28px' }}>
               <Diamond size={3} color="rgba(196,151,59,0.4)" />
               <div className="breathe"><WajikBadge color="rgba(196,151,59,0.65)" size={40} /></div>
               <Diamond size={3} color="rgba(196,151,59,0.4)" />
@@ -1514,8 +1632,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       style={{
         position: 'fixed', bottom: '24px', right: '24px', zIndex: 999,
         width: '48px', height: '48px', borderRadius: '50%',
-        background: C.cream, border: `2px solid rgba(255,255,255,0.3)`,
-        color: C.white, fontSize: '20px', cursor: 'pointer',
+        background: 'rgba(250, 247, 240, 0.15)',
+        backdropFilter: 'blur(12px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(160%)',
+        border: `1.5px solid rgba(196,151,59,0.35)`,
+        color: C.gold,
+        fontSize: '16px',
         boxShadow: '0 4px 20px rgba(125,37,53,0.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'transform 0.2s ease, opacity 0.2s ease',
@@ -1525,7 +1647,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     >
       {muted ? '🔇' : '🎵'}
     </button>
-
+    {showConfetti && (
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999 }}>
+        {confettiParticles.map(p => (
+          <ConfettiParticle key={p.id} x={p.x} y={p.y} color={p.color} delay={p.delay} />
+        ))}
+      </div>
+    )}
   </>
   )
 }
