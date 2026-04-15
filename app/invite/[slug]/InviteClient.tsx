@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 
 type Guest   = { id: number; name: string; slug: string; created_at: string }
-type Message = { id?: number; guest_name: string; message: string; created_at?: string }
+type Message = { id?: number; guest_name: string; message: string; created_at?: string; isNew?: boolean}
 type Countdown = { d: number; h: number; m: number; s: number }
 // ─── Design Tokens ─────────────────────────────────────────────────────────
 const C = {
@@ -306,6 +306,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [muted,       setMuted]       = useState(false)
   const [mapLoaded,   setMapLoaded]   = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [paxVisible,  setPaxVisible]  = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   
@@ -382,6 +383,16 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [opened])
 
+  useEffect(() => {
+    if (attending === true) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPaxVisible(true))
+      })
+    } else {
+      setPaxVisible(false)
+    }
+  }, [attending])
+
   function openInvite() {
     setFlashing(true)
     setClosing(true)
@@ -403,13 +414,36 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   async function submitMessage() {
     if (!msgText.trim()) return
     setMsgLoading(true)
-    await supabase.from('messages').insert({
-      guest_slug: guest.slug, guest_name: guest.name, message: msgText.trim(),
-    })
+  
+    // Optimistic: add to top of list immediately with isNew flag
+    const optimistic: Message = {
+      id: undefined,
+      guest_name: guest.name,
+      message: msgText.trim(),
+      isNew: true,
+    }
+    setMessages(prev => [optimistic, ...prev])
     setMsgDone(true)
     setMsgLoading(false)
-    loadMessages()
+  
+    // Then actually save to DB and refresh to get real id
+    await supabase.from('messages').insert({
+      guest_slug: guest.slug,
+      guest_name: guest.name,
+      message: msgText.trim(),
+    })
+  
+    // After 3s remove the isNew highlight, then reload real data
+    setTimeout(async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50)
+      if (data) setMessages(data)
+    }, 3000)
   }
+
   function copyText(text: string, key: string) {
     navigator.clipboard.writeText(text)
     setCopied(key)
@@ -635,7 +669,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             className="arabic-glow"
             style={{
               fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
-              lineHeight: 2.1, marginBottom: '8px', marginTop: '-16px'
+              lineHeight: 2.1, marginBottom: '8px', marginTop: '-24px'
             }}
           >
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
@@ -650,7 +684,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             marginTop: '-2px',
             marginBottom: '-2px',
           }}>
-            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.2s' }}>Vanya</span>
+            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.4s' }}>Vanya</span>
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '8px 0', opacity: 0, animation: 'nameReveal 0.8s 0.45s cubic-bezier(0.16,1,0.3,1) both' }}>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
@@ -664,7 +698,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             marginTop: '-2px',
             marginBottom: '32px',
           }}>
-            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.65s' }}>Faiz</span>
+            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.55s' }}>Faiz</span>
           </p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, letterSpacing: '2px', marginBottom: '52px' }}>
             Jum'at, 26 Juni 2026 · Jakarta
@@ -1233,35 +1267,61 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </div>
               {attending === true && (
                 <div style={{
-                  marginBottom: '20px', textAlign: 'left',
-                  background: C.cream, borderRadius: '6px', padding: '20px 20px 18px',
+                  display: 'grid',
+                  gridTemplateRows: paxVisible ? '1fr' : '0fr',
+                  opacity: paxVisible ? 1 : 0,
+                  transform: paxVisible ? 'translateY(0px)' : 'translateY(-12px)',
+                  marginBottom: paxVisible ? '20px' : '0px',
+                  transition: [
+                    'grid-template-rows 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+                    'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                    'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+                    'margin-bottom 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+                  ].join(', '),
                 }}>
-                  <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, marginBottom: '14px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-                    Jumlah tamu yang hadir
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button
-                      onClick={() => setPax(p => Math.max(1, p - 1))}
-                      className="pax-btn"
-                      style={{
-                        width: '40px', height: '40px', borderRadius: '4px',
-                        border: `1.5px solid ${C.burgundy}`, background: C.white,
-                        color: C.burgundy, fontSize: '20px', cursor: 'pointer',
-                      }}
-                    >−</button>
-                    <span style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, minWidth: '44px', textAlign: 'center', lineHeight: 1 }}>
-                      {pax}
-                    </span>
-                    <button
-                      onClick={() => setPax(p => Math.min(10, p + 1))}
-                      className="pax-btn"
-                      style={{
-                        width: '40px', height: '40px', borderRadius: '4px',
-                        border: `1.5px solid ${C.burgundy}`, background: C.white,
-                        color: C.burgundy, fontSize: '20px', cursor: 'pointer',
-                      }}
-                    >+</button>
-                    <span style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight }}>orang</span>
+                  <div style={{ overflow: 'hidden', minHeight: 0 }}>
+                    <div style={{
+                      textAlign: 'left',
+                      background: C.cream, borderRadius: '6px', padding: '20px 20px 18px',
+                    }}>
+                      <p style={{
+                        fontFamily: F.body, fontSize: '11px', color: C.textLight,
+                        marginBottom: '14px', letterSpacing: '1.5px', textTransform: 'uppercase',
+                      }}>
+                        Jumlah tamu yang hadir
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <button
+                          onClick={() => setPax(p => Math.max(1, p - 1))}
+                          className="pax-btn"
+                          style={{
+                            width: '40px', height: '40px', borderRadius: '4px',
+                            border: `1.5px solid ${C.burgundy}`, background: C.white,
+                            color: C.burgundy, fontSize: '20px', cursor: 'pointer',
+                          }}
+                        >−</button>
+                        <span
+                          key={pax}
+                          style={{
+                            fontFamily: F.display, fontSize: '38px', color: C.textDark,
+                            minWidth: '44px', textAlign: 'center', lineHeight: 1,
+                            animation: 'paxTick 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both',
+                          }}
+                        >
+                          {pax}
+                        </span>
+                        <button
+                          onClick={() => setPax(p => Math.min(10, p + 1))}
+                          className="pax-btn"
+                          style={{
+                            width: '40px', height: '40px', borderRadius: '4px',
+                            border: `1.5px solid ${C.burgundy}`, background: C.white,
+                            color: C.burgundy, fontSize: '20px', cursor: 'pointer',
+                          }}
+                        >+</button>
+                        <span style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight }}>orang</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1422,20 +1482,23 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p style={{ fontFamily: F.display, fontSize: '36px', color: C.textDark, textAlign: 'center', marginBottom: '42px' }}>
             Kirim Do'a &amp; Selamat
           </p>
+
+          {/* ── Input area ── */}
           {msgDone ? (
             <div style={{
-              textAlign: 'center', padding: '44px 24px',
+              textAlign: 'center', padding: '24px 24px',
               border: `1px solid rgba(30,58,95,0.18)`, borderRadius: '8px',
-              background: 'rgba(30,58,95,0.025)', marginBottom: '40px',
+              background: 'rgba(30,58,95,0.025)', marginBottom: '20px',
               overflow: 'hidden', position: 'relative',
+              animation: 'successReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
             }}>
               <SongketBand color={C.navy} opacity={0.04} />
-              <div style={{ padding: '8px 0' }}>
+              <div style={{ padding: '0 0' }}>
                 <p style={{ fontSize: '34px', marginBottom: '14px' }}>💌</p>
                 <p style={{ fontFamily: F.display, fontSize: '26px', color: C.navy, marginBottom: '8px' }}>
                   Ucapanmu sudah terkirim!
                 </p>
-                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9 }}>
+                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9, marginBottom: '28px' }}>
                   Terima kasih atas do'a tulusmu 🤍
                 </p>
               </div>
@@ -1463,25 +1526,19 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 className={msgText.trim() ? 'shimmer-btn' : ''}
                 onMouseEnter={e => {
                   if (msgText.trim()) {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`
-                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
-                      `0 8px 28px rgba(30,58,95,0.44)`
+                    (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`
+                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(30,58,95,0.44)`
                   }
                 }}
                 onMouseLeave={e => {
                   if (msgText.trim()) {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
-                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
-                      `0 4px 18px rgba(30,58,95,0.26)`
+                    (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
+                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(30,58,95,0.26)`
                   }
                 }}
                 style={{
                   width: '100%', padding: '15px',
-                  background: msgText.trim()
-                    ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
-                    : '#E8E0DC',
+                  background: msgText.trim() ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC',
                   color: msgText.trim() ? C.white : '#B0A09A',
                   border: 'none', borderRadius: '5px',
                   fontFamily: F.body, fontSize: '11px',
@@ -1495,48 +1552,108 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </button>
             </div>
           )}
-          {/* Messages list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {messages.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '44px 24px' }}>
-                <p style={{ fontSize: '28px', marginBottom: '14px', opacity: 0.35 }}>✉️</p>
-                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textGhost }}>
-                  Jadilah yang pertama mengucapkan selamat 🤍
+
+          {/* ── Messages list ── */}
+          {messages.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '44px 24px' }}>
+              <p style={{ fontSize: '28px', marginBottom: '14px', opacity: 0.35 }}>✉️</p>
+              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textGhost }}>
+                Jadilah yang pertama mengucapkan selamat 🤍
+              </p>
+            </div>
+          ) : (
+            <div style={{ position: 'relative' }}>
+
+              {/* Count badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                  {messages.length} ucapan
                 </p>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: 0.5 }} />
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: 0.8 }} />
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold }} />
+                </div>
               </div>
-            ) : messages.map((msg, i) => (
+
+              {/* Scroll container */}
               <div
-                key={msg.id ?? i}
-                className="msg-card"
+                id="messages-scroll"
                 style={{
-                  background: i % 2 === 0 ? '#FAFAF8' : C.cream,
-                  borderRadius: '8px', padding: '18px 20px',
-                  border: `1px solid rgba(196,151,59,0.13)`,
-                  boxShadow: '0 2px 10px rgba(44,24,16,0.03)',
-                  transitionDelay: `${i * 0.07}s`,
+                  height: '300px',
+                  overflowY: 'auto',
+                  paddingRight: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: `${C.gold}40 transparent`,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <div style={{
-                    width: '34px', height: '34px', borderRadius: '50%',
-                    background: `linear-gradient(135deg, rgba(125,37,53,0.12), rgba(30,58,95,0.12))`,
-                    border: `1px solid ${C.gold}28`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy,
-                    flexShrink: 0,
-                  }}>
-                    {msg.guest_name.charAt(0).toUpperCase()}
+                {(messages.length > 2 ? [...messages, ...messages] : messages).map((msg, i) => (
+                  <div
+                    key={`${msg.id ?? 'opt'}-${i}`}
+                    className={msg.isNew ? 'msg-new' : ''}
+                    style={{
+                      background: msg.isNew
+                        ? `linear-gradient(135deg, rgba(125,37,53,0.04), rgba(196,151,59,0.06))`
+                        : i % 2 === 0 ? '#FAFAF8' : C.cream,
+                      borderRadius: '8px', padding: '10px 20px',
+                      border: msg.isNew
+                        ? `1px solid rgba(196,151,59,0.35)`
+                        : `1px solid rgba(196,151,59,0.13)`,
+                      boxShadow: msg.isNew
+                        ? `0 4px 20px rgba(125,37,53,0.08)`
+                        : '0 2px 10px rgba(44,24,16,0.03)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                      <div style={{
+                        width: '34px', height: '34px', borderRadius: '50%',
+                        background: msg.isNew
+                          ? `linear-gradient(135deg, rgba(125,37,53,0.2), rgba(196,151,59,0.2))`
+                          : `linear-gradient(135deg, rgba(125,37,53,0.12), rgba(30,58,95,0.12))`,
+                        border: `1px solid ${C.gold}${msg.isNew ? '55' : '28'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy,
+                        flexShrink: 0,
+                      }}>
+                        {msg.guest_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1 }}>
+                          {msg.guest_name}
+                        </p>
+                        {msg.isNew && (
+                          <p style={{ fontFamily: F.body, fontSize: '10px', color: C.gold, letterSpacing: '1.5px', marginTop: '3px' }}>
+                            BARU SAJA
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 1.9, paddingLeft: '44px' }}>
+                      {msg.message}
+                    </p>
                   </div>
-                  <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy }}>
-                    {msg.guest_name}
-                  </p>
-                </div>
-                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 1.9, paddingLeft: '44px' }}>
-                  {msg.message}
-                </p>
+                ))}
               </div>
-            ))}
-          </div>
+
+              {/* Top fade */}
+              <div style={{
+                position: 'absolute', top: '40px', left: 0, right: '6px', height: '40px',
+                background: `linear-gradient(to bottom, ${C.white}, transparent)`,
+                pointerEvents: 'none',
+              }} />
+              {/* Bottom fade */}
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: '6px', height: '60px',
+                background: `linear-gradient(to bottom, transparent, ${C.white})`,
+                pointerEvents: 'none',
+              }} />
+
+            </div>
+          )}
         </div>
       </section>
       {/* ── FOOTER ───────────────────────────────────────────────────────────*/}
