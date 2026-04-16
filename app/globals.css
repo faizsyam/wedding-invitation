@@ -324,8 +324,14 @@ a {
   animation: arabicGlow 4s ease-in-out infinite;
 }
 @keyframes arabicGlow {
-  0%, 100% { text-shadow: 0 0 0px rgba(125,37,53,0.0); }
-  50%       { text-shadow: 0 0 28px rgba(125,37,53,0.22), 0 2px 12px rgba(125,37,53,0.12); }
+  0%, 100% {
+    text-shadow: 0 0 0px rgba(125,37,53,0);
+  }
+  50% {
+    text-shadow:
+      0 0 32px rgba(125,37,53,0.45),
+      0 4px 18px rgba(125,37,53,0.25);
+  }
 }
 
 .gold-shimmer-text {
@@ -572,50 +578,67 @@ a {
 @keyframes inviteFadeUp {
   from {
     opacity: 0;
-    transform: translateY(22px);
-    filter: blur(2px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
 @keyframes inviteNameReveal {
   0% {
     opacity: 0;
-    transform: scale(0.88) translateY(10px);
-    letter-spacing: 6px;
+    transform: scale(0.94) translateY(8px);
   }
   60% {
     opacity: 1;
-    transform: scale(1.03) translateY(-2px);
-    letter-spacing: 0.5px;
+    transform: scale(1.02) translateY(-2px);
   }
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
-    letter-spacing: 0;
   }
 }
 
 @keyframes underlineGrow {
-  from { transform: scaleX(0); opacity: 0; }
-  to   { transform: scaleX(1); opacity: 1; }
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.invite-name-pop > div {
+  transform-origin: center;
+}
+
+.invite-name-pop {
+  will-change: transform, opacity;
 }
 
 .reveal.visible .invite-text-block .invite-line-1 {
-  animation: inviteFadeUp 1.0s 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: inviteFadeUp 0.8s 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
 .reveal.visible .invite-text-block .invite-name-pop {
-  animation: inviteNameReveal 1.0s 1.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: inviteNameReveal 0.9s 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .reveal.visible .invite-text-block .invite-name-pop > div {
-  animation: underlineGrow 0.8s 2.5s ease forwards;
+  animation: underlineGrow 0.7s 1.6s ease forwards;
 }
 
 .reveal.visible .invite-text-block .invite-line-2 {
-  animation: inviteFadeUp 1.0s 2.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: inviteFadeUp 0.8s 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.invite-line-1,
+.invite-line-2,
+.invite-name-pop,
+.invite-name-pop > div {
+  opacity: 0;
 }

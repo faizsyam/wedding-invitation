@@ -649,7 +649,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       {/* ── HERO ─────────────────────────────────────────────────────────────*/}
       <section style={{
         background: `linear-gradient(180deg, rgba(125,37,53,0.075) 0%, rgba(125,37,53,0.02) 65%, transparent 100%)`,
-        padding: '84px 24px 68px', textAlign: 'center',
+        padding: '68px 24px 68px', textAlign: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
         <div className="wajik-bg-animate" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
@@ -664,9 +664,16 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p
             className="arabic-glow"
             style={{
-              fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
-              lineHeight: 2.1, marginBottom: '10px', marginTop: '-24px',
-              animation: 'heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both',
+              fontFamily: F.arabic,
+              fontSize: '32px',
+              color: C.burgundy,
+              lineHeight: 2.1,
+              marginBottom: '10px',
+              marginTop: '-24px',
+              animation: `
+                heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both,
+                arabicGlow 4s ease-in-out infinite
+              `,
             }}
           >
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
@@ -826,15 +833,15 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       {/* ── ANIMATED SONGKET DIVIDER ─────────────────────────────────────────*/}
       <AnimatedSongketDivider />
       {/* ── INTRODUCTION ─────────────────────────────────────────────────────*/}
-      <section className="reveal" style={{ ...S, textAlign: 'center' }}>
-        <p style={{
+      <section style={{ ...S, textAlign: 'center' }}>
+        <p className="invite-line-1" style={{
           fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
           color: C.textLight, textTransform: 'uppercase', marginBottom: '36px', lineHeight: 2.2,
         }}>
           Assalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
         {/* Quranic verse card */}
-        <div style={{
+        <div className="reveal" style={{
           background: C.white,
           border: `1px solid rgba(196,151,59,0.18)`,
           borderRadius: '8px',

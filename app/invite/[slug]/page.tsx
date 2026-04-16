@@ -18,13 +18,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const baseUrl = 'https://wedding-vanya-faiz.vercel.app'
 
   return {
-    title: 'Undangan Pernikahan | Faiz & Vanya',
+    title: 'Undangan Pernikahan | Vanya & Faiz',
     description: `Kepada Bapak/Ibu/Saudara/i ${guestName}, kami mengundang Anda untuk hadir di hari istimewa kami. 26 Juni 2026 · Jakarta`,
     openGraph: {
-      title: 'Undangan Pernikahan | Faiz & Vanya',
+      title: 'Undangan Pernikahan | Vanya & Faiz',
       description: `Kepada Bapak/Ibu/Saudara/i ${guestName}, kami mengundang Anda untuk hadir. 26 Juni 2026 · Jakarta`,
       url: `${baseUrl}/invite/${slug}`,
-      siteName: 'Undangan Pernikahan Faiz & Vanya',
+      siteName: 'Undangan Pernikahan Vanya & Faiz',
       images: [
         {
           url: `${baseUrl}/og-image.jpg`,
