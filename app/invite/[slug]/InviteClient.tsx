@@ -314,11 +314,26 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     audio.loop = true
     audio.volume = 0.4
     audioRef.current = audio
-    const tryPlay = () => { audio.play().catch(() => {}) }
+  
+    const tryPlay = () => {
+      audio.play().catch(() => {})
+    }
+  
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        audio.pause()
+      } else {
+        audio.play().catch(() => {})
+      }
+    }
+  
     document.addEventListener('click', tryPlay, { once: true })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+  
     return () => {
       audio.pause()
       document.removeEventListener('click', tryPlay)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
   
