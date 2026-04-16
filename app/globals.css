@@ -346,7 +346,7 @@ a {
     #2C1810 100%
   );
   background-size: 250% auto;
-  background-position: -150% center;
+  background-position: 150% center;
   
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -356,8 +356,8 @@ a {
 }
 
 @keyframes goldShimmerMove {
-  0%   { background-position: -150% center; }
-  100% { background-position: 150% center; }
+  0%   { background-position: 150% center; }
+  100% { background-position: -150% center; }
 }
 
 .wajik-bg-animate {

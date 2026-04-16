@@ -566,46 +566,50 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </p>
             </div>
             <PucukRebungDivider />
-            <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                gap: '16px', // adjust this to taste
-                marginBottom: '22px'
-                }}>
-                <p style={{
-                    fontFamily: F.display,
-                    fontSize: '38px',
-                    fontWeight: 300,
-                    color: C.textDark,
-                    letterSpacing: '0.5px',
-                    lineHeight: 1.04,
-                    margin: 0
-                }}>
-                    Vanya
-                </p>
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '0px', marginBottom: '22px', position: 'relative',
+            }}>
+              {/* Vanya */}
+              <p style={{
+                fontFamily: F.display, fontSize: '46px', fontWeight: 300,
+                letterSpacing: '1px', lineHeight: 1.0, margin: 0,
+              }}>
+                <span style={{ animationDelay: '0.3s', display: 'inline-block' }}>
+                  <span className="gold-shimmer-text">Vanya</span>
+                </span>
+              </p>
 
+              {/* Ampersand divider */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                margin: '10px 0',
+              }}>
+                <div style={{ height: '1px', width: '28px', background: `${C.gold}40` }} />
                 <p style={{
-                    fontFamily: F.display,
-                    fontSize: '17px',
-                    color: C.gold,
-                    fontStyle: 'italic',
-                    margin: 0
-                }}>
-                    dan
-                </p>
+                  fontFamily: F.display, fontSize: '18px',
+                  color: C.gold, fontStyle: 'italic', margin: 0,
+                  textShadow: `0 0 18px ${C.gold}55`,
+                }}>dan</p>
+                <div style={{ height: '1px', width: '28px', background: `${C.gold}40` }} />
+              </div>
 
-                <p style={{
-                    fontFamily: F.display,
-                    fontSize: '38px',
-                    fontWeight: 300,
-                    color: C.textDark,
-                    letterSpacing: '0.5px',
-                    lineHeight: 1.04,
-                    margin: 0
-                }}>
-                    Faiz
-                </p>
+              {/* Faiz */}
+              <p style={{
+                fontFamily: F.display, fontSize: '46px', fontWeight: 300,
+                letterSpacing: '1px', lineHeight: 1.0, margin: 0,
+              }}>
+                <span style={{ animationDelay: '0.55s', display: 'inline-block' }}>
+                  <span className="gold-shimmer-text">Faiz</span>
+                </span>
+              </p>
+
+              {/* Bottom ornament */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+                <Diamond size={3} color={C.gold} style={{ opacity: 0.3 }} />
+                <Diamond size={5} color={C.gold} style={{ opacity: 0.55 }} />
+                <Diamond size={3} color={C.gold} style={{ opacity: 0.3 }} />
+              </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '34px' }}>
               <div style={{ height: '1px', width: '20px', background: `${C.gold}50` }} />
@@ -833,15 +837,15 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       {/* ── ANIMATED SONGKET DIVIDER ─────────────────────────────────────────*/}
       <AnimatedSongketDivider />
       {/* ── INTRODUCTION ─────────────────────────────────────────────────────*/}
-      <section style={{ ...S, textAlign: 'center' }}>
-        <p className="invite-line-1" style={{
+      <section className="reveal" style={{ ...S, textAlign: 'center' }}>
+        <p style={{
           fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
           color: C.textLight, textTransform: 'uppercase', marginBottom: '36px', lineHeight: 2.2,
         }}>
           Assalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
         {/* Quranic verse card */}
-        <div className="reveal" style={{
+        <div style={{
           background: C.white,
           border: `1px solid rgba(196,151,59,0.18)`,
           borderRadius: '8px',
