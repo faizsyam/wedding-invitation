@@ -827,7 +827,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
           }}>
             Dengan memohon rahmat dan ridho Allah Subhanahu Wa Ta'ala,
-            kami mengundang
+            kami mengundang Bapak/Ibu/Saudara/i
           </p>
 
           <div className="invite-name-pop" style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
@@ -1436,7 +1436,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </button>
           </div>
         </div>
-        <div style={{
+        {/* <div style={{
           background: C.white, borderRadius: '8px',
           border: `1px solid rgba(196,151,59,0.16)`,
           overflow: 'hidden',
@@ -1461,6 +1461,101 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 [Upload QRIS di sini]
               </p>
             </div>
+          </div>
+        </div> */}
+        {/* ── KIRIM KADO ── */}
+        <div style={{
+          background: C.white, borderRadius: '8px',
+          border: `1px solid rgba(196,151,59,0.16)`,
+          overflow: 'hidden', marginTop: '14px',
+          boxShadow: '0 4px 22px rgba(44,24,16,0.055)',
+        }}>
+          <div style={{
+            background: `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`,
+            padding: '12px 24px',
+          }}>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+              Kirim Kado
+            </p>
+          </div>
+          <div style={{ padding: '24px 24px 26px' }}>
+            {/* Icon + recipient row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0,
+                background: `linear-gradient(135deg, rgba(125,37,53,0.1), rgba(30,58,95,0.1))`,
+                border: `1px solid ${C.gold}28`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '16px',
+              }}>
+                🎁
+              </div>
+              <div>
+                <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, margin: 0, lineHeight: 1.2 }}>
+                  Vanya Alverissa
+                </p>
+                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, margin: 0, letterSpacing: '0.5px' }}>
+                  Penerima kado
+                </p>
+              </div>
+            </div>
+            {/* Address block */}
+            <div style={{
+              background: C.cream, borderRadius: '6px',
+              padding: '14px 16px', marginBottom: '20px',
+              border: `1px solid rgba(196,151,59,0.12)`,
+              position: 'relative',
+            }}>
+              <p style={{
+                fontFamily: F.body, fontSize: '9px', letterSpacing: '2.5px',
+                textTransform: 'uppercase', color: C.textLight,
+                marginBottom: '8px',
+              }}>
+                Alamat Pengiriman
+              </p>
+              <p style={{
+                fontFamily: F.body, fontSize: '13px', color: C.textDark,
+                lineHeight: 2, margin: 0,
+              }}>
+                Jl. Bona Sarana Indah Blok E No. 12<br/>
+                RT 01/RW 02, Kelurahan Panunggangan Utara<br/>
+                Kecamatan Pinang, Kota Tangerang
+              </p>
+            </div>
+
+            {/* Copy button — same pattern as BCA */}
+            <button
+              onClick={() => copyText('Jl. Bona Sarana Indah Blok E No. 12 RT 01/RW 02, Kelurahan Panunggangan Utara, Kecamatan Pinang, Kota Tangerang', 'alamat')}
+              className={copied === 'alamat' ? '' : 'shimmer-btn'}
+              onMouseEnter={e => {
+                if (copied !== 'alamat') {
+                  (e.currentTarget as HTMLButtonElement).style.background = C.navy
+                  ;(e.currentTarget as HTMLButtonElement).style.color = C.white
+                }
+              }}
+              onMouseLeave={e => {
+                if (copied !== 'alamat') {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                  ;(e.currentTarget as HTMLButtonElement).style.color = C.navy
+                }
+              }}
+              style={{
+                padding: '10px 22px',
+                position: 'relative', overflow: 'hidden',
+                background: copied === 'alamat'
+                  ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
+                  : 'transparent',
+                border: `1.5px solid ${C.navy}`,
+                color: copied === 'alamat' ? C.white : C.navy,
+                borderRadius: '4px',
+                fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {copied === 'alamat' && <span className="copy-ripple" style={{ background: 'rgba(30,58,95,0.18)' }} />}
+              {copied === 'alamat' ? '✓ Tersalin!' : 'Salin Alamat'}
+            </button>
           </div>
         </div>
       </section>

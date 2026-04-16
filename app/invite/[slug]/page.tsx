@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single()
 
   const guestName = guest?.name ?? 'Anda'
-  const baseUrl = 'https://wedding-vanya-faiz.vercel.app/'
+  const baseUrl = 'https://wedding-vanya-faiz.vercel.app'
 
   return {
     title: 'Undangan Pernikahan | Faiz & Vanya',
