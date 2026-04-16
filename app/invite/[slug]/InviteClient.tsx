@@ -666,7 +666,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
         <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <p
-            className="arabic-glow"
             style={{
               fontFamily: F.arabic,
               fontSize: '32px',
@@ -675,8 +674,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               marginBottom: '10px',
               marginTop: '-24px',
               animation: `
-                heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both,
-                arabicGlow 4s ease-in-out infinite
+                heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both
               `,
             }}
           >
