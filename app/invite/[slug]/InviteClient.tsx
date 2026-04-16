@@ -345,8 +345,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => clearInterval(id)
   }, [])
 
-  // Scroll reveal
-
   useEffect(() => {
     if (!opened) return
     const obs = new IntersectionObserver(
@@ -632,93 +630,119 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   // ═══════════════════════════════════════════════════════════════════════════
   return (
     <>
-    <div style={{ background: C.cream }} className="page-enter">
+    <div style={{ background: C.cream }}>
       {/* ── HERO ─────────────────────────────────────────────────────────────*/}
-      <section className="reveal" style={{
+      <section style={{
         background: `linear-gradient(180deg, rgba(125,37,53,0.075) 0%, rgba(125,37,53,0.02) 65%, transparent 100%)`,
         padding: '84px 24px 68px', textAlign: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Woven texture */}
         <div className="wajik-bg-animate" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
-        {/* Ambient glow orb */}
         <div className="orb-pulse" style={{
           position: 'absolute', top: '-60px', left: '50%', transform: 'translateX(-50%)',
           width: '560px', height: '480px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(196,151,59,0.05) 0%, transparent 68%)',
           pointerEvents: 'none', zIndex: 0,
         }} />
+
         <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          {/* Arabic Bismillah */}
           <p
             className="arabic-glow"
             style={{
               fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
-              lineHeight: 2.1, marginBottom: '8px', marginTop: '-24px'
+              lineHeight: 2.1, marginBottom: '10px', marginTop: '-24px',
+              animation: 'heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both',
             }}
           >
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
           </p>
-          <SectionLabel>Undangan Pernikahan</SectionLabel>
-          <PucukRebungDivider />
-          {/* Couple names */}
+          <div style={{ animation: 'heroFadeRise 1.4s 2.3s cubic-bezier(0.16,1,0.3,1) both' }}>
+            <SectionLabel>Undangan Pernikahan</SectionLabel>
+          </div>
+          <div style={{
+            animation: 'heroDividerExpand 1.4s 2.7s cubic-bezier(0.16,1,0.3,1) both',
+            transformOrigin: 'center',
+          }}>
+            <PucukRebungDivider />
+          </div>
           <p style={{
             fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)',
             fontWeight: 300, color: C.textDark,
             lineHeight: 1.0, letterSpacing: '0.5px',
-            marginTop: '-2px',
-            marginBottom: '-2px',
+            marginTop: '-2px', marginBottom: '-2px',
+            animation: 'heroNameIn 2.0s 0.0s cubic-bezier(0.16,1,0.3,1) both',
           }}>
-            <span className="name-float name-reveal" style={{ animationDelay: '0.4s' }}>
-              <span className="gold-shimmer-text">Vanya</span>
-            </span>
+            <span className="gold-shimmer-text">Vanya</span>
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '8px 0', opacity: 0, animation: 'nameReveal 0.8s 0.45s cubic-bezier(0.16,1,0.3,1) both' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '16px', margin: '10px 0',
+            animation: 'heroDanIn 1.4s 0.6s cubic-bezier(0.16,1,0.3,1) both',
+          }}>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
-            <p style={{ fontFamily: F.display, fontSize: '20px', color: C.gold, fontStyle: 'italic' }}>dan</p>
+            <p style={{ fontFamily: F.display, fontSize: '20px', color: C.gold, fontStyle: 'italic', margin: 0 }}>dan</p>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
           </div>
           <p style={{
             fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)',
             fontWeight: 300, color: C.textDark,
             lineHeight: 1.0, letterSpacing: '0.5px',
-            marginTop: '-2px',
-            marginBottom: '32px',
+            marginTop: '-2px', marginBottom: '36px',
+            animation: 'heroNameIn 2.0s 0.28s cubic-bezier(0.16,1,0.3,1) both',
           }}>
-            <span className="name-float name-reveal" style={{ animationDelay: '0.55s' }}>
-              <span className="gold-shimmer-text">Faiz</span>
-            </span>
+            <span className="gold-shimmer-text">Faiz</span>
           </p>
-          <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, letterSpacing: '2px', marginBottom: '52px' }}>
+          <p style={{
+            fontFamily: F.body, fontSize: '13px', color: C.textLight,
+            letterSpacing: '2px', marginBottom: '58px',
+            animation: 'heroFadeRise 1.3s 3.2s cubic-bezier(0.16,1,0.3,1) both',
+          }}>
             Jum'at, 26 Juni 2026 · Jakarta
           </p>
-          {/* Countdown */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px' }}>
-            <div className="cd-heartbeat" style={{ animationDelay: '0s' }}>
+          <div style={{
+            display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px',
+          }}>
+            <div style={{ animation: 'heroCountdownIn 1.0s 3.7s cubic-bezier(0.16,1,0.3,1) both' }}>
               <CdBox value={cd.d} label="Hari" />
             </div>
-            <p style={{ fontFamily: F.display, fontSize: '30px', color: C.gold, opacity: 0.45, marginTop: '16px', lineHeight: 1 }}>:</p>
-            <div className="cd-heartbeat" style={{ animationDelay: '0.08s' }}>
+            <p style={{
+              fontFamily: F.display, fontSize: '30px', color: C.gold,
+              opacity: 0.45, marginTop: '16px', lineHeight: 1,
+              animation: 'heroFadeRise 0.8s 3.8s cubic-bezier(0.16,1,0.3,1) both',
+            }}>:</p>
+            <div style={{ animation: 'heroCountdownIn 1.0s 3.85s cubic-bezier(0.16,1,0.3,1) both' }}>
               <CdBox value={cd.h} label="Jam" />
             </div>
-            <p style={{ fontFamily: F.display, fontSize: '30px', color: C.gold, opacity: 0.45, marginTop: '16px', lineHeight: 1 }}>:</p>
-            <div className="cd-heartbeat" style={{ animationDelay: '0.16s' }}>
+            <p style={{
+              fontFamily: F.display, fontSize: '30px', color: C.gold,
+              opacity: 0.45, marginTop: '16px', lineHeight: 1,
+              animation: 'heroFadeRise 0.8s 3.95s cubic-bezier(0.16,1,0.3,1) both',
+            }}>:</p>
+            <div style={{ animation: 'heroCountdownIn 1.0s 4.0s cubic-bezier(0.16,1,0.3,1) both' }}>
               <CdBox value={cd.m} label="Menit" />
             </div>
-            <p style={{ fontFamily: F.display, fontSize: '30px', color: C.gold, opacity: 0.45, marginTop: '16px', lineHeight: 1 }}>:</p>
-            <div className="cd-heartbeat" style={{ animationDelay: '0.24s' }}>
+            <p style={{
+              fontFamily: F.display, fontSize: '30px', color: C.gold,
+              opacity: 0.45, marginTop: '16px', lineHeight: 1,
+              animation: 'heroFadeRise 0.8s 4.1s cubic-bezier(0.16,1,0.3,1) both',
+            }}>:</p>
+            <div style={{ animation: 'heroCountdownIn 1.0s 4.15s cubic-bezier(0.16,1,0.3,1) both' }}>
               <CdBox value={cd.s} label="Detik" />
             </div>
           </div>
-          {/* ── SAVE THE DATE ── */}
-          <div style={{ marginTop: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            marginTop: '60px', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '10px',
+            animation: 'heroFadeRise 1.2s 4.6s cubic-bezier(0.16,1,0.3,1) both',
+          }}>
             <p style={{
               fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px',
               color: C.textLight, textTransform: 'uppercase', margin: 0,
             }}>
               Tandai Kalendarmu
             </p>
-              <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+16.00+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
+            
+             <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+16.00+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
               target="_blank"
               rel="noopener noreferrer"
               className="save-date-btn shimmer-btn"
@@ -760,7 +784,10 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               26 Juni 2026
             </p>
           </div>
-          <div style={{ marginTop: '36px' }}>
+          <div style={{
+            marginTop: '36px',
+            animation: 'heroFadeRise 1.0s 5.2s cubic-bezier(0.16,1,0.3,1) both',
+          }}>
             <button
               onClick={() => document.getElementById('rsvp-section')?.scrollIntoView({ behavior: 'smooth' })}
               style={{
@@ -769,7 +796,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 margin: '0 auto', padding: '8px 16px',
                 fontFamily: F.body, fontSize: '9px', letterSpacing: '3px',
                 color: C.textLight, textTransform: 'uppercase',
-                animation: 'nudgeDown 2.4s ease-in-out infinite',
+                animation: 'nudgeDown 2.4s 6.2s ease-in-out infinite',
               }}
             >
               Konfirmasi Kehadiran
@@ -778,6 +805,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </svg>
             </button>
           </div>
+
         </div>
       </section>
       {/* ── ANIMATED SONGKET DIVIDER ─────────────────────────────────────────*/}
@@ -1855,6 +1883,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         ))}
       </div>
     )}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+      <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.65, letterSpacing: '2px', textTransform: 'uppercase' }}>
+        Made with ❤️ by Faizuddarain Syam
+      </p>
+    </div>
   </>
   )
 }

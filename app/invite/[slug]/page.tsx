@@ -19,10 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: 'Undangan Pernikahan | Faiz & Vanya',
-    description: `Kepada ${guestName}, kami mengundang Anda untuk hadir di hari istimewa kami. 26 Juni 2026 · Jakarta`,
+    description: `Kepada Bapak/Ibu/Saudara/i ${guestName}, kami mengundang Anda untuk hadir di hari istimewa kami. 26 Juni 2026 · Jakarta`,
     openGraph: {
       title: 'Undangan Pernikahan | Faiz & Vanya',
-      description: `Kepada ${guestName}, kami mengundang Anda untuk hadir. 26 Juni 2026 · Jakarta`,
+      description: `Kepada Bapak/Ibu/Saudara/i ${guestName}, kami mengundang Anda untuk hadir. 26 Juni 2026 · Jakarta`,
       url: `${baseUrl}/invite/${slug}`,
       siteName: 'Undangan Pernikahan Faiz & Vanya',
       images: [
