@@ -684,7 +684,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             marginTop: '-2px',
             marginBottom: '-2px',
           }}>
-            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.4s' }}>Vanya</span>
+            <span className="name-float name-reveal" style={{ animationDelay: '0.4s' }}>
+              <span className="gold-shimmer-text">Vanya</span>
+            </span>
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '8px 0', opacity: 0, animation: 'nameReveal 0.8s 0.45s cubic-bezier(0.16,1,0.3,1) both' }}>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
@@ -698,7 +700,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             marginTop: '-2px',
             marginBottom: '32px',
           }}>
-            <span className="name-float gold-shimmer-text name-reveal" style={{ animationDelay: '0.55s' }}>Faiz</span>
+            <span className="name-float name-reveal" style={{ animationDelay: '0.55s' }}>
+              <span className="gold-shimmer-text">Faiz</span>
+            </span>
           </p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, letterSpacing: '2px', marginBottom: '52px' }}>
             Jum'at, 26 Juni 2026 · Jakarta

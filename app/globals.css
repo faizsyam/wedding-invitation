@@ -246,6 +246,7 @@ a {
   background-clip: text;
   animation: goldShimmerMove 5s 1.5s ease-in-out infinite;
 }
+
 @keyframes goldShimmerMove {
   0%   { background-position: 200% center; }
   40%  { background-position: -10%  center; }
