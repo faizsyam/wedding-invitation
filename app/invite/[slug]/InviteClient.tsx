@@ -869,7 +869,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             fontFamily: F.display, fontSize: '16px', color: C.textMid,
             lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
           }}>
-            Dengan memohon rahmat dan ridho Allah Subhanahu Wa Ta'ala,
+            Dengan memohon rahmat dan ridho Allah ﷻ,
             kami mengundang Bapak/Ibu/Saudara/i
           </p>
 
@@ -1434,7 +1434,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               Transfer Bank
             </p>
           </div>
-          <div style={{ padding: '24px 24px 26px' }}>
+          <div style={{ padding: '8px 24px 26px' }}>
             <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark }}>
               Bank BCA
             </p>
@@ -1517,7 +1517,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             background: `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`,
             padding: '12px 24px',
           }}>
-            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: '5px' }}>
               Kirim Kado
             </p>
           </div>
@@ -1692,7 +1692,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div style={{ position: 'relative' }}>
 
               {/* Count badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2px', textTransform: 'uppercase' }}>
                   {messages.length} ucapan
                 </p>
@@ -1712,7 +1712,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   paddingRight: '6px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px',
+                  gap: '4px',
                   scrollbarWidth: 'thin',
                   scrollbarColor: `${C.gold}40 transparent`,
                 }}
@@ -1725,7 +1725,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       background: msg.isNew
                         ? `linear-gradient(135deg, rgba(125,37,53,0.04), rgba(196,151,59,0.06))`
                         : i % 2 === 0 ? '#FAFAF8' : C.cream,
-                      borderRadius: '8px', padding: '10px 20px',
+                      borderRadius: '8px', padding: '0 20px',
                       border: msg.isNew
                         ? `1px solid rgba(196,151,59,0.35)`
                         : `1px solid rgba(196,151,59,0.13)`,
@@ -1744,12 +1744,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                         border: `1px solid ${C.gold}${msg.isNew ? '55' : '28'}`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy,
-                        flexShrink: 0,
+                        flexShrink: 0, marginTop: '16px'
                       }}>
                         {msg.guest_name.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1 }}>
+                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1, marginBottom: '0px' }}>
                           {msg.guest_name}
                         </p>
                         {msg.isNew && (
@@ -1759,7 +1759,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                         )}
                       </div>
                     </div>
-                    <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 1.9, paddingLeft: '44px' }}>
+                    <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 1.4, paddingLeft: '44px', marginBottom: '24px' }}>
                       {msg.message}
                     </p>
                   </div>
@@ -1768,13 +1768,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
               {/* Top fade */}
               <div style={{
-                position: 'absolute', top: '40px', left: 0, right: '6px', height: '40px',
+                position: 'absolute', top: '36px', left: 0, right: '6px', height: '30px',
                 background: `linear-gradient(to bottom, ${C.white}, transparent)`,
                 pointerEvents: 'none',
               }} />
               {/* Bottom fade */}
               <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: '6px', height: '60px',
+                position: 'absolute', bottom: 0, left: 0, right: '6px', height: '40px',
                 background: `linear-gradient(to bottom, transparent, ${C.white})`,
                 pointerEvents: 'none',
               }} />
@@ -1899,7 +1899,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       </div>
     )}
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-      <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.65, letterSpacing: '2px', textTransform: 'uppercase' }}>
+      <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.65, letterSpacing: '2px', textTransform: 'uppercase', padding: '12px 0' }}>
         Made with ❤️ by Faizuddarain Syam
       </p>
     </div>
