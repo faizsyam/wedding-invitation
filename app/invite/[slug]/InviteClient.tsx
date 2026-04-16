@@ -731,7 +731,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
           </div>
           <div style={{
-            marginTop: '60px', display: 'flex', flexDirection: 'column',
+            marginTop: '40px', display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: '10px',
             animation: 'heroFadeRise 1.2s 4.6s cubic-bezier(0.16,1,0.3,1) both',
           }}>
