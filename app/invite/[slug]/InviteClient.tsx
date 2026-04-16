@@ -290,7 +290,6 @@ function SectionLabel({ children, color = C.gold }: { children: React.ReactNode;
 export default function InviteClient({ guest }: { guest: Guest }) {
   const [opened,      setOpened]      = useState(false)
   const [closing,     setClosing]     = useState(false)
-  const [flashing,    setFlashing]    = useState(false)
   const [cd,          setCd]          = useState<Countdown>({ d: 0, h: 0, m: 0, s: 0 })
   const [attending,   setAttending]   = useState<boolean | null>(null)
   const [pax,         setPax]         = useState(1)
@@ -370,17 +369,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   useEffect(() => {
     if (!opened) return
-    const handleScroll = () => {
-      const y = window.scrollY
-      document.querySelectorAll<HTMLElement>('.parallax-slow').forEach(el => {
-        el.style.transform = `translateY(${y * 0.16}px)`
-      })
-      document.querySelectorAll<HTMLElement>('.parallax-med').forEach(el => {
-        el.style.transform = `translateY(${y * 0.06}px)`
-      })
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
   }, [opened])
 
   useEffect(() => {
@@ -394,7 +382,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   }, [attending])
 
   function openInvite() {
-    setFlashing(true)
     setClosing(true)
     setTimeout(() => setOpened(true), 640)
   }
@@ -523,8 +510,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       padding: '32px 20px',
       position: 'relative', overflow: 'hidden',
     }}>
-      {/* Flash overlay */}
-      {flashing && <div className="flash-overlay" />}
       {/* Woven wajik background */}
       <div className="wajik-bg-animate" style={{ position: 'fixed', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
       {/* Floating gold particles */}
@@ -655,9 +640,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Woven texture */}
-        <div className="wajik-bg-animate parallax-slow" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
+        <div className="wajik-bg-animate" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
         {/* Ambient glow orb */}
-        <div className="orb-pulse parallax-med" style={{
+        <div className="orb-pulse" style={{
           position: 'absolute', top: '-60px', left: '50%', transform: 'translateX(-50%)',
           width: '560px', height: '480px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(196,151,59,0.05) 0%, transparent 68%)',
@@ -836,8 +821,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
           <SongketBand color={C.gold} opacity={0.09} />
         </div>
-        <div style={{ marginBottom: '36px' }}>
-          <p style={{
+        <div className="invite-text-block" style={{ marginBottom: '36px' }}>
+          <p className="invite-line-1" style={{
             fontFamily: F.display, fontSize: '16px', color: C.textMid,
             lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
           }}>
@@ -845,7 +830,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             kami mengundang
           </p>
 
-          <div style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
+          <div className="invite-name-pop" style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
             <p style={{
               fontFamily: F.display, fontSize: '30px', fontWeight: 600,
               color: C.burgundy, lineHeight: 1.2, margin: 0,
@@ -859,7 +844,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             }} />
           </div>
 
-          <p style={{
+          <p className="invite-line-2" style={{
             fontFamily: F.display, fontSize: '16px', color: C.textMid,
             lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
           }}>
@@ -962,7 +947,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 border: `1px solid rgba(255,255,255,0.3)`,
                 borderRadius: '2px', padding: '5px 16px',
               }}>
-                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0 }}>
+                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0, whiteSpace: 'nowrap' }}>
                   Mempelai Wanita
                 </p>
               </div>
