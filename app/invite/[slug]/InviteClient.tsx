@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 
-type Guest   = { id: number; name: string; slug: string; created_at: string }
-type Message = { id?: number; guest_name: string; message: string; created_at?: string; isNew?: boolean}
+type Guest   = { id: number; name: string; slug: string; created_at: string; max_guests?: number | null }
+type Message = { id?: number; guest_name: string; guest_slug?: string; message: string; isNew?: boolean }
 type Countdown = { d: number; h: number; m: number; s: number }
 // ─── Design Tokens ─────────────────────────────────────────────────────────
 const C = {
@@ -304,10 +304,18 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [hovered,     setHovered]     = useState<string | null>(null)
   const [muted,       setMuted]       = useState(false)
   const [mapLoaded,   setMapLoaded]   = useState(false)
-  const [showConfetti, setShowConfetti] = useState(false)
   const [paxVisible,  setPaxVisible]  = useState(false)
+  const [existingRsvpId, setExistingRsvpId] = useState<number | null>(null)
+  const [showRsvpWarning, setShowRsvpWarning] = useState(false)
+  const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const maxPax = guest.max_guests ?? 2
+
+  const guestMsgCount = messages.filter(
+    m => m.guest_slug === guest.slug || m.isNew
+  ).length
   
   useEffect(() => {
     const audio = new Audio('/it_aint_over_til_its_over.mp3')
@@ -398,16 +406,40 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     setClosing(true)
     setTimeout(() => setOpened(true), 640)
   }
-  async function submitRsvp() {
+
+  async function submitRsvp(forceUpdate = false) {
     if (attending === null) return
     setRsvpLoading(true)
-    await supabase.from('rsvps').insert({
-      guest_slug: guest.slug, guest_name: guest.name,
-      attending, pax: attending ? pax : 0, note,
-    })
+  
+    if (!forceUpdate) {
+      const { data: existing } = await supabase
+        .from('rsvps')
+        .select('id')
+        .eq('guest_slug', guest.slug)
+        .maybeSingle()
+  
+      if (existing) {
+        setExistingRsvpId(existing.id)
+        setShowRsvpWarning(true)
+        setRsvpLoading(false)
+        return
+      }
+    }
+  
+    if (forceUpdate && existingRsvpId) {
+      await supabase
+        .from('rsvps')
+        .update({ attending, pax: attending ? pax : 0, note })
+        .eq('id', existingRsvpId)
+    } else {
+      await supabase.from('rsvps').insert({
+        guest_slug: guest.slug, guest_name: guest.name,
+        attending, pax: attending ? pax : 0, note,
+      })
+    }
+  
+    setShowRsvpWarning(false)
     setRsvpDone(true)
-    // setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 5500)
     setRsvpLoading(false)
   }
 
@@ -422,6 +454,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       message: msgText.trim(),
       isNew: true,
     }
+
+    if (guestMsgCount >= 3) return
     setMessages(prev => [optimistic, ...prev])
     setMsgDone(true)
     setMsgLoading(false)
@@ -450,62 +484,15 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     setTimeout(() => setCopied(''), 2500)
   }
 
-  function ConfettiParticle({ x, y, color, delay }: {
-    x: number; y: number; color: string; delay: number
-  }) {
-    const shapeRoll = Math.random()
-    const isCircle  = shapeRoll > 0.78
-    const isRibbon  = !isCircle && shapeRoll > 0.42
-  
-    const w = isCircle ? 8 : isRibbon ? 3 + Math.random() * 2 : 6 + Math.random() * 8
-    const h = isCircle ? 8 : isRibbon ? 14 + Math.random() * 10 : 5 + Math.random() * 7
-  
-    // Physics — precompute all CSS var values so they never change on re-render
-    const tx     = (Math.random() - 0.5) * Math.min(window.innerWidth * 0.9, 700)
-    const peakY  = -(Math.random() * 340 + 160)
-    const finalY = (window.innerHeight - y) + Math.random() * 100 + 100
-    const rot    = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 1080)
-    const duration = 2.8 + Math.random() * 1.6
-  
-    return (
-      <div
-        style={{
-          position: 'fixed',
-          left: x,
-          top: y,
-          width: `${w}px`,
-          height: `${h}px`,
-          background: color,
-          borderRadius: isCircle ? '50%' : '1.5px',
-          pointerEvents: 'none',
-          zIndex: 9999,
-          transformOrigin: 'center center',
-          ['--tx' as string]     : `${tx}px`,
-          ['--tx30' as string]   : `${tx * 0.3}px`,
-          ['--peak-y' as string] : `${peakY}px`,
-          ['--final-y' as string]: `${finalY}px`,
-          ['--rot' as string]    : `${rot}deg`,
-          ['--rot30' as string]  : `${rot * 0.3}deg`,
-          animation: `confettiArc ${duration}s ${delay}s forwards`,
-        } as React.CSSProperties}
-      />
-    )
+  function closeRsvpWarning() {
+    setRsvpWarningClosing(true)
+    setTimeout(() => {
+      setShowRsvpWarning(false)
+      setRsvpWarningClosing(false)
+    }, 280)
   }
 
   const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
-
-  const confettiParticles = useMemo(() => {
-    if (!showConfetti) return []
-    const colors = [C.gold, C.burgundy, C.goldPale, C.goldBright, '#F2E8E4', '#E8C4B0', C.burgundy, C.gold]
-    return Array.from({ length: 90 }, (_, i) => ({
-      id: i,
-      // tight cluster near submit button, not random scatter
-      x: window.innerWidth  * 0.5 + (Math.random() - 0.5) * 90,
-      y: window.innerHeight * 0.65,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      delay: i * 0.022,
-    }))
-  }, [showConfetti])
 
   // ═══════════════════════════════════════════════════════════════════════════
   // COVER PAGE
@@ -1257,8 +1244,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             className="success-bounce"
             >
               <SongketBand color={C.burgundy} opacity={0.05} />
-              <div style={{ padding: '44px 24px' }}>
-                <p style={{ fontSize: '42px', marginBottom: '18px' }}>🤍</p>
+              <div style={{ padding: '22px 24px' }}>
+                <p style={{ fontSize: '42px', marginBottom: '18px', marginTop: '8px' }}>🤍</p>
                 <p style={{ fontFamily: F.display, fontSize: '28px', color: C.burgundy, marginBottom: '10px' }}>
                   Terima kasih, {guest.name.split(' ')[0]}!
                 </p>
@@ -1306,7 +1293,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </button>
                 ))}
               </div>
-              {attending === true && (
+              {attending === true && (guest.max_guests ?? 2) > 1 && (
                 <div style={{
                   display: 'grid',
                   gridTemplateRows: paxVisible ? '1fr' : '0fr',
@@ -1352,7 +1339,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                           {pax}
                         </span>
                         <button
-                          onClick={() => setPax(p => Math.min(10, p + 1))}
+                          onClick={() => setPax(p => Math.min(maxPax, p + 1))}
                           className="pax-btn"
                           style={{
                             width: '40px', height: '40px', borderRadius: '4px',
@@ -1368,7 +1355,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               )}
               <textarea
                 value={note}
-                onChange={e => setNote(e.target.value)}
+                onChange={e => setNote(e.target.value.slice(0, 280))}
+                maxLength={280}
                 placeholder="Pesan untuk mempelai (opsional)"
                 rows={3}
                 style={{
@@ -1377,11 +1365,24 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   borderRadius: '5px', resize: 'none',
                   fontFamily: F.body, fontSize: '14px', color: C.textDark,
                   background: '#FAFAF8', lineHeight: 1.8,
-                  marginBottom: '16px', boxSizing: 'border-box',
+                  marginBottom: '6px', boxSizing: 'border-box',
                 }}
               />
+              <div style={{
+                textAlign: 'right',
+                marginBottom: '10px',
+                fontFamily: F.body,
+                fontSize: '11px',
+                letterSpacing: '0.5px',
+                color: note.length >= 260
+                  ? note.length >= 280 ? '#C0392B' : '#C4973B'
+                  : 'rgba(0,0,0,0.28)',
+                transition: 'color 0.2s ease',
+              }}>
+                {note.length}/280
+              </div>
               <button
-                onClick={submitRsvp}
+                onClick={() => submitRsvp()}
                 disabled={attending === null || rsvpLoading}
                 className={attending !== null ? 'shimmer-btn' : ''}
                 onMouseEnter={e => {
@@ -1620,7 +1621,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </p>
 
           {/* ── Input area ── */}
-          {msgDone ? (
+          {msgDone || guestMsgCount >= 3 ? (
             <div style={{
               textAlign: 'center', padding: '24px 24px',
               border: `1px solid rgba(30,58,95,0.18)`, borderRadius: '8px',
@@ -1630,7 +1631,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             }}>
               <SongketBand color={C.navy} opacity={0.04} />
               <div style={{ padding: '0 0' }}>
-                <p style={{ fontSize: '34px', marginBottom: '14px' }}>💌</p>
+                <p style={{ fontSize: '34px', marginBottom: '14px', marginTop: '16px' }}>💌</p>
                 <p style={{ fontFamily: F.display, fontSize: '26px', color: C.navy, marginBottom: '8px' }}>
                   Ucapanmu sudah terkirim!
                 </p>
@@ -1644,7 +1645,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div style={{ marginBottom: '44px' }}>
               <textarea
                 value={msgText}
-                onChange={e => setMsgText(e.target.value)}
+                onChange={e => setMsgText(e.target.value.slice(0, 280))}
+                maxLength={280}
                 placeholder="Tulis ucapan untuk mempelai..."
                 rows={4}
                 style={{
@@ -1653,34 +1655,47 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   borderRadius: '6px', resize: 'none',
                   fontFamily: F.body, fontSize: '14px', color: C.textDark,
                   background: '#FAFAF8', lineHeight: 1.9,
-                  marginBottom: '14px', boxSizing: 'border-box',
+                  marginBottom: '6px', boxSizing: 'border-box',
                 }}
               />
+              <div style={{
+                textAlign: 'right',
+                marginBottom: '10px',
+                fontFamily: F.body,
+                fontSize: '11px',
+                letterSpacing: '0.5px',
+                color: msgText.length >= 260
+                  ? msgText.length >= 280 ? '#C0392B' : '#C4973B'
+                  : 'rgba(0,0,0,0.28)',
+                transition: 'color 0.2s ease',
+              }}>
+                {msgText.length}/280
+              </div>
               <button
                 onClick={submitMessage}
-                disabled={!msgText.trim() || msgLoading}
-                className={msgText.trim() ? 'shimmer-btn' : ''}
+                disabled={!msgText.trim() || msgLoading || guestMsgCount >= 3}
+                className={msgText.trim() && guestMsgCount < 3 ? 'shimmer-btn' : ''}
                 onMouseEnter={e => {
-                  if (msgText.trim()) {
+                  if (msgText.trim() && guestMsgCount < 3) {
                     (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`
                     ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(30,58,95,0.44)`
                   }
                 }}
                 onMouseLeave={e => {
-                  if (msgText.trim()) {
+                  if (msgText.trim() && guestMsgCount < 3) {
                     (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
                     ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(30,58,95,0.26)`
                   }
                 }}
                 style={{
                   width: '100%', padding: '15px',
-                  background: msgText.trim() ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC',
-                  color: msgText.trim() ? C.white : '#B0A09A',
+                  background: msgText.trim() && guestMsgCount < 3 ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC',
+                  color: msgText.trim() && guestMsgCount < 3 ? C.white : '#B0A09A',
                   border: 'none', borderRadius: '5px',
                   fontFamily: F.body, fontSize: '11px',
                   letterSpacing: '3.5px', textTransform: 'uppercase',
-                  cursor: msgText.trim() ? 'pointer' : 'not-allowed',
-                  boxShadow: msgText.trim() ? `0 4px 18px rgba(30,58,95,0.26)` : 'none',
+                  cursor: msgText.trim() && guestMsgCount < 3 ? 'pointer' : 'not-allowed',
+                  boxShadow: msgText.trim() && guestMsgCount < 3 ? `0 4px 18px rgba(30,58,95,0.26)` : 'none',
                   transition: 'all 0.3s ease',
                 }}
               >
@@ -1900,13 +1915,104 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     >
       {muted ? '🔇' : '🎵'}
     </button>
-    {showConfetti && (
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999 }}>
-        {confettiParticles.map(p => (
-          <ConfettiParticle key={p.id} x={p.x} y={p.y} color={p.color} delay={p.delay} />
-        ))}
+    {/* RSVP DUPLICATE WARNING POPUP */}
+    {showRsvpWarning && (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={closeRsvpWarning}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(20, 10, 8, 0.55)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          animation: `${rsvpWarningClosing ? 'fadeOut' : 'fadeIn'} 0.28s ease forwards`,
+        }}
+      />
+      {/* Dialog — true center */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1001,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        pointerEvents: 'none',
+      }}>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '400px',
+            background: C.white,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 24px 64px rgba(44,24,16,0.22), 0 4px 0 rgba(196,151,59,0.18)',
+            pointerEvents: 'all',
+            animation: `${rsvpWarningClosing ? 'dialogFadeOut' : 'dialogFadeIn'} 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+          }}
+        >
+          <SongketBand color={C.gold} opacity={0.1} />
+          <div style={{ padding: '32px 28px 36px', textAlign: 'center' }}>
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '50%',
+              background: `rgba(125,37,53,0.07)`,
+              border: `1px solid rgba(125,37,53,0.15)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '22px', margin: '0 auto 20px',
+            }}>
+              ⚠️
+            </div>
+            <p style={{
+              fontFamily: F.display, fontSize: '26px',
+              color: C.textDark, marginBottom: '12px', lineHeight: 1.2,
+            }}>
+              Konfirmasi Sudah Ada
+            </p>
+            <p style={{
+              fontFamily: F.body, fontSize: '13px',
+              color: C.textLight, lineHeight: 2, marginBottom: '32px',
+            }}>
+              Kamu sudah pernah mengirimkan konfirmasi kehadiran sebelumnya.
+              Apakah kamu ingin menggantikannya dengan konfirmasi yang baru?
+            </p>
+            <button
+              onClick={() => submitRsvp(true)}
+              className="shimmer-btn"
+              style={{
+                width: '100%', padding: '15px',
+                background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`,
+                color: C.white, border: 'none', borderRadius: '5px',
+                fontFamily: F.body, fontSize: '11px',
+                letterSpacing: '3px', textTransform: 'uppercase',
+                cursor: 'pointer', marginBottom: '10px',
+                boxShadow: `0 4px 18px rgba(125,37,53,0.26)`,
+                position: 'relative', overflow: 'hidden',
+              }}
+            >
+              Ya, Ganti Konfirmasi
+            </button>
+            <button
+              onClick={closeRsvpWarning}
+              style={{
+                width: '100%', padding: '14px',
+                background: 'transparent',
+                color: C.textLight,
+                border: `1.5px solid rgba(196,151,59,0.28)`,
+                borderRadius: '5px',
+                fontFamily: F.body, fontSize: '11px',
+                letterSpacing: '3px', textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Tidak, Batalkan
+            </button>
+          </div>
+          <SongketBand color={C.gold} opacity={0.06} />
+        </div>
       </div>
-    )}
+    </>
+  )}
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
       <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.65, letterSpacing: '2px', textTransform: 'uppercase', padding: '12px 0' }}>
         Made with ❤️ by Faizuddarain Syam
