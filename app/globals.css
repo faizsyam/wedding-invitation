@@ -22,46 +22,37 @@ body {
 }
 
 /* ─── Reveal Animations ───────────────────────────────────────────────────── */
-.reveal {
+.reveal, 
+.reveal-left, 
+.reveal-right {
   opacity: 0;
-  transform: scale(1.1);
-  transition:
-    opacity 3s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 3s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform, opacity;
 }
 
-.reveal.active {
-  opacity: 1;
-  transform: scale(1);
+.reveal {
+  transform: translateY(24px) scale(0.98);
+  transition: opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal-left {
-  opacity: 0;
   transform: translateX(-48px);
-  transition:
-    opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal-right {
-  opacity: 0;
   transform: translateX(48px);
-  transition:
-    opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 2.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.reveal.visible,
-.reveal-left.visible,
+.reveal.visible, 
+.reveal-left.visible, 
 .reveal-right.visible {
   opacity: 1;
-  transform: translate(0, 0);
+  transform: translate(0, 0) scale(1);
 }
-
-.reveal:nth-child(1) { transition-delay: 0.1s; }
-.reveal:nth-child(2) { transition-delay: 0.2; }
-.reveal:nth-child(3) { transition-delay: 0.3s; }
 
 /* ─── Page Entry ──────────────────────────────────────────────────────────── */
 @keyframes pageReveal {
@@ -387,40 +378,11 @@ a {
   42%       { transform: scale(1.02); }
 }
 
-.event-card {
-  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease;
-  cursor: default;
-}
-
-.event-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse at 70% 20%,
-    rgba(255,255,255,0.08) 0%,
-    transparent 55%
-  );
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-.event-card:hover::before {
-  opacity: 1;
-}
-.event-card:hover {
-  transform: translateY(-6px);
-  /* CHANGE existing shadow to: */
-  box-shadow: 0 18px 52px var(--ev-glow, rgba(125,37,53,0.3)), 
-              0 4px 12px rgba(0,0,0,0.12);
-}
-
 .portrait-card img {
   transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .portrait-card:hover img {
-  transform: scale(1.04);
+  transform: scale(1.1);
 }
 
 .section-label-animate {

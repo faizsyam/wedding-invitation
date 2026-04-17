@@ -79,16 +79,48 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   // ── Scroll reveal ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!opened) return
+    if (!opened) return;
+  
     const obs = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
-      { threshold: 0.04 },
-    )
-    const id = setTimeout(() => {
-      document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .msg-card').forEach(el => obs.observe(el))
-    }, 120)
-    return () => { clearTimeout(id); obs.disconnect() }
-  }, [opened])
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+  
+    const elements = document.querySelectorAll(".reveal, .reveal-left, .reveal-right");
+  
+    const inViewport = Array.from(elements).filter(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    });
+  
+    elements.forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+  
+      const rect = el.getBoundingClientRect();
+      const isCurrentlyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+  
+      if (isCurrentlyVisible) {
+        const vIndex = inViewport.indexOf(el);
+        el.style.transitionDelay = `${vIndex * 0.15}s`;
+        
+        requestAnimationFrame(() => {
+          el.classList.add("visible");
+        });
+      } else {
+        el.style.transitionDelay = "0.1s"; 
+        obs.observe(el);
+      }
+    });
+  
+    return () => obs.disconnect();
+  }, [opened]);
 
   // ── Messages ───────────────────────────────────────────────────────────────
   useEffect(() => { loadMessages() }, [])
@@ -433,7 +465,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '16.00 WIB',          icon: '☪', revealClass: 'reveal-left'  },
           { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
         ].map((ev, i) => (
-          <div key={i} className={`event-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
+          <div key={i} className={`portrait-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
             <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
             <div style={{ background: ev.gradient, padding: '26px 28px 32px', position: 'relative' }}>
               <div style={{ position: 'absolute', right: '-28px', top: '-28px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
