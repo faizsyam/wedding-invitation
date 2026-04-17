@@ -1,292 +1,15 @@
 'use client'
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import {
+  C, F, bgWajik,
+  SongketBand, PucukRebungDivider, WajikBadge,
+  FloatingParticles, AnimatedSongketDivider,
+  Diamond, Corner, CdBox, SectionLabel,
+} from './ui'
+import type { Guest, Message, Countdown } from './ui'
+import InviteCover from './InviteCover'
 
-type Guest   = { id: number; name: string; slug: string; created_at: string; max_guests?: number | null }
-type Message = { id?: number; guest_name: string; guest_slug?: string; message: string; isNew?: boolean }
-type Countdown = { d: number; h: number; m: number; s: number }
-// ─── Design Tokens ─────────────────────────────────────────────────────────
-const C = {
-  cream:        '#FAF7F0',
-  ivory:        '#F4EEE2',
-  white:        '#FFFFFF',
-  burgundy:     '#7D2535',
-  burgundyDeep: '#561929',
-  navy:         '#1E3A5F',
-  navyDeep:     '#142840',
-  gold:         '#C4973B',
-  goldBright:   '#D4AC52',
-  goldPale:     '#EDD89A',
-  rose:         '#F2E8E4',
-  textDark:     '#2C1810',
-  textMid:      '#6B4840',
-  textLight:    '#9B7B73',
-  textGhost:    '#C0A89E',
-}
-const F = {
-  display: "'Cormorant Garamond', serif",
-  body:    "'Nunito', sans-serif",
-  arabic:  "'Scheherazade New', serif",
-}
-// ─── Background Patterns ────────────────────────────────────────────────────
-const bgWajik = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Crect x='18' y='1' width='8' height='8' transform='rotate(45 22 5)' fill='%23C4973B' opacity='0.11'/%3E%3Crect x='18' y='35' width='8' height='8' transform='rotate(45 22 39)' fill='%23C4973B' opacity='0.11'/%3E%3Crect x='1' y='18' width='8' height='8' transform='rotate(45 5 22)' fill='%23C4973B' opacity='0.06'/%3E%3Crect x='35' y='18' width='8' height='8' transform='rotate(45 39 22)' fill='%23C4973B' opacity='0.06'/%3E%3C/svg%3E")`
-// ─── Riau Melayu Motif SVG Components ──────────────────────────────────────
-function SongketBand({
-  color   = C.gold,
-  opacity = 0.12,
-}: { color?: string; opacity?: number }) {
-  return (
-    <div style={{ width: '100%', height: '20px', overflow: 'hidden', flexShrink: 0 }}>
-      <svg
-        viewBox="0 0 400 20"
-        width="100%"
-        height="20"
-        preserveAspectRatio="xMidYMid slice"
-        style={{ display: 'block' }}
-      >
-        {Array.from({ length: 28 }, (_, i) => (
-          <polygon
-            key={`o${i}`}
-            points={`${i * 16 - 8},10 ${i * 16},2 ${i * 16 + 8},10 ${i * 16},18`}
-            fill="none" stroke={color} strokeWidth="0.7"
-            opacity={opacity * 4}
-          />
-        ))}
-        {Array.from({ length: 28 }, (_, i) => (
-          <polygon
-            key={`f${i}`}
-            points={`${i * 16 - 5},10 ${i * 16},5 ${i * 16 + 5},10 ${i * 16},15`}
-            fill={color} opacity={opacity}
-          />
-        ))}
-        <line x1="0" y1="0.5"  x2="400" y2="0.5"  stroke={color} strokeWidth="0.5" opacity={opacity * 2.5} />
-        <line x1="0" y1="19.5" x2="400" y2="19.5" stroke={color} strokeWidth="0.5" opacity={opacity * 2.5} />
-      </svg>
-    </div>
-  )
-}
-function PucukRebungDivider({ color = C.gold }: { color?: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '28px auto', maxWidth: '300px' }}>
-      <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to right, transparent, ${color}55)` }} />
-      <svg viewBox="0 0 96 18" width="96" height="18" fill="none">
-        <polygon points="0,9 8,3 16,9 8,15"  fill={color} opacity="0.28" />
-        <polygon points="3,9 8,5 13,9 8,13"  fill={color} opacity="0.55" />
-        <circle cx="22" cy="9" r="1.5" fill={color} opacity="0.4" />
-        <circle cx="28" cy="9" r="1"   fill={color} opacity="0.22" />
-        <polygon points="33,9 38,4  43,9  38,14" fill={color} opacity="0.7" />
-        <polygon points="36,9 38,6.5 40,9 38,11.5" fill={color} opacity="1" />
-        <polygon points="45,9 50,4  55,9  50,14" fill={color} opacity="0.7" />
-        <polygon points="48,9 50,6.5 52,9 50,11.5" fill={color} opacity="1" />
-        <circle cx="68" cy="9" r="1"   fill={color} opacity="0.22" />
-        <circle cx="74" cy="9" r="1.5" fill={color} opacity="0.4" />
-        <polygon points="80,9 88,3 96,9 88,15" fill={color} opacity="0.28" />
-        <polygon points="83,9 88,5 93,9 88,13" fill={color} opacity="0.55" />
-      </svg>
-      <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to left, transparent, ${color}55)` }} />
-    </div>
-  )
-}
-function WajikBadge({ color = C.gold, size = 30 }: { color?: string; size?: number }) {
-  return (
-    <svg viewBox="0 0 30 30" width={size} height={size} fill="none">
-      <polygon points="15,1  28,15 15,29 2,15"  stroke={color} strokeWidth="1.2" fill="none" opacity="0.35" />
-      <polygon points="15,5  25,15 15,25 5,15"  stroke={color} strokeWidth="0.8" fill="none" opacity="0.55" />
-      <polygon points="15,9.5 20.5,15 15,20.5 9.5,15" fill={color} opacity="0.88" />
-      <circle cx="15" cy="1"  r="1.3" fill={color} opacity="0.55" />
-      <circle cx="28" cy="15" r="1.3" fill={color} opacity="0.55" />
-      <circle cx="15" cy="29" r="1.3" fill={color} opacity="0.55" />
-      <circle cx="2"  cy="15" r="1.3" fill={color} opacity="0.55" />
-    </svg>
-  )
-}
-// ─── Floating Particles ─────────────────────────────────────────────────────
-const PARTICLES = [
-  { left:  '5%', size: 4, delay: 0.0, dur: 14 },
-  { left: '12%', size: 3, delay: 2.4, dur: 11 },
-  { left: '19%', size: 6, delay: 4.2, dur: 16 },
-  { left: '27%', size: 3, delay: 0.9, dur: 10 },
-  { left: '34%', size: 5, delay: 3.1, dur: 13 },
-  { left: '42%', size: 4, delay: 1.6, dur: 12 },
-  { left: '50%', size: 3, delay: 5.3, dur: 9  },
-  { left: '57%', size: 6, delay: 2.7, dur: 15 },
-  { left: '65%', size: 4, delay: 0.5, dur: 11 },
-  { left: '72%', size: 3, delay: 3.8, dur: 13 },
-  { left: '80%', size: 5, delay: 1.9, dur: 10 },
-  { left: '88%', size: 3, delay: 4.6, dur: 12 },
-  { left: '94%', size: 4, delay: 0.7, dur: 14 },
-]
-const PETALS = [
-  { left: '8%',  size: 11, delay: 1.0,  dur: 28 },
-  { left: '23%', size: 8,  delay: 7.5,  dur: 34 },
-  { left: '41%', size: 13, delay: 3.2,  dur: 26 },
-  { left: '59%', size: 9,  delay: 11.0, dur: 30 },
-  { left: '76%', size: 12, delay: 5.8,  dur: 32 },
-  { left: '91%', size: 8,  delay: 0.4,  dur: 27 },
-]
-function FloatingParticles() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-      {PARTICLES.map((p, i) => (
-        <div
-          key={i}
-          style={{
-            position: 'absolute',
-            left: p.left,
-            bottom: '-8px',
-            width:  `${p.size}px`,
-            height: `${p.size}px`,
-            background: C.gold,
-            opacity: 0,
-            animation: `floatUp ${p.dur}s ${p.delay}s infinite linear`,
-          }}
-        />
-      ))}
-      {PETALS.map((p, i) => (
-        <div
-          key={`petal-${i}`}
-          style={{
-            position: 'absolute',
-            left: p.left,
-            bottom: '-16px',
-            width:  `${p.size}px`,
-            height: `${p.size}px`,
-            background: C.goldPale,
-            borderRadius: '50% 50% 0 50%',
-            opacity: 0,
-            animation: `petalDrift ${p.dur}s ${p.delay}s infinite linear`,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-// ─── AnimatedSongketDivider ─────────────────────────────────────────────────
-function AnimatedSongketDivider() {
-  return (
-    <div style={{
-      width: '100%', height: '48px', overflow: 'hidden',
-      position: 'relative', background: 'transparent',
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: bgWajik,
-        animation: 'wajikDrift 14s linear infinite',
-        opacity: 0.22,
-      }} />
-      <div style={{
-        position: 'absolute', top: '50%', left: 0, right: 0,
-        height: '1px', transform: 'translateY(-50%)',
-        background: `linear-gradient(to right, transparent, ${C.gold}40 20%, ${C.gold}60 50%, ${C.gold}40 80%, transparent)`,
-      }} />
-    </div>
-  )
-}
-// ─── Primitive UI Atoms ─────────────────────────────────────────────────────
-function Diamond({
-  size  = 7,
-  color = C.gold,
-  style = {} as React.CSSProperties,
-}) {
-  return (
-    <span style={{
-      display: 'inline-block', width: size, height: size,
-      background: color, transform: 'rotate(45deg)',
-      flexShrink: 0, ...style,
-    }} />
-  )
-}
-function Divider({ color = C.gold }: { color?: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '24px auto', maxWidth: '220px' }}>
-      <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to right, transparent, ${color})` }} />
-      <Diamond size={3} color={color} />
-      <Diamond size={6} color={color} />
-      <Diamond size={3} color={color} />
-      <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to left, transparent, ${color})` }} />
-    </div>
-  )
-}
-function Corner({ pos, color = C.gold }: { pos: string; color?: string }) {
-  const t = pos[0] === 't', l = pos[1] === 'l'
-  return (
-    <>
-      <div style={{
-        position: 'absolute',
-        [t ? 'top'    : 'bottom']: '11px',
-        [l ? 'left'   : 'right']:  '11px',
-        width: '26px', height: '26px',
-        borderTop:    t ?  `1px solid ${color}` : 'none',
-        borderBottom: !t ? `1px solid ${color}` : 'none',
-        borderLeft:   l ?  `1px solid ${color}` : 'none',
-        borderRight:  !l ? `1px solid ${color}` : 'none',
-        opacity: 0.55,
-      }} />
-      <div style={{
-        position: 'absolute',
-        [t ? 'top'    : 'bottom']: `${11 + 26 - 3}px`,
-        [l ? 'left'   : 'right']:  `${11 + 26 - 3}px`,
-        width: '3px', height: '3px',
-        background: color,
-        transform: 'rotate(45deg)',
-        opacity: 0.45,
-      }} />
-    </>
-  )
-}
-function CdBox({ value, label }: { value: number; label: string }) {
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{
-        background: `linear-gradient(155deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`,
-        color: C.white, width: '58px', height: '62px',
-        borderRadius: '5px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.display, fontSize: '24px', fontWeight: 600,
-        boxShadow: `0 6px 22px rgba(125,37,53,0.30), 0 1px 0 rgba(255,255,255,0.09) inset`,
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '45%',
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 100%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', top: '50%', left: '6%', right: '6%',
-          height: '0.5px', background: 'rgba(0,0,0,0.18)',
-          transform: 'translateY(-50%)',
-        }} />
-        <span key={value} style={{ animation: 'countIn 0.28s ease forwards', lineHeight: 1 }}>
-          {String(value).padStart(2, '0')}
-        </span>
-      </div>
-      <p style={{
-        fontFamily: F.body, fontSize: '9px', color: C.textLight,
-        marginTop: '8px', letterSpacing: '2.5px', textTransform: 'uppercase',
-      }}>
-        {label}
-      </p>
-    </div>
-  )
-}
-function SectionLabel({ children, color = C.gold }: { children: React.ReactNode; color?: string }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      gap: '10px', marginBottom: '12px',
-    }}>
-      <Diamond size={3} color={color} style={{ opacity: 0.5 }} />
-      <p style={{
-        fontFamily: F.body, fontSize: '10px', letterSpacing: '5px',
-        color, textTransform: 'uppercase', margin: 0,
-      }}>
-        {children}
-      </p>
-      <Diamond size={3} color={color} style={{ opacity: 0.5 }} />
-    </div>
-  )
-}
-// ─── Main Component ─────────────────────────────────────────────────────────
 export default function InviteClient({ guest }: { guest: Guest }) {
   const [opened,      setOpened]      = useState(false)
   const [closing,     setClosing]     = useState(false)
@@ -301,57 +24,43 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [msgDone,     setMsgDone]     = useState(false)
   const [msgLoading,  setMsgLoading]  = useState(false)
   const [copied,      setCopied]      = useState('')
-  const [hovered,     setHovered]     = useState<string | null>(null)
   const [muted,       setMuted]       = useState(false)
   const [mapLoaded,   setMapLoaded]   = useState(false)
   const [paxVisible,  setPaxVisible]  = useState(false)
-  const [existingRsvpId, setExistingRsvpId] = useState<number | null>(null)
-  const [showRsvpWarning, setShowRsvpWarning] = useState(false)
+  const [existingRsvpId,    setExistingRsvpId]    = useState<number | null>(null)
+  const [showRsvpWarning,   setShowRsvpWarning]   = useState(false)
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
-
   const maxPax = guest.max_guests ?? 2
+  const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
 
-  const guestMsgCount = messages.filter(
-    m => m.guest_slug === guest.slug || m.isNew
-  ).length
-  
+  const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
+
+  // ── Audio ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const audio = new Audio('/it_aint_over_til_its_over.mp3')
     audio.loop = true
     audio.volume = 0.4
     audioRef.current = audio
-  
-    const tryPlay = () => {
-      audio.play().catch(() => {})
-    }
-  
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        audio.pause()
-      } else {
-        audio.play().catch(() => {})
-      }
-    }
-  
+    const tryPlay = () => audio.play().catch(() => {})
+    const handleVisibility = () => document.hidden ? audio.pause() : audio.play().catch(() => {})
     document.addEventListener('click', tryPlay, { once: true })
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-  
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       audio.pause()
       document.removeEventListener('click', tryPlay)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [])
-  
+
   function toggleMute() {
     if (!audioRef.current) return
     audioRef.current.muted = !audioRef.current.muted
     setMuted(prev => !prev)
   }
 
-  // Countdown timer
+  // ── Countdown ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const target = new Date('2026-06-26T08:00:00+07:00').getTime()
     const tick = () => {
@@ -368,10 +77,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => clearInterval(id)
   }, [])
 
+  // ── Scroll reveal ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!opened) return
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
       { threshold: 0.04 },
     )
     const id = setTimeout(() => {
@@ -380,28 +90,23 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => { clearTimeout(id); obs.disconnect() }
   }, [opened])
 
+  // ── Messages ───────────────────────────────────────────────────────────────
   useEffect(() => { loadMessages() }, [])
   async function loadMessages() {
-    const { data } = await supabase
-      .from('messages').select('*')
-      .order('created_at', { ascending: false }).limit(50)
+    const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50)
     if (data) setMessages(data)
   }
 
-  useEffect(() => {
-    if (!opened) return
-  }, [opened])
-
+  // ── Pax animation ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (attending === true) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setPaxVisible(true))
-      })
+      requestAnimationFrame(() => requestAnimationFrame(() => setPaxVisible(true)))
     } else {
       setPaxVisible(false)
     }
   }, [attending])
 
+  // ── Actions ────────────────────────────────────────────────────────────────
   function openInvite() {
     setClosing(true)
     setTimeout(() => setOpened(true), 640)
@@ -410,14 +115,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   async function submitRsvp(forceUpdate = false) {
     if (attending === null) return
     setRsvpLoading(true)
-  
     if (!forceUpdate) {
-      const { data: existing } = await supabase
-        .from('rsvps')
-        .select('id')
-        .eq('guest_slug', guest.slug)
-        .maybeSingle()
-  
+      const { data: existing } = await supabase.from('rsvps').select('id').eq('guest_slug', guest.slug).maybeSingle()
       if (existing) {
         setExistingRsvpId(existing.id)
         setShowRsvpWarning(true)
@@ -425,55 +124,26 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         return
       }
     }
-  
     if (forceUpdate && existingRsvpId) {
-      await supabase
-        .from('rsvps')
-        .update({ attending, pax: attending ? pax : 0, note })
-        .eq('id', existingRsvpId)
+      await supabase.from('rsvps').update({ attending, pax: attending ? pax : 0, note }).eq('id', existingRsvpId)
     } else {
-      await supabase.from('rsvps').insert({
-        guest_slug: guest.slug, guest_name: guest.name,
-        attending, pax: attending ? pax : 0, note,
-      })
+      await supabase.from('rsvps').insert({ guest_slug: guest.slug, guest_name: guest.name, attending, pax: attending ? pax : 0, note })
     }
-  
     setShowRsvpWarning(false)
     setRsvpDone(true)
     setRsvpLoading(false)
   }
 
   async function submitMessage() {
-    if (!msgText.trim()) return
+    if (!msgText.trim() || guestMsgCount >= 3) return
     setMsgLoading(true)
-  
-    // Optimistic: add to top of list immediately with isNew flag
-    const optimistic: Message = {
-      id: undefined,
-      guest_name: guest.name,
-      message: msgText.trim(),
-      isNew: true,
-    }
-
-    if (guestMsgCount >= 3) return
+    const optimistic: Message = { guest_name: guest.name, message: msgText.trim(), isNew: true }
     setMessages(prev => [optimistic, ...prev])
     setMsgDone(true)
     setMsgLoading(false)
-  
-    // Then actually save to DB and refresh to get real id
-    await supabase.from('messages').insert({
-      guest_slug: guest.slug,
-      guest_name: guest.name,
-      message: msgText.trim(),
-    })
-  
-    // After 3s remove the isNew highlight, then reload real data
+    await supabase.from('messages').insert({ guest_slug: guest.slug, guest_name: guest.name, message: msgText.trim() })
     setTimeout(async () => {
-      const { data } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50)
+      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50)
       if (data) setMessages(data)
     }, 3000)
   }
@@ -486,158 +156,20 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   function closeRsvpWarning() {
     setRsvpWarningClosing(true)
-    setTimeout(() => {
-      setShowRsvpWarning(false)
-      setRsvpWarningClosing(false)
-    }, 280)
+    setTimeout(() => { setShowRsvpWarning(false); setRsvpWarningClosing(false) }, 280)
   }
 
-  const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
+  // ── Cover ──────────────────────────────────────────────────────────────────
+  if (!opened) return <InviteCover guest={guest} closing={closing} onOpen={openInvite} />
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COVER PAGE
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (!opened) return (
-    <div style={{
-      minHeight: '100dvh',
-      backgroundColor: C.cream,
-      backgroundImage: `
-        radial-gradient(ellipse at 15% 12%, rgba(125,37,53,0.10) 0%, transparent 52%),
-        radial-gradient(ellipse at 85% 82%, rgba(30,58,95,0.08)  0%, transparent 48%),
-        radial-gradient(ellipse at 50% 50%, rgba(196,151,59,0.04) 0%, transparent 66%)
-      `,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '32px 20px',
-      position: 'relative', overflow: 'hidden',
-    }}>
-      {/* Woven wajik background */}
-      <div className="wajik-bg-animate" style={{ position: 'fixed', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
-      {/* Floating gold particles */}
-      <FloatingParticles />
-      {/* ── Envelope card ── */}
-      <div
-        className={closing ? 'cover-card closing' : 'cover-card'}
-        style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '390px' }}
-      >
-        <div style={{
-          background: 'rgba(255,255,255,0.97)',
-          border: `1px solid rgba(196,151,59,0.3)`,
-          borderRadius: '8px',
-          boxShadow: `
-            0 2px 6px   rgba(125,37,53,0.04),
-            0 10px 36px rgba(125,37,53,0.09),
-            0 30px 72px rgba(125,37,53,0.055),
-            0 0 0 5px   rgba(196,151,59,0.05)
-          `,
-          position: 'relative', overflow: 'hidden',
-        }}>
-          <SongketBand color={C.gold} opacity={0.14} />
-          <div style={{ padding: '24px 34px 38px', textAlign: 'center', position: 'relative' }}>
-            <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '22px' }}>
-              <Diamond size={3} color={C.gold} style={{ opacity: 0.4 }} />
-              <div className="breathe wajik-rotate"><WajikBadge size={28} /></div>
-              <Diamond size={3} color={C.gold} style={{ opacity: 0.4 }} />
-            </div>
-            <SectionLabel>Undangan Pernikahan</SectionLabel>
-            <div style={{ margin: '22px 0 0' }}>
-              <p style={{ fontFamily: F.display, fontSize: '12.5px', color: C.textLight, fontStyle: 'italic', marginBottom: '8px' }}>
-                Kepada Yth. Bapak/Ibu/Saudara/i
-              </p>
-              <p style={{
-                fontFamily: F.display, fontSize: '24px', fontWeight: 600,
-                color: C.burgundy, lineHeight: 1.2,
-                textShadow: '0 1px 3px rgba(125,37,53,0.10)',
-              }}>
-                {guest.name}
-              </p>
-            </div>
-            <PucukRebungDivider />
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '0px', marginBottom: '22px', position: 'relative',
-            }}>
-              {/* Vanya */}
-              <p style={{
-                fontFamily: F.display, fontSize: '46px', fontWeight: 300,
-                letterSpacing: '1px', lineHeight: 1.0, margin: 0,
-              }}>
-                <span style={{ animationDelay: '0.3s', display: 'inline-block' }}>
-                  <span className="gold-shimmer-text">Vanya</span>
-                </span>
-              </p>
-
-              {/* Ampersand divider */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                margin: '10px 0',
-              }}>
-                <div style={{ height: '1px', width: '28px', background: `${C.gold}40` }} />
-                <p style={{
-                  fontFamily: F.display, fontSize: '18px',
-                  color: C.gold, fontStyle: 'italic', margin: 0,
-                  textShadow: `0 0 18px ${C.gold}55`,
-                }}>dan</p>
-                <div style={{ height: '1px', width: '28px', background: `${C.gold}40` }} />
-              </div>
-
-              {/* Faiz */}
-              <p style={{
-                fontFamily: F.display, fontSize: '46px', fontWeight: 300,
-                letterSpacing: '1px', lineHeight: 1.0, margin: 0,
-              }}>
-                <span style={{ animationDelay: '0.55s', display: 'inline-block' }}>
-                  <span className="gold-shimmer-text">Faiz</span>
-                </span>
-              </p>
-
-              {/* Bottom ornament */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
-                <Diamond size={3} color={C.gold} style={{ opacity: 0.3 }} />
-                <Diamond size={5} color={C.gold} style={{ opacity: 0.55 }} />
-                <Diamond size={3} color={C.gold} style={{ opacity: 0.3 }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '34px' }}>
-              <div style={{ height: '1px', width: '20px', background: `${C.gold}50` }} />
-              <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2.5px' }}>
-                26 JUNI 2026 · JAKARTA
-              </p>
-              <div style={{ height: '1px', width: '20px', background: `${C.gold}50` }} />
-            </div>
-            <button
-              onClick={openInvite}
-              className="shimmer-btn"
-              onMouseEnter={() => setHovered('open')}
-              onMouseLeave={() => setHovered(null)}
-              style={{
-                display: 'block', width: '100%', padding: '16px',
-                background: hovered === 'open'
-                  ? `linear-gradient(135deg, ${C.burgundyDeep}, ${C.burgundy})`
-                  : `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`,
-                color: C.white, border: 'none', borderRadius: '4px', cursor: 'pointer',
-                fontFamily: F.body, fontSize: '11px', letterSpacing: '3.5px', textTransform: 'uppercase',
-                boxShadow: hovered === 'open'
-                  ? `0 8px 28px rgba(125,37,53,0.38)`
-                  : `0 4px 18px rgba(125,37,53,0.22)`,
-                transition: 'background 0.3s ease, box-shadow 0.3s ease',
-              }}
-            >
-              Buka Undangan
-            </button>
-          </div>
-          <SongketBand color={C.gold} opacity={0.14} />
-        </div>
-      </div>
-    </div>
-  )
   // ═══════════════════════════════════════════════════════════════════════════
   // MAIN INVITATION CONTENT
   // ═══════════════════════════════════════════════════════════════════════════
   return (
     <>
     <div style={{ background: C.cream }}>
-      {/* ── HERO ─────────────────────────────────────────────────────────────*/}
+
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section style={{
         background: `linear-gradient(180deg, rgba(125,37,53,0.075) 0%, rgba(125,37,53,0.02) 65%, transparent 100%)`,
         padding: '68px 24px 68px', textAlign: 'center',
@@ -650,36 +182,23 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           background: 'radial-gradient(circle, rgba(196,151,59,0.05) 0%, transparent 68%)',
           pointerEvents: 'none', zIndex: 0,
         }} />
-
         <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <p
-            style={{
-              fontFamily: F.arabic,
-              fontSize: '32px',
-              color: C.burgundy,
-              lineHeight: 2.1,
-              marginBottom: '10px',
-              marginTop: '-24px',
-              animation: `
-                heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both
-              `,
-            }}
-          >
+          <p style={{
+            fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
+            lineHeight: 2.1, marginBottom: '10px', marginTop: '-24px',
+            animation: 'heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both',
+          }}>
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
           </p>
           <div style={{ animation: 'heroFadeRise 1.4s 2.3s cubic-bezier(0.16,1,0.3,1) both' }}>
             <SectionLabel>Undangan Pernikahan</SectionLabel>
           </div>
-          <div style={{
-            animation: 'heroDividerExpand 1.4s 2.7s cubic-bezier(0.16,1,0.3,1) both',
-            transformOrigin: 'center',
-          }}>
+          <div style={{ animation: 'heroDividerExpand 1.4s 2.7s cubic-bezier(0.16,1,0.3,1) both', transformOrigin: 'center' }}>
             <PucukRebungDivider />
           </div>
           <p style={{
-            fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)',
-            fontWeight: 300, color: C.textDark,
-            lineHeight: 1.0, letterSpacing: '0.5px',
+            fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)', fontWeight: 300,
+            color: C.textDark, lineHeight: 1.0, letterSpacing: '0.5px',
             marginTop: '-2px', marginBottom: '-2px',
             animation: 'heroNameIn 2.0s 0.0s cubic-bezier(0.16,1,0.3,1) both',
           }}>
@@ -695,9 +214,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
           </div>
           <p style={{
-            fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)',
-            fontWeight: 300, color: C.textDark,
-            lineHeight: 1.0, letterSpacing: '0.5px',
+            fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)', fontWeight: 300,
+            color: C.textDark, lineHeight: 1.0, letterSpacing: '0.5px',
             marginTop: '-2px', marginBottom: '36px',
             animation: 'heroNameIn 2.0s 0.28s cubic-bezier(0.16,1,0.3,1) both',
           }}>
@@ -710,73 +228,50 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           }}>
             Jum'at, 26 Juni 2026 · Jakarta
           </p>
-          <div style={{
-            display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px',
-          }}>
-            <div style={{ animation: 'heroCountdownIn 1.0s 3.7s cubic-bezier(0.16,1,0.3,1) both' }}>
-              <CdBox value={cd.d} label="Hari" />
-            </div>
-            <p style={{
-              fontFamily: F.display, fontSize: '30px', color: C.gold,
-              opacity: 0.45, marginTop: '16px', lineHeight: 1,
-              animation: 'heroFadeRise 0.8s 3.8s cubic-bezier(0.16,1,0.3,1) both',
-            }}>:</p>
-            <div style={{ animation: 'heroCountdownIn 1.0s 3.85s cubic-bezier(0.16,1,0.3,1) both' }}>
-              <CdBox value={cd.h} label="Jam" />
-            </div>
-            <p style={{
-              fontFamily: F.display, fontSize: '30px', color: C.gold,
-              opacity: 0.45, marginTop: '16px', lineHeight: 1,
-              animation: 'heroFadeRise 0.8s 3.95s cubic-bezier(0.16,1,0.3,1) both',
-            }}>:</p>
-            <div style={{ animation: 'heroCountdownIn 1.0s 4.0s cubic-bezier(0.16,1,0.3,1) both' }}>
-              <CdBox value={cd.m} label="Menit" />
-            </div>
-            <p style={{
-              fontFamily: F.display, fontSize: '30px', color: C.gold,
-              opacity: 0.45, marginTop: '16px', lineHeight: 1,
-              animation: 'heroFadeRise 0.8s 4.1s cubic-bezier(0.16,1,0.3,1) both',
-            }}>:</p>
-            <div style={{ animation: 'heroCountdownIn 1.0s 4.15s cubic-bezier(0.16,1,0.3,1) both' }}>
-              <CdBox value={cd.s} label="Detik" />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px' }}>
+            {([
+              { val: cd.d, label: 'Hari',  delay: '3.7s'  },
+              { val: cd.h, label: 'Jam',   delay: '3.85s' },
+              { val: cd.m, label: 'Menit', delay: '4.0s'  },
+              { val: cd.s, label: 'Detik', delay: '4.15s' },
+            ] as const).reduce<React.ReactNode[]>((acc, item, i) => {
+              if (i > 0) acc.push(
+                <p key={`sep${i}`} style={{
+                  fontFamily: F.display, fontSize: '30px', color: C.gold,
+                  opacity: 0.45, marginTop: '16px', lineHeight: 1,
+                  animation: `heroFadeRise 0.8s ${['3.8s','3.95s','4.1s'][i-1]} cubic-bezier(0.16,1,0.3,1) both`,
+                }}>:</p>
+              )
+              acc.push(
+                <div key={item.label} style={{ animation: `heroCountdownIn 1.0s ${item.delay} cubic-bezier(0.16,1,0.3,1) both` }}>
+                  <CdBox value={item.val} label={item.label} />
+                </div>
+              )
+              return acc
+            }, [])}
           </div>
           <div style={{
             marginTop: '40px', display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: '10px',
             animation: 'heroFadeRise 1.2s 4.6s cubic-bezier(0.16,1,0.3,1) both',
           }}>
-            <p style={{
-              fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px',
-              color: C.textLight, textTransform: 'uppercase', margin: 0,
-            }}>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase', margin: 0 }}>
               Tandai Kalendarmu
             </p>
             
-             <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+16.00+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
-              target="_blank"
-              rel="noopener noreferrer"
+            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+16.00+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
+              target="_blank" rel="noopener noreferrer"
               className="save-date-btn shimmer-btn"
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.gold; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = C.gold }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '10px',
-                padding: '13px 28px',
-                background: 'transparent',
-                border: `1.5px solid ${C.gold}`,
-                color: C.gold,
-                borderRadius: '4px',
-                fontFamily: F.body, fontSize: '10px',
-                letterSpacing: '3px', textTransform: 'uppercase',
-                textDecoration: 'none',
+                padding: '13px 28px', background: 'transparent',
+                border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: '4px',
+                fontFamily: F.body, fontSize: '10px', letterSpacing: '3px',
+                textTransform: 'uppercase', textDecoration: 'none',
                 position: 'relative', overflow: 'hidden',
                 transition: 'background 0.3s ease, color 0.3s ease',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLAnchorElement).style.background = C.gold
-                ;(e.currentTarget as HTMLAnchorElement).style.color = C.white
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
-                ;(e.currentTarget as HTMLAnchorElement).style.color = C.gold
               }}
             >
               <svg viewBox="0 0 18 18" width="14" height="14" fill="none" style={{ flexShrink: 0 }}>
@@ -788,17 +283,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </svg>
               Save the Date
             </a>
-            <p style={{
-              fontFamily: F.display, fontSize: '12px', fontStyle: 'italic',
-              color: C.textGhost, margin: 0, letterSpacing: '0.5px',
-            }}>
+            <p style={{ fontFamily: F.display, fontSize: '12px', fontStyle: 'italic', color: C.textGhost, margin: 0, letterSpacing: '0.5px' }}>
               26 Juni 2026
             </p>
           </div>
-          <div style={{
-            marginTop: '36px',
-            animation: 'heroFadeRise 1.0s 5.2s cubic-bezier(0.16,1,0.3,1) both',
-          }}>
+          <div style={{ marginTop: '36px', animation: 'heroFadeRise 1.0s 5.2s cubic-bezier(0.16,1,0.3,1) both' }}>
             <button
               onClick={() => document.getElementById('rsvp-section')?.scrollIntoView({ behavior: 'smooth' })}
               style={{
@@ -816,199 +305,91 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </svg>
             </button>
           </div>
-
         </div>
       </section>
-      {/* ── ANIMATED SONGKET DIVIDER ─────────────────────────────────────────*/}
+
       <AnimatedSongketDivider />
-      {/* ── INTRODUCTION ─────────────────────────────────────────────────────*/}
+
+      {/* ── INTRODUCTION ─────────────────────────────────────────────────── */}
       <section className="reveal" style={{ ...S, textAlign: 'center' }}>
-        <p style={{
-          fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
-          color: C.textLight, textTransform: 'uppercase', marginBottom: '36px', lineHeight: 2.2,
-        }}>
+        <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase', marginBottom: '36px', lineHeight: 2.2 }}>
           Assalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
-        {/* Quranic verse card */}
         <div style={{
-          background: C.white,
-          border: `1px solid rgba(196,151,59,0.18)`,
-          borderRadius: '8px',
-          marginBottom: '36px',
+          background: C.white, border: `1px solid rgba(196,151,59,0.18)`,
+          borderRadius: '8px', marginBottom: '36px',
           position: 'relative', overflow: 'hidden',
           boxShadow: '0 4px 28px rgba(44,24,16,0.06)',
         }}>
           <SongketBand color={C.gold} opacity={0.09} />
           <div style={{ padding: '34px 28px', position: 'relative' }}>
             <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
-            <p style={{
-              fontFamily: F.arabic, fontSize: '22px', color: C.navy,
-              lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
-            }}>
+            <p style={{ fontFamily: F.arabic, fontSize: '22px', color: C.navy, lineHeight: 2.5, direction: 'rtl', marginBottom: '22px' }}>
               وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً
             </p>
             <div style={{ width: '36px', height: '0.5px', background: `${C.gold}70`, margin: '0 auto 18px' }} />
-            <p style={{
-              fontFamily: F.display, fontSize: '15px', color: C.textLight,
-              fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px',
-            }}>
+            <p style={{ fontFamily: F.display, fontSize: '15px', color: C.textLight, fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px' }}>
               "Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."
             </p>
-            <p style={{ fontFamily: F.body, fontSize: '11px', color: C.gold, letterSpacing: '1.5px' }}>
-              QS. Ar-Rum: 21
-            </p>
+            <p style={{ fontFamily: F.body, fontSize: '11px', color: C.gold, letterSpacing: '1.5px' }}>QS. Ar-Rum: 21</p>
           </div>
           <SongketBand color={C.gold} opacity={0.09} />
         </div>
-        <div className="invite-text-block" style={{ marginBottom: '36px' }}>
-          <p className="invite-line-1" style={{
-            fontFamily: F.display, fontSize: '16px', color: C.textMid,
-            lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
-          }}>
-            Dengan memohon rahmat dan ridho Allah ﷻ,
-            kami mengundang Bapak/Ibu/Saudara/i
+        <div style={{ marginBottom: '36px' }}>
+          <p style={{ fontFamily: F.display, fontSize: '16px', color: C.textMid, lineHeight: 2, fontStyle: 'italic', marginBottom: '0' }}>
+            Dengan memohon rahmat dan ridho Allah ﷻ, kami mengundang Bapak/Ibu/Saudara/i
           </p>
-
-          <div className="invite-name-pop" style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
-            <p style={{
-              fontFamily: F.display, fontSize: '30px', fontWeight: 600,
-              color: C.burgundy, lineHeight: 1.2, margin: 0,
-            }}>
+          <div style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
+            <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.burgundy, lineHeight: 1.2, margin: 0 }}>
               {guest.name}
             </p>
             <div style={{
-              position: 'absolute', bottom: 0, left: '8%', right: '8%',
-              height: '1.5px',
+              position: 'absolute', bottom: 0, left: '8%', right: '8%', height: '1.5px',
               background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
             }} />
           </div>
-
-          <p className="invite-line-2" style={{
-            fontFamily: F.display, fontSize: '16px', color: C.textMid,
-            lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
-          }}>
-            untuk hadir memberikan do'a restu pada acara pernikahan kami.
-            Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat
-            berarti bagi kami sekeluarga.
+          <p style={{ fontFamily: F.display, fontSize: '16px', color: C.textMid, lineHeight: 2, fontStyle: 'italic', marginBottom: '0' }}>
+            untuk hadir memberikan do'a restu pada acara pernikahan kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
           </p>
         </div>
         <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase' }}>
           Wassalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
       </section>
-      {/* ── MEMPELAI ─────────────────────────────────────────────────────────*/}
-      <section
-        className="reveal"
-        style={{
-          background: `linear-gradient(160deg, #fdfdfd 0%, #f5f7fa 60%, #fdfdfd 100%)`,
-          padding: '72px 0 80px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: 0.06,
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")`,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: '-80px',
-            left: '-80px',
-            width: '300px',
-            height: '300px',
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(200,150,120,0.12) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-80px',
-            right: '-80px',
-            width: '300px',
-            height: '300px',
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(120,160,200,0.12) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
+
+      {/* ── MEMPELAI ─────────────────────────────────────────────────────── */}
+      <section className="reveal" style={{ background: `linear-gradient(160deg, #fdfdfd 0%, #f5f7fa 60%, #fdfdfd 100%)`, padding: '72px 0 80px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.06, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")` }} />
+        <div style={{ position: 'absolute', top: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,150,120,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-80px', right: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(120,160,200,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: '52px' }}>
             <SectionLabel>Mempelai</SectionLabel>
-            <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, fontStyle: 'italic', lineHeight: 1.2 }}>
-              Kami yang berbahagia
-            </p>
+            <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, fontStyle: 'italic', lineHeight: 1.2 }}>Kami yang berbahagia</p>
           </div>
-
-          {/* ── Wanita ── */}
+          {/* Bride */}
           <div className="portrait-card reveal-left" style={{ marginBottom: '20px' }}>
-            <div style={{
-              position: 'relative', borderRadius: '6px', overflow: 'hidden',
-              height: '480px', boxShadow: '0 20px 60px rgba(125,37,53,0.18)',
-            }}>
-              {/* Photo */}
-              <img
-                src="/bride.png" alt="Vanya Alverissa"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-              />
-              {/* Gradient overlay */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%),
-                radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)`,
-              }} />
-              {/* Gold corner accents */}
-              {['tl','tr','bl','br'].map(p => {
+            <div style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px', boxShadow: '0 20px 60px rgba(125,37,53,0.18)' }}>
+              <img src="/bride.png" alt="Vanya Alverissa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%), radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)` }} />
+              {(['tl','tr','bl','br'] as const).map(p => {
                 const t = p[0]==='t', l = p[1]==='l'
-                return <div key={p} style={{
-                  position: 'absolute',
-                  [t?'top':'bottom']: '14px', [l?'left':'right']: '14px',
-                  width: '28px', height: '28px',
-                  borderTop: t ? `1.5px solid ${C.gold}` : 'none',
-                  borderBottom: !t ? `1.5px solid ${C.gold}` : 'none',
-                  borderLeft: l ? `1.5px solid ${C.gold}` : 'none',
-                  borderRight: !l ? `1.5px solid ${C.gold}` : 'none',
-                  opacity: 0.75,
-                }} />
+                return <div key={p} style={{ position: 'absolute', [t?'top':'bottom']: '14px', [l?'left':'right']: '14px', width: '28px', height: '28px', borderTop: t ? `1.5px solid ${C.gold}` : 'none', borderBottom: !t ? `1.5px solid ${C.gold}` : 'none', borderLeft: l ? `1.5px solid ${C.gold}` : 'none', borderRight: !l ? `1.5px solid ${C.gold}` : 'none', opacity: 0.75 }} />
               })}
-              {/* Tag */}
-              <div style={{
-                position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
-                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-                border: `1px solid rgba(255,255,255,0.3)`,
-                borderRadius: '2px', padding: '5px 16px',
-              }}>
-                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0, whiteSpace: 'nowrap' }}>
-                  Mempelai Wanita
-                </p>
+              <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: `1px solid rgba(255,255,255,0.3)`, borderRadius: '2px', padding: '5px 16px' }}>
+                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0, whiteSpace: 'nowrap' }}>Mempelai Wanita</p>
               </div>
-              {/* Info overlay */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px 28px' }}>
-                <p style={{ fontFamily: F.display, fontSize: '34px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>
-                  Vanya Alverissa, SE.
-                </p>
-                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '12px', letterSpacing: '0.5px' }}>
-                  Putri ke-3 dari
-                </p>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px' }}>
+                <p style={{ fontFamily: F.display, fontSize: '34px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>Vanya Alverissa, SE.</p>
+                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '12px', letterSpacing: '0.5px' }}>Putri ke-3 dari</p>
                 <div style={{ height: '1px', background: `${C.gold}60`, marginBottom: '12px' }} />
                 <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 2 }}>
-                  Bapak Darmansyah Yusuf<br />
-                  <span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />
-                  Ibu Marlina Susanti, SE.
+                  Bapak Darmansyah Yusuf<br /><span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />Ibu Marlina Susanti, SE.
                 </p>
               </div>
             </div>
           </div>
-
-          {/* ── Separator ── */}
+          {/* Separator */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', margin: '8px 0' }}>
             <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
             <div style={{ textAlign: 'center' }}>
@@ -1017,141 +398,57 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
             <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
           </div>
-
-          {/* ── Pria ── */}
+          {/* Groom */}
           <div className="portrait-card reveal-right" style={{ marginTop: '20px' }}>
-            <div style={{
-              position: 'relative', borderRadius: '6px', overflow: 'hidden',
-              height: '480px', boxShadow: '0 20px 60px rgba(30,58,95,0.18)',
-            }}>
-              {/* Photo */}
-              <img
-                src="/groom.png" alt="Faizuddarain Syam"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-              />
-              {/* Gradient overlay */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%),
-                radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)`,
-              }} />
-              {/* Gold corner accents */}
-              {['tl','tr','bl','br'].map(p => {
+            <div style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px', boxShadow: '0 20px 60px rgba(30,58,95,0.18)' }}>
+              <img src="/groom.png" alt="Faizuddarain Syam" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%), radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)` }} />
+              {(['tl','tr','bl','br'] as const).map(p => {
                 const t = p[0]==='t', l = p[1]==='l'
-                return <div key={p} style={{
-                  position: 'absolute',
-                  [t?'top':'bottom']: '14px', [l?'left':'right']: '14px',
-                  width: '28px', height: '28px',
-                  borderTop: t ? `1.5px solid ${C.gold}` : 'none',
-                  borderBottom: !t ? `1.5px solid ${C.gold}` : 'none',
-                  borderLeft: l ? `1.5px solid ${C.gold}` : 'none',
-                  borderRight: !l ? `1.5px solid ${C.gold}` : 'none',
-                  opacity: 0.75,
-                }} />
+                return <div key={p} style={{ position: 'absolute', [t?'top':'bottom']: '14px', [l?'left':'right']: '14px', width: '28px', height: '28px', borderTop: t ? `1.5px solid ${C.gold}` : 'none', borderBottom: !t ? `1.5px solid ${C.gold}` : 'none', borderLeft: l ? `1.5px solid ${C.gold}` : 'none', borderRight: !l ? `1.5px solid ${C.gold}` : 'none', opacity: 0.75 }} />
               })}
-              {/* Tag */}
-              <div style={{
-                position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
-                background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-                border: `1px solid rgba(255,255,255,0.3)`,
-                borderRadius: '2px', padding: '5px 16px',
-              }}>
-                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0 }}>
-                  Mempelai Pria
-                </p>
+              <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: `1px solid rgba(255,255,255,0.3)`, borderRadius: '2px', padding: '5px 16px' }}>
+                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0 }}>Mempelai Pria</p>
               </div>
-              {/* Info overlay */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px 28px' }}>
-                <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>
-                  Faizuddarain Syam,<br />S.Kom, M.Sc.
-                </p>
-                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '12px', letterSpacing: '0.5px' }}>
-                  Putra ke-1 dari
-                </p>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px' }}>
+                <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>Faizuddarain Syam,<br />S.Kom, M.Sc.</p>
+                <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '12px', letterSpacing: '0.5px' }}>Putra ke-1 dari</p>
                 <div style={{ height: '1px', background: `${C.gold}60`, marginBottom: '12px' }} />
                 <p style={{ fontFamily: F.body, fontSize: '12px', color: 'rgba(255,255,255,0.8)', lineHeight: 2 }}>
-                  Bapak Prof. Dr. Syamsudhuha, M.Sc.<br />
-                  <span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />
-                  Ibu Dr. Nurhayati, M.Sc.
+                  Bapak Prof. Dr. Syamsudhuha, M.Sc.<br /><span style={{ color: C.gold, fontSize: '11px' }}>&amp;</span><br />Ibu Dr. Nurhayati, M.Sc.
                 </p>
               </div>
             </div>
           </div>
-
         </div>
       </section>
-      {/* ── EVENTS ───────────────────────────────────────────────────────────*/}
+
+      {/* ── EVENTS ───────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ ...S }}>
         <SectionLabel>Rangkaian Acara</SectionLabel>
         <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, textAlign: 'center', marginBottom: '44px', lineHeight: 1.1, fontStyle: 'italic' }}>
           Hari Istimewa Kami
         </p>
         {[
-          {
-            gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`,
-            glow:  C.burgundy,
-            label: 'Akad Nikah',
-            time:  '16.00 WIB',
-            venue: 'Pejaten Terrace, Jakarta Selatan',
-            icon:  '☪',
-            revealClass: 'reveal-left',
-          },
-          {
-            gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,
-            glow:  C.navy,
-            label: 'Resepsi Pernikahan',
-            time:  '19.00 – 21.00 WIB',
-            venue: 'Pejaten Terrace, Jakarta Selatan',
-            icon:  '✿',
-            revealClass: 'reveal-right',
-          },
+          { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '16.00 WIB',          icon: '☪', revealClass: 'reveal-left'  },
+          { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
         ].map((ev, i) => (
-          <div
-            key={i}
-            className={`event-card ${ev.revealClass}`}
-            style={{
-              borderRadius: '8px',
-              marginBottom: i === 0 ? '14px' : 0,
-              boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`,
-              overflow: 'hidden', color: C.white, position: 'relative',
-            }}
-          >
+          <div key={i} className={`event-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
             <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
             <div style={{ background: ev.gradient, padding: '26px 28px 32px', position: 'relative' }}>
-              <div style={{
-                position: 'absolute', right: '-28px', top: '-28px',
-                width: '150px', height: '150px', borderRadius: '50%',
-                background: 'rgba(255,255,255,0.04)',
-                pointerEvents: 'none',
-              }} />
-              <div style={{
-                position: 'absolute', right: '14px', bottom: '10px',
-                width: '72px', height: '72px', borderRadius: '50%',
-                background: 'rgba(255,255,255,0.03)',
-                pointerEvents: 'none',
-              }} />
+              <div style={{ position: 'absolute', right: '-28px', top: '-28px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '18px' }}>
-                <div style={{
-                  width: '46px', height: '46px', borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '18px', flexShrink: 0, marginTop: '2px',
-                }}>
+                <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, marginTop: '2px' }}>
                   {ev.icon}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', opacity: 0.55, marginBottom: '7px' }}>
-                    {ev.label}
-                  </p>
-                  <p style={{ fontFamily: F.display, fontSize: '26px', fontWeight: 600, lineHeight: 1.1, marginBottom: '10px' }}>
-                    Jum'at, 26 Juni 2026
-                  </p>
+                  <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', opacity: 0.55, marginBottom: '7px' }}>{ev.label}</p>
+                  <p style={{ fontFamily: F.display, fontSize: '26px', fontWeight: 600, lineHeight: 1.1, marginBottom: '10px' }}>Jum'at, 26 Juni 2026</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
                     <div style={{ width: '14px', height: '1px', background: 'rgba(255,255,255,0.38)' }} />
                     <p style={{ fontFamily: F.body, fontSize: '14px', opacity: 0.88 }}>{ev.time}</p>
                   </div>
-                  <p style={{ fontFamily: F.body, fontSize: '13px', opacity: 0.58 }}>{ev.venue}</p>
+                  <p style={{ fontFamily: F.body, fontSize: '13px', opacity: 0.58 }}>Pejaten Terrace, Jakarta Selatan</p>
                 </div>
               </div>
             </div>
@@ -1159,194 +456,114 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
         ))}
       </section>
-      {/* ── ANIMATED SONGKET DIVIDER ─────────────────────────────────────────*/}
+
       <AnimatedSongketDivider />
-      {/* ── LOCATION ─────────────────────────────────────────────────────────*/}
+
+      {/* ── LOCATION ─────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ paddingTop: '64px', paddingBottom: '68px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px', padding: '0 24px' }}>
           <SectionLabel>Lokasi</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textLight, fontStyle: 'italic' }}>
-            Temukan kami di sini
-          </p>
+          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textLight, fontStyle: 'italic' }}>Temukan kami di sini</p>
         </div>
-        {/* Map with songket frame */}
         <div style={{ position: 'relative' }}>
           <SongketBand color={C.gold} opacity={0.11} />
           {!mapLoaded && (
-            <div style={{
-              position: 'absolute', inset: 0, height: '280px',
-              background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`,
-              backgroundSize: '200% 100%',
-              animation: 'shimmerSweepBg 1.8s infinite linear',
-              zIndex: 1,
-            }} />
+            <div style={{ position: 'absolute', inset: 0, height: '280px', background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`, backgroundSize: '200% 100%', animation: 'shimmerSweepBg 1.8s infinite linear', zIndex: 1 }} />
           )}
           <iframe
             onLoad={() => setMapLoaded(true)}
             src="https://maps.google.com/maps?q=Pejaten+Terrace+Jl+Warung+Jati+Barat+No+39+Jakarta+Selatan&output=embed&hl=id"
-            width="100%" height="280"
-            style={{ border: 'none', display: 'block' }}
+            width="100%" height="280" style={{ border: 'none', display: 'block' }}
             loading="lazy" title="Pejaten Terrace"
           />
           <SongketBand color={C.gold} opacity={0.11} />
         </div>
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '28px 24px 0', textAlign: 'center' }}>
-          <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '8px' }}>
-            Pejaten Terrace
-          </p>
+          <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '8px' }}>Pejaten Terrace</p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2.1, marginBottom: '26px' }}>
-            Jl. Warung Jati Barat No.39<br />
-            Pejaten Timur, Pasar Minggu, Jakarta Selatan
+            Jl. Warung Jati Barat No.39<br />Pejaten Timur, Pasar Minggu, Jakarta Selatan
           </p>
           
             <a href="https://maps.app.goo.gl/bxiGv4QxUE3u2bNPA"
-              target="_blank" rel="noopener noreferrer"
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLAnchorElement).style.background = C.navy
-                ;(e.currentTarget as HTMLAnchorElement).style.color = C.white
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
-                ;(e.currentTarget as HTMLAnchorElement).style.color = C.navy
-              }}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                padding: '13px 28px',
-                border: `1.5px solid ${C.navy}`, color: C.navy,
-                background: 'transparent',
-                fontFamily: F.body, fontSize: '11px',
-                letterSpacing: '2px', textTransform: 'uppercase',
-                textDecoration: 'none', borderRadius: '4px',
-                transition: 'background 0.3s ease, color 0.3s ease',
-              }}
-            >
-              📍 Buka di Google Maps
-            </a>
+            target="_blank" rel="noopener noreferrer"
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.navy; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = C.navy }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px',
+              border: `1.5px solid ${C.navy}`, color: C.navy, background: 'transparent',
+              fontFamily: F.body, fontSize: '11px', letterSpacing: '2px',
+              textTransform: 'uppercase', textDecoration: 'none', borderRadius: '4px',
+              transition: 'background 0.3s ease, color 0.3s ease',
+            }}
+          >
+            📍 Buka di Google Maps
+          </a>
         </div>
       </section>
-      {/* ── RSVP ─────────────────────────────────────────────────────────────*/}
+
+      {/* ── RSVP ─────────────────────────────────────────────────────────── */}
       <section className="reveal" id="rsvp-section" style={{ background: C.white, padding: '80px 28px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
           <SectionLabel>Konfirmasi Kehadiran</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, marginBottom: '10px', lineHeight: 1.05 }}>
-            Apakah kamu hadir?
-          </p>
+          <p style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, marginBottom: '10px', lineHeight: 1.05 }}>Apakah kamu hadir?</p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2, marginBottom: '42px' }}>
-            Mohon konfirmasi paling lambat<br />
-            <span style={{ color: C.burgundy, fontWeight: 600 }}>19 Juni 2026</span>
+            Mohon konfirmasi paling lambat<br /><span style={{ color: C.burgundy, fontWeight: 600 }}>19 Juni 2026</span>
           </p>
           {rsvpDone ? (
-            <div style={{
-              border: `1px solid rgba(125,37,53,0.18)`, borderRadius: '8px',
-              overflow: 'hidden', background: 'rgba(125,37,53,0.025)',
-              position: 'relative',
-            }}
-            className="success-bounce"
-            >
+            <div className="success-bounce" style={{ border: `1px solid rgba(125,37,53,0.18)`, borderRadius: '8px', overflow: 'hidden', background: 'rgba(125,37,53,0.025)', position: 'relative' }}>
               <SongketBand color={C.burgundy} opacity={0.05} />
               <div style={{ padding: '22px 24px' }}>
                 <p style={{ fontSize: '42px', marginBottom: '18px', marginTop: '8px' }}>🤍</p>
-                <p style={{ fontFamily: F.display, fontSize: '28px', color: C.burgundy, marginBottom: '10px' }}>
-                  Terima kasih, {guest.name.split(' ')[0]}!
-                </p>
-                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9 }}>
-                  Konfirmasi kehadiranmu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!
-                </p>
+                <p style={{ fontFamily: F.display, fontSize: '28px', color: C.burgundy, marginBottom: '10px' }}>Terima kasih, {guest.name.split(' ')[0]}!</p>
+                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9 }}>Konfirmasi kehadiranmu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</p>
               </div>
               <SongketBand color={C.burgundy} opacity={0.05} />
             </div>
           ) : (
             <>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                {[
+                {([
                   { val: true,  label: 'Hadir',       icon: '✓', color: C.burgundy },
                   { val: false, label: 'Tidak Hadir', icon: '✗', color: C.textLight },
-                ].map(({ val, label, icon, color }) => (
+                ] as const).map(({ val, label, icon, color }) => (
                   <button
                     key={label}
                     onClick={() => setAttending(val)}
-                    onMouseEnter={e => {
-                      if (attending !== val) {
-                        (e.currentTarget as HTMLButtonElement).style.background = color
-                        ;(e.currentTarget as HTMLButtonElement).style.color = C.white
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      if (attending !== val) {
-                        (e.currentTarget as HTMLButtonElement).style.background = C.white
-                        ;(e.currentTarget as HTMLButtonElement).style.color = color
-                      }
-                    }}
+                    onMouseEnter={e => { if (attending !== val) { (e.currentTarget as HTMLButtonElement).style.background = color; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
+                    onMouseLeave={e => { if (attending !== val) { (e.currentTarget as HTMLButtonElement).style.background = C.white; (e.currentTarget as HTMLButtonElement).style.color = color } }}
                     style={{
                       flex: 1, padding: '15px 8px',
                       background: attending === val ? color : C.white,
-                      color:      attending === val ? C.white : color,
-                      border:     `1.5px solid ${attending === val ? color : `${color}55`}`,
-                      borderRadius: '5px',
-                      fontFamily: F.body, fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                      color: attending === val ? C.white : color,
+                      border: `1.5px solid ${attending === val ? color : `${color}55`}`,
+                      borderRadius: '5px', fontFamily: F.body, fontSize: '14px',
+                      fontWeight: 600, cursor: 'pointer',
                       boxShadow: attending === val ? `0 4px 18px ${color}28` : 'none',
                       transition: 'all 0.25s ease',
                     }}
                   >
-                    <span style={{ marginRight: '6px' }}>{icon}</span>
-                    {label}
+                    <span style={{ marginRight: '6px' }}>{icon}</span>{label}
                   </button>
                 ))}
               </div>
-              {attending === true && (guest.max_guests ?? 2) > 1 && (
+              {attending === true && maxPax > 1 && (
                 <div style={{
                   display: 'grid',
                   gridTemplateRows: paxVisible ? '1fr' : '0fr',
                   opacity: paxVisible ? 1 : 0,
                   transform: paxVisible ? 'translateY(0px)' : 'translateY(-12px)',
                   marginBottom: paxVisible ? '20px' : '0px',
-                  transition: [
-                    'grid-template-rows 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
-                    'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
-                    'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
-                    'margin-bottom 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
-                  ].join(', '),
+                  transition: 'grid-template-rows 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.45s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1), margin-bottom 0.55s cubic-bezier(0.16,1,0.3,1)',
                 }}>
                   <div style={{ overflow: 'hidden', minHeight: 0 }}>
-                    <div style={{
-                      textAlign: 'left',
-                      background: C.cream, borderRadius: '6px', padding: '20px 20px 18px',
-                    }}>
-                      <p style={{
-                        fontFamily: F.body, fontSize: '11px', color: C.textLight,
-                        marginBottom: '14px', letterSpacing: '1.5px', textTransform: 'uppercase',
-                      }}>
+                    <div style={{ textAlign: 'left', background: C.cream, borderRadius: '6px', padding: '20px 20px 18px' }}>
+                      <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, marginBottom: '14px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
                         Jumlah tamu yang hadir
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <button
-                          onClick={() => setPax(p => Math.max(1, p - 1))}
-                          className="pax-btn"
-                          style={{
-                            width: '40px', height: '40px', borderRadius: '4px',
-                            border: `1.5px solid ${C.burgundy}`, background: C.white,
-                            color: C.burgundy, fontSize: '20px', cursor: 'pointer',
-                          }}
-                        >−</button>
-                        <span
-                          key={pax}
-                          style={{
-                            fontFamily: F.display, fontSize: '38px', color: C.textDark,
-                            minWidth: '44px', textAlign: 'center', lineHeight: 1,
-                            animation: 'paxTick 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both',
-                          }}
-                        >
-                          {pax}
-                        </span>
-                        <button
-                          onClick={() => setPax(p => Math.min(maxPax, p + 1))}
-                          className="pax-btn"
-                          style={{
-                            width: '40px', height: '40px', borderRadius: '4px',
-                            border: `1.5px solid ${C.burgundy}`, background: C.white,
-                            color: C.burgundy, fontSize: '20px', cursor: 'pointer',
-                          }}
-                        >+</button>
+                        <button onClick={() => setPax(p => Math.max(1, p - 1))} className="pax-btn" style={{ width: '40px', height: '40px', borderRadius: '4px', border: `1.5px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>−</button>
+                        <span key={pax} style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, minWidth: '44px', textAlign: 'center', lineHeight: 1, animation: 'paxTick 0.28s cubic-bezier(0.34,1.56,0.64,1) both' }}>{pax}</span>
+                        <button onClick={() => setPax(p => Math.min(maxPax, p + 1))} className="pax-btn" style={{ width: '40px', height: '40px', borderRadius: '4px', border: `1.5px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>+</button>
                         <span style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight }}>orang</span>
                       </div>
                     </div>
@@ -1354,61 +571,24 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 </div>
               )}
               <textarea
-                value={note}
-                onChange={e => setNote(e.target.value.slice(0, 280))}
-                maxLength={280}
-                placeholder="Pesan untuk mempelai (opsional)"
-                rows={3}
-                style={{
-                  width: '100%', padding: '16px',
-                  border: `1.5px solid rgba(196,151,59,0.28)`,
-                  borderRadius: '5px', resize: 'none',
-                  fontFamily: F.body, fontSize: '14px', color: C.textDark,
-                  background: '#FAFAF8', lineHeight: 1.8,
-                  marginBottom: '6px', boxSizing: 'border-box',
-                }}
+                value={note} onChange={e => setNote(e.target.value.slice(0, 280))} maxLength={280}
+                placeholder="Pesan untuk mempelai (opsional)" rows={3}
+                style={{ width: '100%', padding: '16px', border: `1.5px solid rgba(196,151,59,0.28)`, borderRadius: '5px', resize: 'none', fontFamily: F.body, fontSize: '14px', color: C.textDark, background: '#FAFAF8', lineHeight: 1.8, marginBottom: '6px', boxSizing: 'border-box' }}
               />
-              <div style={{
-                textAlign: 'right',
-                marginBottom: '10px',
-                fontFamily: F.body,
-                fontSize: '11px',
-                letterSpacing: '0.5px',
-                color: note.length >= 260
-                  ? note.length >= 280 ? '#C0392B' : '#C4973B'
-                  : 'rgba(0,0,0,0.28)',
-                transition: 'color 0.2s ease',
-              }}>
+              <div style={{ textAlign: 'right', marginBottom: '10px', fontFamily: F.body, fontSize: '11px', letterSpacing: '0.5px', color: note.length >= 260 ? (note.length >= 280 ? '#C0392B' : '#C4973B') : 'rgba(0,0,0,0.28)', transition: 'color 0.2s ease' }}>
                 {note.length}/280
               </div>
               <button
                 onClick={() => submitRsvp()}
                 disabled={attending === null || rsvpLoading}
                 className={attending !== null ? 'shimmer-btn' : ''}
-                onMouseEnter={e => {
-                  if (attending !== null) {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      `linear-gradient(135deg, ${C.burgundyDeep}, #3a0f1a)`
-                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
-                      `0 8px 28px rgba(125,37,53,0.44)`
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (attending !== null) {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`
-                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow =
-                      `0 4px 18px rgba(125,37,53,0.26)`
-                  }
-                }}
+                onMouseEnter={e => { if (attending !== null) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.burgundyDeep}, #3a0f1a)`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(125,37,53,0.44)` } }}
+                onMouseLeave={e => { if (attending !== null) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(125,37,53,0.26)` } }}
                 style={{
                   width: '100%', padding: '16px',
-                  background: attending !== null
-                    ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`
-                    : '#E8E0DC',
+                  background: attending !== null ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})` : '#E8E0DC',
                   color: attending !== null ? C.white : '#B0A09A',
-                  border: 'none', borderRadius: '5px',
-                  fontFamily: F.body, fontSize: '11px',
+                  border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px',
                   letterSpacing: '3.5px', textTransform: 'uppercase',
                   cursor: attending !== null ? 'pointer' : 'not-allowed',
                   boxShadow: attending !== null ? `0 4px 18px rgba(125,37,53,0.26)` : 'none',
@@ -1421,190 +601,60 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           )}
         </div>
       </section>
-      {/* ── DIGITAL ENVELOPE ─────────────────────────────────────────────────*/}
+
+      {/* ── DIGITAL ENVELOPE ─────────────────────────────────────────────── */}
       <section className="reveal" style={{ ...S }}>
         <SectionLabel>Amplop Digital</SectionLabel>
-        <p style={{ fontFamily: F.display, fontSize: '34px', color: C.textDark, textAlign: 'center', marginBottom: '12px' }}>
-          Hadiah &amp; Do'a Tulus
-        </p>
+        <p style={{ fontFamily: F.display, fontSize: '34px', color: C.textDark, textAlign: 'center', marginBottom: '12px' }}>Hadiah &amp; Do'a Tulus</p>
         <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, textAlign: 'center', lineHeight: 2, marginBottom: '42px' }}>
           Kehadiran dan do'a restu Anda adalah hadiah terbesar.<br />Namun jika berkenan, berikut informasinya.
         </p>
-        <div style={{
-          background: C.white, borderRadius: '8px',
-          border: `1px solid rgba(196,151,59,0.16)`,
-          overflow: 'hidden', marginBottom: '14px',
-          boxShadow: '0 4px 22px rgba(44,24,16,0.055)',
-        }}>
-          <div style={{
-            background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`,
-            padding: '12px 24px',
-          }}>
-            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>
-              Transfer Bank
-            </p>
+        {/* BCA */}
+        <div style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginBottom: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
+          <div style={{ background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, padding: '12px 24px' }}>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Transfer Bank</p>
           </div>
           <div style={{ padding: '8px 24px 26px' }}>
-            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark }}>
-              Bank BCA
-            </p>
-            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginTop: '-8px',marginBottom: '5px' }}>
-              8288061851
-            </p>
-            <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>
-              a.n. Vanya Alverissa
-            </p>
+            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark }}>Bank BCA</p>
+            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginTop: '-8px', marginBottom: '5px' }}>8288061851</p>
+            <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>a.n. Vanya Alverissa</p>
             <button
               onClick={() => copyText('8288061851', 'rek')}
               className={copied === 'rek' ? '' : 'shimmer-btn'}
-              onMouseEnter={e => {
-                if (copied !== 'rek') {
-                  (e.currentTarget as HTMLButtonElement).style.background = C.burgundy
-                  ;(e.currentTarget as HTMLButtonElement).style.color = C.white
-                }
-              }}
-              onMouseLeave={e => {
-                if (copied !== 'rek') {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                  ;(e.currentTarget as HTMLButtonElement).style.color = C.burgundy
-                }
-              }}
-              style={{
-                padding: '10px 22px',
-                position: 'relative',
-                overflow: 'hidden',  
-                background: copied === 'rek'
-                  ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`
-                  : 'transparent',
-                border: `1.5px solid ${C.burgundy}`,
-                color: copied === 'rek' ? C.white : C.burgundy,
-                borderRadius: '4px',
-                fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
+              onMouseEnter={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = C.burgundy; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
+              onMouseLeave={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.burgundy } }}
+              style={{ padding: '10px 22px', position: 'relative', overflow: 'hidden', background: copied === 'rek' ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})` : 'transparent', border: `1.5px solid ${C.burgundy}`, color: copied === 'rek' ? C.white : C.burgundy, borderRadius: '4px', fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px', cursor: 'pointer', transition: 'all 0.3s ease' }}
             >
               {copied === 'rek' && <span className="copy-ripple" />}
               {copied === 'rek' ? '✓ Tersalin!' : 'Salin Nomor'}
             </button>
           </div>
         </div>
-        {/* <div style={{
-          background: C.white, borderRadius: '8px',
-          border: `1px solid rgba(196,151,59,0.16)`,
-          overflow: 'hidden',
-          boxShadow: '0 4px 22px rgba(44,24,16,0.055)',
-        }}>
-          <div style={{
-            background: `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`,
-            padding: '12px 24px',
-          }}>
-            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>
-              QRIS
-            </p>
-          </div>
-          <div style={{ padding: '28px 24px', textAlign: 'center' }}>
-            <div style={{
-              width: '164px', height: '164px', margin: '0 auto',
-              background: C.cream, borderRadius: '8px',
-              border: `2px dashed rgba(196,151,59,0.38)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <p style={{ fontFamily: F.body, fontSize: '12px', color: C.textGhost, padding: '16px', textAlign: 'center', lineHeight: 1.8 }}>
-                [Upload QRIS di sini]
-              </p>
-            </div>
-          </div>
-        </div> */}
-        {/* ── KIRIM KADO ── */}
-        <div style={{
-          background: C.white, borderRadius: '8px',
-          border: `1px solid rgba(196,151,59,0.16)`,
-          overflow: 'hidden', marginTop: '14px',
-          boxShadow: '0 4px 22px rgba(44,24,16,0.055)',
-        }}>
-          <div style={{
-            background: `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`,
-            padding: '12px 24px',
-          }}>
-            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: '5px' }}>
-              Kirim Kado
-            </p>
+        {/* Kirim Kado */}
+        <div style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginTop: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
+          <div style={{ background: `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`, padding: '12px 24px' }}>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: '5px' }}>Kirim Kado</p>
           </div>
           <div style={{ padding: '24px 24px 26px' }}>
-            {/* Icon + recipient row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{
-                width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0,
-                background: `linear-gradient(135deg, rgba(125,37,53,0.1), rgba(30,58,95,0.1))`,
-                border: `1px solid ${C.gold}28`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '16px',
-              }}>
-                🎁
-              </div>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, background: `linear-gradient(135deg, rgba(125,37,53,0.1), rgba(30,58,95,0.1))`, border: `1px solid ${C.gold}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🎁</div>
               <div>
-                <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, margin: 0, lineHeight: 1.2 }}>
-                  Vanya Alverissa
-                </p>
-                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, margin: 0, letterSpacing: '0.5px' }}>
-                  Penerima kado
-                </p>
+                <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, margin: 0, lineHeight: 1.2 }}>Vanya Alverissa</p>
+                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, margin: 0, letterSpacing: '0.5px' }}>Penerima kado</p>
               </div>
             </div>
-            {/* Address block */}
-            <div style={{
-              background: C.cream, borderRadius: '6px',
-              padding: '14px 16px', marginBottom: '20px',
-              border: `1px solid rgba(196,151,59,0.12)`,
-              position: 'relative',
-            }}>
-              <p style={{
-                fontFamily: F.body, fontSize: '9px', letterSpacing: '2.5px',
-                textTransform: 'uppercase', color: C.textLight,
-                marginBottom: '8px',
-              }}>
-                Alamat Pengiriman
-              </p>
-              <p style={{
-                fontFamily: F.body, fontSize: '13px', color: C.textDark,
-                lineHeight: 2, margin: 0,
-              }}>
-                Jl. Bona Sarana Indah Blok E No. 12<br/>
-                RT 01/RW 02, Kelurahan Panunggangan Utara<br/>
-                Kecamatan Pinang, Kota Tangerang
+            <div style={{ background: C.cream, borderRadius: '6px', padding: '14px 16px', marginBottom: '20px', border: `1px solid rgba(196,151,59,0.12)` }}>
+              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '2.5px', textTransform: 'uppercase', color: C.textLight, marginBottom: '8px' }}>Alamat Pengiriman</p>
+              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 2, margin: 0 }}>
+                Jl. Bona Sarana Indah Blok E No. 12<br />RT 01/RW 02, Kelurahan Panunggangan Utara<br />Kecamatan Pinang, Kota Tangerang
               </p>
             </div>
-
-            {/* Copy button — same pattern as BCA */}
             <button
               onClick={() => copyText('Jl. Bona Sarana Indah Blok E No. 12 RT 01/RW 02, Kelurahan Panunggangan Utara, Kecamatan Pinang, Kota Tangerang', 'alamat')}
               className={copied === 'alamat' ? '' : 'shimmer-btn'}
-              onMouseEnter={e => {
-                if (copied !== 'alamat') {
-                  (e.currentTarget as HTMLButtonElement).style.background = C.navy
-                  ;(e.currentTarget as HTMLButtonElement).style.color = C.white
-                }
-              }}
-              onMouseLeave={e => {
-                if (copied !== 'alamat') {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                  ;(e.currentTarget as HTMLButtonElement).style.color = C.navy
-                }
-              }}
-              style={{
-                padding: '10px 22px',
-                position: 'relative', overflow: 'hidden',
-                background: copied === 'alamat'
-                  ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
-                  : 'transparent',
-                border: `1.5px solid ${C.navy}`,
-                color: copied === 'alamat' ? C.white : C.navy,
-                borderRadius: '4px',
-                fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
+              onMouseEnter={e => { if (copied !== 'alamat') { (e.currentTarget as HTMLButtonElement).style.background = C.navy; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
+              onMouseLeave={e => { if (copied !== 'alamat') { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.navy } }}
+              style={{ padding: '10px 22px', position: 'relative', overflow: 'hidden', background: copied === 'alamat' ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : 'transparent', border: `1.5px solid ${C.navy}`, color: copied === 'alamat' ? C.white : C.navy, borderRadius: '4px', fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px', cursor: 'pointer', transition: 'all 0.3s ease' }}
             >
               {copied === 'alamat' && <span className="copy-ripple" style={{ background: 'rgba(30,58,95,0.18)' }} />}
               {copied === 'alamat' ? '✓ Tersalin!' : 'Salin Alamat'}
@@ -1612,217 +662,86 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
         </div>
       </section>
-      {/* ── MESSAGES ─────────────────────────────────────────────────────────*/}
+
+      {/* ── MESSAGES ─────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ background: C.white, padding: '80px 28px' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
           <SectionLabel>Ucapan &amp; Doa</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '36px', color: C.textDark, textAlign: 'center', marginBottom: '42px' }}>
-            Kirim Do'a &amp; Selamat
-          </p>
-
-          {/* ── Input area ── */}
+          <p style={{ fontFamily: F.display, fontSize: '36px', color: C.textDark, textAlign: 'center', marginBottom: '42px' }}>Kirim Do'a &amp; Selamat</p>
           {msgDone || guestMsgCount >= 3 ? (
-            <div style={{
-              textAlign: 'center', padding: '24px 24px',
-              border: `1px solid rgba(30,58,95,0.18)`, borderRadius: '8px',
-              background: 'rgba(30,58,95,0.025)', marginBottom: '20px',
-              overflow: 'hidden', position: 'relative',
-              animation: 'successReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
-            }}>
+            <div style={{ textAlign: 'center', padding: '24px 24px', border: `1px solid rgba(30,58,95,0.18)`, borderRadius: '8px', background: 'rgba(30,58,95,0.025)', marginBottom: '20px', overflow: 'hidden', position: 'relative', animation: 'successReveal 0.6s cubic-bezier(0.22,1,0.36,1) forwards' }}>
               <SongketBand color={C.navy} opacity={0.04} />
               <div style={{ padding: '0 0' }}>
                 <p style={{ fontSize: '34px', marginBottom: '14px', marginTop: '16px' }}>💌</p>
-                <p style={{ fontFamily: F.display, fontSize: '26px', color: C.navy, marginBottom: '8px' }}>
-                  Ucapanmu sudah terkirim!
-                </p>
-                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9, marginBottom: '28px' }}>
-                  Terima kasih atas do'a tulusmu 🤍
-                </p>
+                <p style={{ fontFamily: F.display, fontSize: '26px', color: C.navy, marginBottom: '8px' }}>Ucapanmu sudah terkirim!</p>
+                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9, marginBottom: '28px' }}>Terima kasih atas do'a tulusmu 🤍</p>
               </div>
               <SongketBand color={C.navy} opacity={0.04} />
             </div>
           ) : (
             <div style={{ marginBottom: '44px' }}>
               <textarea
-                value={msgText}
-                onChange={e => setMsgText(e.target.value.slice(0, 280))}
-                maxLength={280}
-                placeholder="Tulis ucapan untuk mempelai..."
-                rows={4}
-                style={{
-                  width: '100%', padding: '18px',
-                  border: `1.5px solid rgba(196,151,59,0.28)`,
-                  borderRadius: '6px', resize: 'none',
-                  fontFamily: F.body, fontSize: '14px', color: C.textDark,
-                  background: '#FAFAF8', lineHeight: 1.9,
-                  marginBottom: '6px', boxSizing: 'border-box',
-                }}
+                value={msgText} onChange={e => setMsgText(e.target.value.slice(0, 280))} maxLength={280}
+                placeholder="Tulis ucapan untuk mempelai..." rows={4}
+                style={{ width: '100%', padding: '18px', border: `1.5px solid rgba(196,151,59,0.28)`, borderRadius: '6px', resize: 'none', fontFamily: F.body, fontSize: '14px', color: C.textDark, background: '#FAFAF8', lineHeight: 1.9, marginBottom: '6px', boxSizing: 'border-box' }}
               />
-              <div style={{
-                textAlign: 'right',
-                marginBottom: '10px',
-                fontFamily: F.body,
-                fontSize: '11px',
-                letterSpacing: '0.5px',
-                color: msgText.length >= 260
-                  ? msgText.length >= 280 ? '#C0392B' : '#C4973B'
-                  : 'rgba(0,0,0,0.28)',
-                transition: 'color 0.2s ease',
-              }}>
+              <div style={{ textAlign: 'right', marginBottom: '10px', fontFamily: F.body, fontSize: '11px', letterSpacing: '0.5px', color: msgText.length >= 260 ? (msgText.length >= 280 ? '#C0392B' : '#C4973B') : 'rgba(0,0,0,0.28)', transition: 'color 0.2s ease' }}>
                 {msgText.length}/280
               </div>
               <button
                 onClick={submitMessage}
                 disabled={!msgText.trim() || msgLoading || guestMsgCount >= 3}
                 className={msgText.trim() && guestMsgCount < 3 ? 'shimmer-btn' : ''}
-                onMouseEnter={e => {
-                  if (msgText.trim() && guestMsgCount < 3) {
-                    (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`
-                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(30,58,95,0.44)`
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (msgText.trim() && guestMsgCount < 3) {
-                    (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`
-                    ;(e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(30,58,95,0.26)`
-                  }
-                }}
-                style={{
-                  width: '100%', padding: '15px',
-                  background: msgText.trim() && guestMsgCount < 3 ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC',
-                  color: msgText.trim() && guestMsgCount < 3 ? C.white : '#B0A09A',
-                  border: 'none', borderRadius: '5px',
-                  fontFamily: F.body, fontSize: '11px',
-                  letterSpacing: '3.5px', textTransform: 'uppercase',
-                  cursor: msgText.trim() && guestMsgCount < 3 ? 'pointer' : 'not-allowed',
-                  boxShadow: msgText.trim() && guestMsgCount < 3 ? `0 4px 18px rgba(30,58,95,0.26)` : 'none',
-                  transition: 'all 0.3s ease',
-                }}
+                onMouseEnter={e => { if (msgText.trim() && guestMsgCount < 3) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(30,58,95,0.44)` } }}
+                onMouseLeave={e => { if (msgText.trim() && guestMsgCount < 3) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(30,58,95,0.26)` } }}
+                style={{ width: '100%', padding: '15px', background: msgText.trim() && guestMsgCount < 3 ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC', color: msgText.trim() && guestMsgCount < 3 ? C.white : '#B0A09A', border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3.5px', textTransform: 'uppercase', cursor: msgText.trim() && guestMsgCount < 3 ? 'pointer' : 'not-allowed', boxShadow: msgText.trim() && guestMsgCount < 3 ? `0 4px 18px rgba(30,58,95,0.26)` : 'none', transition: 'all 0.3s ease' }}
               >
                 {msgLoading ? 'Mengirim...' : 'Kirim Ucapan'}
               </button>
             </div>
           )}
-
-          {/* ── Messages list ── */}
           {messages.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '44px 24px' }}>
               <p style={{ fontSize: '28px', marginBottom: '14px', opacity: 0.35 }}>✉️</p>
-              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textGhost }}>
-                Jadilah yang pertama mengucapkan selamat 🤍
-              </p>
+              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textGhost }}>Jadilah yang pertama mengucapkan selamat 🤍</p>
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
-
-              {/* Count badge */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2px', textTransform: 'uppercase' }}>
-                  {messages.length} ucapan
-                </p>
+                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2px', textTransform: 'uppercase' }}>{messages.length} ucapan</p>
                 <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: 0.5 }} />
-                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: 0.8 }} />
-                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold }} />
+                  {[0.5, 0.8, 1].map((o, i) => <div key={i} style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: o }} />)}
                 </div>
               </div>
-
-              {/* Scroll container */}
-              <div
-                id="messages-scroll"
-                style={{
-                  height: '300px',
-                  overflowY: 'auto',
-                  paddingRight: '6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: `${C.gold}40 transparent`,
-                }}
-              >
+              <div id="messages-scroll" style={{ height: '300px', overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '4px', scrollbarWidth: 'thin', scrollbarColor: `${C.gold}40 transparent` }}>
                 {(messages.length > 2 ? [...messages, ...messages] : messages).map((msg, i) => (
-                  <div
-                    key={`${msg.id ?? 'opt'}-${i}`}
-                    className={msg.isNew ? 'msg-new' : ''}
-                    style={{
-                      background: msg.isNew
-                        ? `linear-gradient(135deg, rgba(125,37,53,0.04), rgba(196,151,59,0.06))`
-                        : i % 2 === 0 ? '#FAFAF8' : C.cream,
-                      borderRadius: '8px', padding: '0 20px',
-                      border: msg.isNew
-                        ? `1px solid rgba(196,151,59,0.35)`
-                        : `1px solid rgba(196,151,59,0.13)`,
-                      boxShadow: msg.isNew
-                        ? `0 4px 20px rgba(125,37,53,0.08)`
-                        : '0 2px 10px rgba(44,24,16,0.03)',
-                      flexShrink: 0,
-                    }}
-                  >
+                  <div key={`${msg.id ?? 'opt'}-${i}`} className={msg.isNew ? 'msg-new' : ''} style={{ background: msg.isNew ? `linear-gradient(135deg, rgba(125,37,53,0.04), rgba(196,151,59,0.06))` : i % 2 === 0 ? '#FAFAF8' : C.cream, borderRadius: '8px', padding: '0 20px', border: msg.isNew ? `1px solid rgba(196,151,59,0.35)` : `1px solid rgba(196,151,59,0.13)`, boxShadow: msg.isNew ? `0 4px 20px rgba(125,37,53,0.08)` : '0 2px 10px rgba(44,24,16,0.03)', flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                      <div style={{
-                        width: '34px', height: '34px', borderRadius: '50%',
-                        background: msg.isNew
-                          ? `linear-gradient(135deg, rgba(125,37,53,0.2), rgba(196,151,59,0.2))`
-                          : `linear-gradient(135deg, rgba(125,37,53,0.12), rgba(30,58,95,0.12))`,
-                        border: `1px solid ${C.gold}${msg.isNew ? '55' : '28'}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy,
-                        flexShrink: 0, marginTop: '16px'
-                      }}>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: msg.isNew ? `linear-gradient(135deg, rgba(125,37,53,0.2), rgba(196,151,59,0.2))` : `linear-gradient(135deg, rgba(125,37,53,0.12), rgba(30,58,95,0.12))`, border: `1px solid ${C.gold}${msg.isNew ? '55' : '28'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy, flexShrink: 0, marginTop: '16px' }}>
                         {msg.guest_name.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1, marginBottom: '0px' }}>
-                          {msg.guest_name}
-                        </p>
-                        {msg.isNew && (
-                          <p style={{ fontFamily: F.body, fontSize: '10px', color: C.gold, letterSpacing: '1.5px', marginTop: '3px' }}>
-                            BARU SAJA
-                          </p>
-                        )}
+                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1, marginBottom: '0px' }}>{msg.guest_name}</p>
+                        {msg.isNew && <p style={{ fontFamily: F.body, fontSize: '10px', color: C.gold, letterSpacing: '1.5px', marginTop: '3px' }}>BARU SAJA</p>}
                       </div>
                     </div>
-                    <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 1.4, paddingLeft: '44px', marginBottom: '24px' }}>
-                      {msg.message}
-                    </p>
+                    <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 1.4, paddingLeft: '44px', marginBottom: '24px' }}>{msg.message}</p>
                   </div>
                 ))}
               </div>
-
-              {/* Top fade */}
-              <div style={{
-                position: 'absolute', top: '36px', left: 0, right: '6px', height: '30px',
-                background: `linear-gradient(to bottom, ${C.white}, transparent)`,
-                pointerEvents: 'none',
-              }} />
-              {/* Bottom fade */}
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: '6px', height: '40px',
-                background: `linear-gradient(to bottom, transparent, ${C.white})`,
-                pointerEvents: 'none',
-              }} />
-
+              <div style={{ position: 'absolute', top: '36px', left: 0, right: '6px', height: '30px', background: `linear-gradient(to bottom, ${C.white}, transparent)`, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: '6px', height: '40px', background: `linear-gradient(to bottom, transparent, ${C.white})`, pointerEvents: 'none' }} />
             </div>
           )}
         </div>
       </section>
-      {/* ── FOOTER ───────────────────────────────────────────────────────────*/}
-      <footer style={{
-        background: `linear-gradient(180deg, ${C.burgundyDeep} 0%, ${C.burgundy} 100%)`,
-        color: C.white, position: 'relative', overflow: 'hidden',
-      }}>
+
+      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
+      <footer style={{ background: `linear-gradient(180deg, ${C.burgundyDeep} 0%, ${C.burgundy} 100%)`, color: C.white, position: 'relative', overflow: 'hidden' }}>
         <SongketBand color="rgba(255,255,255,1)" opacity={0.07} />
         <div style={{ padding: '72px 24px 60px', textAlign: 'center', position: 'relative' }}>
-          {/* Floating particles in footer */}
           <FloatingParticles />
-          {/* Ambient radial glow */}
-          <div style={{
-            position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)',
-            width: '500px', height: '420px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(196,151,59,0.09) 0%, transparent 68%)',
-            pointerEvents: 'none',
-          }} />
+          <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', width: '500px', height: '420px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(196,151,59,0.09) 0%, transparent 68%)', pointerEvents: 'none' }} />
           <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '-14px', marginBottom: '28px' }}>
               <Diamond size={3} color="rgba(196,151,59,0.4)" />
@@ -1836,56 +755,18 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               "Semoga Allah memberkahi kalian berdua dan mengumpulkan kalian dalam kebaikan."
             </p>
             <PucukRebungDivider color="rgba(196,151,59,0.48)" />
-            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
-                <p className="footer-name-shimmer" style={{
-                    fontFamily: F.display,
-                    fontSize: 'clamp(36px, 10vw, 48px)',
-                    fontWeight: 300,
-                    letterSpacing: '2px',
-                    lineHeight: 1.05,
-                    margin: 0
-                    }}
-                >
-                    Vanya
-                </p>
-
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px'
-                }}>
-                    <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
-                    
-                    <p style={{
-                    fontFamily: F.display,
-                    fontSize: '18px',
-                    opacity: 0.42,
-                    margin: 0
-                    }}>
-                    &amp;
-                    </p>
-                    
-                    <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
-                </div>
-
-                <p className="footer-name-shimmer" style={{
-                    fontFamily: F.display,
-                    fontSize: 'clamp(36px, 10vw, 48px)',
-                    fontWeight: 300,
-                    letterSpacing: '2px',
-                    lineHeight: 1.05,
-                    margin: 0
-                    }}
-                >
-                    Faiz
-                </p>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
+              <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px,10vw,48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, margin: 0 }}>Vanya</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
+                <p style={{ fontFamily: F.display, fontSize: '18px', opacity: 0.42, margin: 0 }}>&amp;</p>
+                <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
+              </div>
+              <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px,10vw,48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, margin: 0 }}>Faiz</p>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
               <Diamond size={3} color="rgba(196,151,59,0.38)" />
-              <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.38, letterSpacing: '3px', textTransform: 'uppercase' }}>
-                26 Juni 2026 · Jakarta
-              </p>
+              <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.38, letterSpacing: '3px', textTransform: 'uppercase' }}>26 Juni 2026 · Jakarta</p>
               <Diamond size={3} color="rgba(196,151,59,0.38)" />
             </div>
           </div>
@@ -1893,131 +774,48 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         <SongketBand color="rgba(255,255,255,1)" opacity={0.07} />
       </footer>
     </div>
-    {/* FLOATING MUSIC BUTTON */}
+
+    {/* ── FLOATING MUSIC BUTTON ────────────────────────────────────────────── */}
     <button
-      onClick={toggleMute}
-      title={muted ? 'Nyalakan musik' : 'Matikan musik'}
-      style={{
-        position: 'fixed', bottom: '24px', right: '24px', zIndex: 999,
-        width: '48px', height: '48px', borderRadius: '50%',
-        background: 'rgba(250, 247, 240, 0.15)',
-        backdropFilter: 'blur(12px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(12px) saturate(160%)',
-        border: `1.5px solid rgba(196,151,59,0.35)`,
-        color: C.gold,
-        fontSize: '16px',
-        boxShadow: '0 4px 20px rgba(125,37,53,0.35)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'transform 0.2s ease, opacity 0.2s ease',
-      }}
+      onClick={toggleMute} title={muted ? 'Nyalakan musik' : 'Matikan musik'}
+      style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 999, width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(250,247,240,0.15)', backdropFilter: 'blur(12px) saturate(160%)', WebkitBackdropFilter: 'blur(12px) saturate(160%)', border: `1.5px solid rgba(196,151,59,0.35)`, color: C.gold, fontSize: '16px', boxShadow: '0 4px 20px rgba(125,37,53,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s ease, opacity 0.2s ease' }}
       onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
       onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
     >
       {muted ? '🔇' : '🎵'}
     </button>
-    {/* RSVP DUPLICATE WARNING POPUP */}
+
+    {/* ── RSVP DUPLICATE WARNING ───────────────────────────────────────────── */}
     {showRsvpWarning && (
-    <>
-      {/* Backdrop */}
-      <div
-        onClick={closeRsvpWarning}
-        style={{
-          position: 'fixed', inset: 0, zIndex: 1000,
-          background: 'rgba(20, 10, 8, 0.55)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-          animation: `${rsvpWarningClosing ? 'fadeOut' : 'fadeIn'} 0.28s ease forwards`,
-        }}
-      />
-      {/* Dialog — true center */}
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1001,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        pointerEvents: 'none',
-      }}>
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '400px',
-            background: C.white,
-            borderRadius: '12px',
-            overflow: 'hidden',
-            boxShadow: '0 24px 64px rgba(44,24,16,0.22), 0 4px 0 rgba(196,151,59,0.18)',
-            pointerEvents: 'all',
-            animation: `${rsvpWarningClosing ? 'dialogFadeOut' : 'dialogFadeIn'} 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
-          }}
-        >
-          <SongketBand color={C.gold} opacity={0.1} />
-          <div style={{ padding: '32px 28px 36px', textAlign: 'center' }}>
-            <div style={{
-              width: '52px', height: '52px', borderRadius: '50%',
-              background: `rgba(125,37,53,0.07)`,
-              border: `1px solid rgba(125,37,53,0.15)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '22px', margin: '0 auto 20px',
-            }}>
-              ⚠️
+      <>
+        <div onClick={closeRsvpWarning} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(20,10,8,0.55)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', animation: `${rsvpWarningClosing ? 'fadeOut' : 'fadeIn'} 0.28s ease forwards` }} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', pointerEvents: 'none' }}>
+          <div style={{ width: '100%', maxWidth: '400px', background: C.white, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(44,24,16,0.22), 0 4px 0 rgba(196,151,59,0.18)', pointerEvents: 'all', animation: `${rsvpWarningClosing ? 'dialogFadeOut' : 'dialogFadeIn'} 0.32s cubic-bezier(0.16,1,0.3,1) forwards` }}>
+            <SongketBand color={C.gold} opacity={0.1} />
+            <div style={{ padding: '32px 28px 36px', textAlign: 'center' }}>
+              <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: `rgba(125,37,53,0.07)`, border: `1px solid rgba(125,37,53,0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', margin: '0 auto 20px' }}>⚠️</div>
+              <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '12px', lineHeight: 1.2 }}>Konfirmasi Sudah Ada</p>
+              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2, marginBottom: '32px' }}>
+                Kamu sudah pernah mengirimkan konfirmasi kehadiran sebelumnya. Apakah kamu ingin menggantikannya dengan konfirmasi yang baru?
+              </p>
+              <button onClick={() => submitRsvp(true)} className="shimmer-btn" style={{ width: '100%', padding: '15px', background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, color: C.white, border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '10px', boxShadow: `0 4px 18px rgba(125,37,53,0.26)`, position: 'relative', overflow: 'hidden' }}>
+                Ya, Ganti Konfirmasi
+              </button>
+              <button onClick={closeRsvpWarning} style={{ width: '100%', padding: '14px', background: 'transparent', color: C.textLight, border: `1.5px solid rgba(196,151,59,0.28)`, borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' }}>
+                Tidak, Batalkan
+              </button>
             </div>
-            <p style={{
-              fontFamily: F.display, fontSize: '26px',
-              color: C.textDark, marginBottom: '12px', lineHeight: 1.2,
-            }}>
-              Konfirmasi Sudah Ada
-            </p>
-            <p style={{
-              fontFamily: F.body, fontSize: '13px',
-              color: C.textLight, lineHeight: 2, marginBottom: '32px',
-            }}>
-              Kamu sudah pernah mengirimkan konfirmasi kehadiran sebelumnya.
-              Apakah kamu ingin menggantikannya dengan konfirmasi yang baru?
-            </p>
-            <button
-              onClick={() => submitRsvp(true)}
-              className="shimmer-btn"
-              style={{
-                width: '100%', padding: '15px',
-                background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`,
-                color: C.white, border: 'none', borderRadius: '5px',
-                fontFamily: F.body, fontSize: '11px',
-                letterSpacing: '3px', textTransform: 'uppercase',
-                cursor: 'pointer', marginBottom: '10px',
-                boxShadow: `0 4px 18px rgba(125,37,53,0.26)`,
-                position: 'relative', overflow: 'hidden',
-              }}
-            >
-              Ya, Ganti Konfirmasi
-            </button>
-            <button
-              onClick={closeRsvpWarning}
-              style={{
-                width: '100%', padding: '14px',
-                background: 'transparent',
-                color: C.textLight,
-                border: `1.5px solid rgba(196,151,59,0.28)`,
-                borderRadius: '5px',
-                fontFamily: F.body, fontSize: '11px',
-                letterSpacing: '3px', textTransform: 'uppercase',
-                cursor: 'pointer',
-              }}
-            >
-              Tidak, Batalkan
-            </button>
+            <SongketBand color={C.gold} opacity={0.06} />
           </div>
-          <SongketBand color={C.gold} opacity={0.06} />
         </div>
-      </div>
-    </>
-  )}
+      </>
+    )}
+
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
       <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.65, letterSpacing: '2px', textTransform: 'uppercase', padding: '12px 0' }}>
         Made with ❤️ by Faizuddarain Syam
       </p>
     </div>
-  </>
+    </>
   )
 }
