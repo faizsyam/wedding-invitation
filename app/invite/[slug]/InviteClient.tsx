@@ -30,8 +30,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [existingRsvpId,    setExistingRsvpId]    = useState<number | null>(null)
   const [showRsvpWarning,   setShowRsvpWarning]   = useState(false)
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
+  const [galleryFrame, setGalleryFrame] = useState(0)
+
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const galleryRef = useRef<HTMLDivElement>(null)
+
   const maxPax = guest.max_guests ?? 2
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
 
@@ -122,6 +126,27 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => obs.disconnect();
   }, [opened]);
 
+  // ── Gallery scroll ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!opened) return
+    let rafId: number
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        if (!galleryRef.current) return
+        const rect = galleryRef.current.getBoundingClientRect()
+        const scrolled = Math.max(0, -rect.top)
+        setGalleryFrame(Math.min(6, Math.floor(scrolled / (window.innerHeight * 0.88))))
+      })
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      cancelAnimationFrame(rafId)
+    }
+  }, [opened])
+
   // ── Messages ───────────────────────────────────────────────────────────────
   useEffect(() => { loadMessages() }, [])
   async function loadMessages() {
@@ -189,6 +214,38 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   function closeRsvpWarning() {
     setRsvpWarningClosing(true)
     setTimeout(() => { setShowRsvpWarning(false); setRsvpWarningClosing(false) }, 280)
+  }
+
+  const galleryStages = [
+    { era: 'Bayi',    label: 'Masa Bayi'        },
+    { era: 'Balita',  label: 'Masa Balita'       },
+    { era: 'SD',      label: 'Sekolah Dasar'     },
+    { era: 'SMP',     label: 'Sekolah Menengah'  },
+    { era: 'SMA',     label: 'Sekolah Atas'      },
+    { era: '...',     label: 'Menjelang Bertemu' },
+    { era: '2026',    label: 'Akhirnya Bersama 🤍'},
+  ]
+  
+  const galleryStackStyle = (i: number, isLeft: boolean): React.CSSProperties => {
+    const depth = galleryFrame - i
+    if (i > galleryFrame) return {
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      transform: `translateX(${isLeft ? '-160%' : '160%'}) rotate(${isLeft ? -18 : 18}deg)`,
+      opacity: 0, zIndex: i,
+      transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.60s cubic-bezier(0.16,1,0.3,1)',
+      willChange: 'transform, opacity',
+    }
+    const d = Math.min(depth, 3)
+    const rotate = isLeft ? -(3.5 - d) : (3.5 - d)
+    return {
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      transform: `rotate(${rotate}deg) translateY(${d * 7}px) scale(${1 - d * 0.04})`,
+      opacity: depth === 0 ? 1 : depth === 1 ? 0.85 : depth === 2 ? 0.52 : 0,
+      zIndex: 20 - depth,
+      transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.70s cubic-bezier(0.16,1,0.3,1)',
+      willChange: 'transform, opacity',
+      transformOrigin: isLeft ? 'bottom right' : 'bottom left',
+    }
   }
 
   // ── Cover ──────────────────────────────────────────────────────────────────
@@ -454,7 +511,189 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
         </div>
       </section>
+      {/* ── GALLERY ──────────────────────────────────────────────────────── */}
+      <section ref={galleryRef} style={{ height: '800vh', position: 'relative' }}>
+        <div style={{
+          position: 'sticky', top: 0, height: '100vh',
+          background: `linear-gradient(180deg, ${C.cream} 0%, #EDE5D4 50%, ${C.cream} 100%)`,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          overflow: 'hidden',
+        }}>
+          {/* Ambient layers */}
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, opacity: 0.038, zIndex: 0, pointerEvents: 'none' }} />
+          <div style={{
+            position: 'absolute', top: '-120px', left: '50%',
+            transform: `translateX(-50%) translateY(${galleryFrame * 10}px)`,
+            width: '700px', height: '500px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 170, 0, 0.07) 0%, transparent 70%)',
+            pointerEvents: 'none',
+            transition: 'transform 1.4s cubic-bezier(0.16,1,0.3,1)',
+          }} />
+          {/* Section + stage label */}
+          <div style={{ textAlign: 'center', marginBottom: '28px', marginTop: '-40px',position: 'relative', zIndex: 5 }}>
+            <SectionLabel>Perjalanan Kami</SectionLabel>
+            <p
+              key={galleryFrame}
+              style={{
+                fontFamily: F.display, fontSize: '20px', fontStyle: 'italic',
+                color: C.textLight, margin: '8px 0 0', lineHeight: 1.2,
+                animation: 'galleryLabelIn 0.55s cubic-bezier(0.22,1,0.36,1) both',
+              }}
+            >
+            </p>
+          </div>
 
+          {/* ── Together photo (frame 6) ─────────────────────────────────────── */}
+          <div style={{
+            position: 'absolute',
+            top: '50%', left: '50%',
+            transform: galleryFrame === 6
+              ? 'translate(-50%, -48%) rotate(-1.5deg) scale(1)'
+              : 'translate(-50%, -38%) rotate(-1.5deg) scale(0.86)',
+            opacity: galleryFrame === 6 ? 1 : 0,
+            zIndex: galleryFrame === 6 ? 30 : 3,
+            transition: 'transform 2.95s cubic-bezier(0.16,1,0.3,1), opacity 0.75s cubic-bezier(0.16,1,0.3,1)',
+            pointerEvents: galleryFrame === 6 ? 'auto' : 'none',
+          }}>
+            <div style={{
+              background: C.white,
+              padding: '10px 10px 0',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 32px 88px rgba(44,24,16,0.28), 0 8px 24px rgba(44,24,16,0.14)',
+              width: 'min(80vw, 320px)',
+              height: 'clamp(340px, 68vh, 510px)',
+              position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
+                background: `linear-gradient(90deg, transparent, ${C.gold}70, transparent)`,
+              }} />
+              <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#E0D8CC' }}>
+                <img
+                  src="/gallery/together.jpg"
+                  alt="Vanya & Faiz"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+              <div style={{ height: '58px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ fontFamily: F.display, fontSize: '15px', color: '#8B7355', fontStyle: 'italic', margin: 0 }}>Vanya &amp; Faiz</p>
+                <p style={{ fontFamily: F.body, fontSize: '10px', color: C.gold, letterSpacing: '2.5px', textTransform: 'uppercase', margin: '4px 0 0' }}>2026</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Side-by-side polaroid stacks (frames 0–5) ───────────────────── */}
+          <div style={{
+            display: 'flex', gap: 'clamp(12px, 3vw, 20px)', justifyContent: 'center',
+            position: 'relative', zIndex: 10,
+            opacity: galleryFrame < 6 ? 1 : 0,
+            transform: galleryFrame < 6 ? 'translateY(0)' : 'translateY(-16px)',
+            transition: 'opacity 2.5s ease, transform 2.5s ease',
+            pointerEvents: galleryFrame < 6 ? 'auto' : 'none',
+          }}>
+            {/* Groom (left) */}
+            <div>
+              <div style={{ position: 'relative', width: 'clamp(148px, 44vw, 215px)', height: 'clamp(290px, 80vh, 320px)' }}>
+                {[0,1,2,3,4,5].map(i => (
+                  <div
+                    key={i}
+                    style={{
+                      ...galleryStackStyle(i, true),
+                      background: C.white,
+                      padding: '8px 8px 0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      boxShadow: galleryFrame === i
+                        ? '0 22px 64px rgba(44,24,16,0.26), 0 6px 20px rgba(44,24,16,0.12)'
+                        : '0 4px 14px rgba(44,24,16,0.08)',
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+                      background: `linear-gradient(90deg, transparent, ${C.gold}50, transparent)`,
+                    }} />
+                    <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
+                      <img
+                        src={`/gallery/groom-${i + 1}.jpg`}
+                        alt={`Faiz – ${galleryStages[i].era}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 2.6s ease' }}
+                      />
+                    </div>
+                    <div style={{ height: '46px', flexShrink: 0 }} />
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '16px', width: 'clamp(148px, 44vw, 215px)' }}>Faiz</p>
+            </div>
+
+            {/* Bride (right) */}
+            <div>
+              <div style={{ position: 'relative', width: 'clamp(148px, 44vw, 215px)', height: 'clamp(290px, 80vh, 320px)' }}>
+                {[0,1,2,3,4,5].map(i => (
+                  <div
+                    key={i}
+                    style={{
+                      ...galleryStackStyle(i, false),
+                      background: C.white,
+                      padding: '8px 8px 0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      boxShadow: galleryFrame === i
+                        ? '0 22px 64px rgba(44,24,16,0.26), 0 6px 20px rgba(44,24,16,0.12)'
+                        : '0 4px 14px rgba(44,24,16,0.08)',
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+                      background: `linear-gradient(90deg, transparent, ${C.gold}50, transparent)`,
+                    }} />
+                    <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
+                      <img
+                        src={`/gallery/bride-${i + 1}.jpg`}
+                        alt={`Vanya – ${galleryStages[i].era}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 2.6s ease' }}
+                      />
+                    </div>
+                    <div style={{ height: '46px', flexShrink: 0 }} />
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '16px', width: 'clamp(148px, 44vw, 215px)' }}>Vanya</p>
+            </div>
+          </div>
+
+          {/* Progress pill-dots */}
+          <div style={{ position: 'absolute', bottom: '36px', display: 'flex', gap: '8px', alignItems: 'center', zIndex: 10 }}>
+            {Array.from({ length: 7 }, (_, i) => (
+              <div key={i} style={{
+                height: '5px',
+                width: i === galleryFrame ? '24px' : '5px',
+                borderRadius: '3px',
+                background: i <= galleryFrame ? C.gold : `${C.gold}28`,
+                transition: 'all 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+              }} />
+            ))}
+          </div>
+
+          {/* Scroll nudge — visible only on first frame */}
+          <div style={{
+            position: 'absolute', bottom: '68px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+            opacity: galleryFrame === 0 ? 0.5 : 0,
+            transition: 'opacity 0.5s ease',
+            pointerEvents: 'none', zIndex: 10,
+          }}>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textLight, textTransform: 'uppercase', margin: 0 }}>
+              Scroll untuk lanjut
+            </p>
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style={{ animation: 'nudgeDown 2.2s ease-in-out infinite' }}>
+              <path d="M3 6l5 5 5-5" stroke={C.gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </section>
       {/* ── EVENTS ───────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ ...S }}>
         <SectionLabel>Rangkaian Acara</SectionLabel>
