@@ -232,17 +232,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
       transform: `translateX(${isLeft ? '-160%' : '160%'}) rotate(${isLeft ? -18 : 18}deg)`,
       opacity: 0, zIndex: i,
-      transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.60s cubic-bezier(0.16,1,0.3,1)',
+      transition: 'transform 2.90s cubic-bezier(0.16,1,0.3,1), opacity 0.60s cubic-bezier(0.16,1,0.3,1)',
       willChange: 'transform, opacity',
     }
     const d = Math.min(depth, 3)
-    const rotate = isLeft ? -(3.5 - d) : (3.5 - d)
+    const rotate = isLeft ? -(2.5 - d) : (2.5 - d)
     return {
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
       transform: `rotate(${rotate}deg) translateY(${d * 7}px) scale(${1 - d * 0.04})`,
       opacity: depth === 0 ? 1 : depth === 1 ? 0.85 : depth === 2 ? 0.52 : 0,
       zIndex: 20 - depth,
-      transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.70s cubic-bezier(0.16,1,0.3,1)',
+      transition: 'transform 2.90s cubic-bezier(0.16,1,0.3,1), opacity 0.70s cubic-bezier(0.16,1,0.3,1)',
       willChange: 'transform, opacity',
       transformOrigin: isLeft ? 'bottom right' : 'bottom left',
     }
@@ -531,7 +531,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             transition: 'transform 1.4s cubic-bezier(0.16,1,0.3,1)',
           }} />
           {/* Section + stage label */}
-          <div style={{ textAlign: 'center', marginBottom: '28px', marginTop: '-40px',position: 'relative', zIndex: 5 }}>
+          <div style={{ textAlign: 'center', marginBottom: '28px', marginTop: '-96px',position: 'relative', zIndex: 5 }}>
             <SectionLabel>Perjalanan Kami</SectionLabel>
             <p
               key={galleryFrame}
@@ -586,7 +586,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
           {/* ── Side-by-side polaroid stacks (frames 0–5) ───────────────────── */}
           <div style={{
-            display: 'flex', gap: 'clamp(12px, 3vw, 20px)', justifyContent: 'center',
+            display: 'flex', gap: 'clamp(12px, 3vw, 0px)', justifyContent: 'center',
             position: 'relative', zIndex: 10,
             opacity: galleryFrame < 6 ? 1 : 0,
             transform: galleryFrame < 6 ? 'translateY(0)' : 'translateY(-16px)',
@@ -625,7 +625,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </div>
                 ))}
               </div>
-              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '16px', width: 'clamp(148px, 44vw, 215px)' }}>Faiz</p>
+              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '24px', width: 'clamp(148px, 44vw, 215px)' }}>Faiz</p>
             </div>
 
             {/* Bride (right) */}
@@ -660,12 +660,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </div>
                 ))}
               </div>
-              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '16px', width: 'clamp(148px, 44vw, 215px)' }}>Vanya</p>
+              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '24px', width: 'clamp(148px, 44vw, 215px)' }}>Vanya</p>
             </div>
           </div>
 
           {/* Progress pill-dots */}
-          <div style={{ position: 'absolute', bottom: '36px', display: 'flex', gap: '8px', alignItems: 'center', zIndex: 10 }}>
+          <div style={{ position: 'absolute', bottom: '84px', display: 'flex', gap: '8px', alignItems: 'center', zIndex: 10 }}>
             {Array.from({ length: 7 }, (_, i) => (
               <div key={i} style={{
                 height: '5px',
@@ -679,14 +679,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
           {/* Scroll nudge — visible only on first frame */}
           <div style={{
-            position: 'absolute', bottom: '68px',
+            position: 'absolute', bottom: '116px',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
             opacity: galleryFrame === 0 ? 0.5 : 0,
             transition: 'opacity 0.5s ease',
             pointerEvents: 'none', zIndex: 10,
           }}>
             <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textLight, textTransform: 'uppercase', margin: 0 }}>
-              Scroll untuk lanjut
+              Scroll ke bawah untuk lanjut
             </p>
             <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style={{ animation: 'nudgeDown 2.2s ease-in-out infinite' }}>
               <path d="M3 6l5 5 5-5" stroke={C.gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
