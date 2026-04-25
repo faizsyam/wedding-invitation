@@ -31,6 +31,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [showRsvpWarning,   setShowRsvpWarning]   = useState(false)
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
   const [galleryFrame, setGalleryFrame] = useState(0)
+  const [scrollProgress, setScrollProgress] = useState(0)
 
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -129,20 +130,68 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   // ── Gallery scroll ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!opened) return
+  
     let rafId: number
+    let touchStartY = 0
+    let touchActive = false
+  
+    const getScrolled = (): number => {
+      if (!galleryRef.current) return 0
+      return Math.max(0, -galleryRef.current.getBoundingClientRect().top)
+    }
+  
+    const isStuck = (): boolean => {
+      if (!galleryRef.current) return false
+      const rect = galleryRef.current.getBoundingClientRect()
+      return rect.top <= 0 && rect.bottom >= window.innerHeight
+    }
+  
+    const frameFromScroll = (scrolled: number): number =>
+      Math.min(6, Math.floor(scrolled / window.innerHeight))
+  
+    const scrollToFrame = (frame: number): void => {
+      if (!galleryRef.current) return
+      window.scrollTo({
+        top: galleryRef.current.offsetTop + frame * window.innerHeight + 10,
+        behavior: 'smooth',
+      })
+    }
+  
     const handleScroll = () => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
-        if (!galleryRef.current) return
-        const rect = galleryRef.current.getBoundingClientRect()
-        const scrolled = Math.max(0, -rect.top)
-        setGalleryFrame(Math.min(6, Math.floor(scrolled / (window.innerHeight * 0.88))))
+        const scrolled = getScrolled()
+        const raw = scrolled / window.innerHeight
+        setGalleryFrame(Math.min(6, Math.floor(raw)))
+        setScrollProgress(raw - Math.floor(raw))
       })
     }
+  
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!isStuck()) return
+      touchStartY = e.touches[0].clientY
+      touchActive = true
+    }
+  
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!touchActive || !isStuck()) return
+      touchActive = false
+      const delta = touchStartY - e.changedTouches[0].clientY
+      if (Math.abs(delta) < 40) return
+      const current = frameFromScroll(getScrolled())
+      const target = Math.max(0, Math.min(6, current + (delta > 0 ? 1 : -1)))
+      if (target !== current) scrollToFrame(target)
+    }
+  
     window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
     handleScroll()
+  
     return () => {
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
       cancelAnimationFrame(rafId)
     }
   }, [opened])
@@ -232,7 +281,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
       transform: `translateX(${isLeft ? '-160%' : '160%'}) rotate(${isLeft ? -18 : 18}deg)`,
       opacity: 0, zIndex: i,
-      transition: 'transform 2.90s cubic-bezier(0.16,1,0.3,1), opacity 0.60s cubic-bezier(0.16,1,0.3,1)',
+      transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.90s cubic-bezier(0.16,1,0.3,1)',
       willChange: 'transform, opacity',
     }
     const d = Math.min(depth, 3)
@@ -242,7 +291,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       transform: `rotate(${rotate}deg) translateY(${d * 7}px) scale(${1 - d * 0.04})`,
       opacity: depth === 0 ? 1 : depth === 1 ? 0.85 : depth === 2 ? 0.52 : 0,
       zIndex: 20 - depth,
-      transition: 'transform 2.90s cubic-bezier(0.16,1,0.3,1), opacity 0.70s cubic-bezier(0.16,1,0.3,1)',
+      transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.90s cubic-bezier(0.16,1,0.3,1)',
       willChange: 'transform, opacity',
       transformOrigin: isLeft ? 'bottom right' : 'bottom left',
     }
@@ -497,7 +546,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 return <div key={p} style={{ position: 'absolute', [t?'top':'bottom']: '14px', [l?'left':'right']: '14px', width: '28px', height: '28px', borderTop: t ? `1.5px solid ${C.gold}` : 'none', borderBottom: !t ? `1.5px solid ${C.gold}` : 'none', borderLeft: l ? `1.5px solid ${C.gold}` : 'none', borderRight: !l ? `1.5px solid ${C.gold}` : 'none', opacity: 0.75 }} />
               })}
               <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: `1px solid rgba(255,255,255,0.3)`, borderRadius: '2px', padding: '5px 16px' }}>
-                <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0 }}>Mempelai Pria</p>
+              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', color: C.white, textTransform: 'uppercase', margin: 0, whiteSpace: 'nowrap' }}>Mempelai Pria</p>
               </div>
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px 24px' }}>
                 <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.white, lineHeight: 1.1, marginBottom: '6px' }}>Faizuddarain Syam,<br />S.Kom, M.Sc.</p>
@@ -511,6 +560,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
         </div>
       </section>
+      
       {/* ── GALLERY ──────────────────────────────────────────────────────── */}
       <section ref={galleryRef} style={{ height: '800vh', position: 'relative' }}>
         <div style={{
@@ -531,7 +581,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             transition: 'transform 1.4s cubic-bezier(0.16,1,0.3,1)',
           }} />
           {/* Section + stage label */}
-          <div style={{ textAlign: 'center', marginBottom: '28px', marginTop: '-96px',position: 'relative', zIndex: 5 }}>
+          <div style={{ textAlign: 'center', position: 'absolute', top: '10%', left: 0, right: 0, zIndex: 5 }}>
             <SectionLabel>Perjalanan Kami</SectionLabel>
             <p
               key={galleryFrame}
@@ -562,8 +612,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 32px 88px rgba(44,24,16,0.28), 0 8px 24px rgba(44,24,16,0.14)',
-              width: 'min(80vw, 320px)',
-              height: 'clamp(340px, 68vh, 510px)',
+              width: 'clamp(240px, 72vw, 420px)',
+              height: 'clamp(340px, 68vh, 600px)',
               position: 'relative',
             }}>
               <div style={{
@@ -586,16 +636,20 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
           {/* ── Side-by-side polaroid stacks (frames 0–5) ───────────────────── */}
           <div style={{
-            display: 'flex', gap: 'clamp(12px, 3vw, 0px)', justifyContent: 'center',
+            display: 'flex', gap: 'clamp(12px, 3vw, 20px)', justifyContent: 'center',
             position: 'relative', zIndex: 10,
             opacity: galleryFrame < 6 ? 1 : 0,
-            transform: galleryFrame < 6 ? 'translateY(0)' : 'translateY(-16px)',
-            transition: 'opacity 2.5s ease, transform 2.5s ease',
+            transform: galleryFrame < 6
+              ? `translateY(${scrollProgress * -20}px)`
+              : 'translateY(-16px)',
+            transition: galleryFrame < 6
+              ? 'opacity 0.5s ease, transform 0.09s ease-out'
+              : 'opacity 0.5s ease, transform 0.5s ease',
             pointerEvents: galleryFrame < 6 ? 'auto' : 'none',
           }}>
             {/* Groom (left) */}
             <div>
-              <div style={{ position: 'relative', width: 'clamp(148px, 44vw, 215px)', height: 'clamp(290px, 80vh, 320px)' }}>
+              <div style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
                     key={i}
@@ -625,12 +679,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </div>
                 ))}
               </div>
-              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '24px', width: 'clamp(148px, 44vw, 215px)' }}>Faiz</p>
+              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '24px', width: 'clamp(155px, 43vw, 280px)' }}>Faiz</p>
             </div>
 
             {/* Bride (right) */}
             <div>
-              <div style={{ position: 'relative', width: 'clamp(148px, 44vw, 215px)', height: 'clamp(290px, 80vh, 320px)' }}>
+              <div style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
                     key={i}
@@ -660,26 +714,39 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </div>
                 ))}
               </div>
-              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '24px', width: 'clamp(148px, 44vw, 215px)' }}>Vanya</p>
+              <p style={{ fontFamily: F.display, fontSize: '16px', color: C.burgundy, fontStyle: 'italic', textAlign: 'center', marginTop: '24px', width: 'clamp(155px, 43vw, 280px)' }}>Vanya</p>
             </div>
           </div>
 
           {/* Progress pill-dots */}
-          <div style={{ position: 'absolute', bottom: '84px', display: 'flex', gap: '8px', alignItems: 'center', zIndex: 10 }}>
+          <div style={{ position: 'absolute', bottom: 'clamp(36px, 4vh, 40px)', display: 'flex', gap: '10px', alignItems: 'center', zIndex: 10 }}>
             {Array.from({ length: 7 }, (_, i) => (
               <div key={i} style={{
-                height: '5px',
-                width: i === galleryFrame ? '24px' : '5px',
-                borderRadius: '3px',
-                background: i <= galleryFrame ? C.gold : `${C.gold}28`,
-                transition: 'all 0.45s cubic-bezier(0.34,1.56,0.64,1)',
-              }} />
+                height: '7px',
+                width: i === galleryFrame ? '52px' : '7px',
+                borderRadius: '4px',
+                background: i < galleryFrame ? C.gold : `${C.gold}28`,
+                transition: 'width 0.45s cubic-bezier(0.34,1.56,0.64,1), background 0.45s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                {i === galleryFrame && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0, left: 0, bottom: 0,
+                    width: `${scrollProgress * 100}%`,
+                    background: C.gold,
+                    borderRadius: '4px',
+                    transition: 'width 0.07s linear',
+                  }} />
+                )}
+              </div>
             ))}
           </div>
 
           {/* Scroll nudge — visible only on first frame */}
           <div style={{
-            position: 'absolute', bottom: '116px',
+            position: 'absolute', bottom: 'clamp(68px, 9vh, 84px)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
             opacity: galleryFrame === 0 ? 0.5 : 0,
             transition: 'opacity 0.5s ease',
