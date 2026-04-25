@@ -54,6 +54,75 @@ body {
   transform: translate(0, 0) scale(1);
 }
 
+/* ── Intro Sequence Keyframes ─────────────────────────────────────── */
+@keyframes ia-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ia-box {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+@keyframes ia-char {
+  0%   { opacity: 0; transform: translateY(7px) scale(0.85); filter: blur(4px); }
+  55%  { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0)   scale(1);   filter: blur(0); }
+}
+@keyframes ia-word {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ia-line {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+@keyframes ia-name {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.96); letter-spacing: 0.12em; }
+  65%  { letter-spacing: normal; }
+  100% { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+
+/* ── Base hidden states ───────────────────────────────────────────── */
+.ia-salam-open,
+.ia-box,
+.ia-ref,
+.ia-invite-1,
+.ia-guest,
+.ia-invite-2,
+.ia-salam-close { opacity: 0; }
+
+.ia-line {
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+}
+
+/* ── Triggers (fire when section gets .intro-animate) ────────────── */
+.intro-animate .ia-salam-open {
+  animation: ia-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+.intro-animate .ia-box {
+  animation: ia-box 1.1s cubic-bezier(0.16, 1, 0.30, 1) 1.1s both;
+}
+.intro-animate .ia-line {
+  animation: ia-line 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+}
+.intro-animate .ia-ref {
+  animation: ia-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+}
+.intro-animate .ia-invite-1 {
+  animation: ia-rise 1s cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+}
+.intro-animate .ia-guest {
+  animation: ia-name 1.2s cubic-bezier(0.16, 1, 0.30, 1) var(--d) both;
+}
+.intro-animate .ia-invite-2 {
+  animation: ia-rise 1s cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+}
+.intro-animate .ia-salam-close {
+  animation: ia-rise 1s cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+}
+
 /* ─── Page Entry ──────────────────────────────────────────────────────────── */
 @keyframes pageReveal {
   from { opacity: 0; transform: translateY(0px) scale(0.985); filter: blur(6px); }
@@ -621,3 +690,4 @@ a {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(6px); }
 }
+

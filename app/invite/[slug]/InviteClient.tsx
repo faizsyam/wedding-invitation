@@ -9,6 +9,87 @@ import {
 } from './ui'
 import type { Guest, Message, Countdown } from './ui'
 import InviteCover from './InviteCover'
+import React from 'react'
+
+function CharReveal({
+  children, startDelay = 0, perChar = 0.018, active = false,
+}: { children: string; startDelay?: number; perChar?: number; active?: boolean }) {
+  const chars = [...children];
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    let interval: ReturnType<typeof setInterval>;
+
+    const startTimer = setTimeout(() => {
+      interval = setInterval(() => {
+        setVisibleCount(c => {
+          if (c >= chars.length) { clearInterval(interval); return c; }
+          return c + 1;
+        });
+      }, perChar * 1000);
+    }, startDelay * 1000);
+
+    return () => { clearTimeout(startTimer); clearInterval(interval); };
+  }, [active, chars.length]);
+
+  return (
+    <>
+      {chars.map((ch, i) => (
+        <span key={i} style={{
+          display: 'inline-block',
+          opacity: i < visibleCount ? 1 : 0,
+          transform: i < visibleCount ? 'translateY(0) scale(1)' : 'translateY(6px) scale(0.9)',
+          filter: i < visibleCount ? 'blur(0)' : 'blur(3px)',
+          transition: 'opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease',
+        }}>
+          {ch === ' ' ? '\u00A0' : ch}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function WordReveal({
+  children, startDelay = 0, perWord = 0.07, active = false,
+}: { children: string; startDelay?: number; perWord?: number; active?: boolean }) {
+  const words = children.split(' ');
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    let interval: ReturnType<typeof setInterval>;
+
+    const startTimer = setTimeout(() => {
+      interval = setInterval(() => {
+        setVisibleCount(c => {
+          if (c >= words.length) { clearInterval(interval); return c; }
+          return c + 1;
+        });
+      }, perWord * 1000);
+    }, startDelay * 1000);
+
+    return () => { clearTimeout(startTimer); clearInterval(interval); };
+  }, [active]);
+
+  return (
+    <>
+      {words.map((w, i) => (
+        <React.Fragment key={i}>
+          <span style={{
+            display: 'inline-block',
+            opacity: i < visibleCount ? 1 : 0,
+            transform: i < visibleCount ? 'translateY(0)' : 'translateY(8px)',
+            transition: 'opacity 0.4s ease, transform 0.4s ease',
+          }}>
+            {w}
+          </span>
+          {i < words.length - 1 && ' '}
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
 
 export default function InviteClient({ guest }: { guest: Guest }) {
   const [opened,      setOpened]      = useState(false)
@@ -32,6 +113,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
   const [galleryFrame, setGalleryFrame] = useState(0)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [introActive, setIntroActive] = useState(false);
 
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -83,49 +165,57 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   }, [])
 
   // ── Scroll reveal ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!opened) return;
-  
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-  
-    const elements = document.querySelectorAll(".reveal, .reveal-left, .reveal-right");
-  
-    const inViewport = Array.from(elements).filter(el => {
-      const rect = el.getBoundingClientRect();
-      return rect.top < window.innerHeight && rect.bottom > 0;
-    });
-  
-    elements.forEach((el) => {
-      if (!(el instanceof HTMLElement)) return;
-  
-      const rect = el.getBoundingClientRect();
-      const isCurrentlyVisible = rect.top < window.innerHeight && rect.bottom > 0;
-  
-      if (isCurrentlyVisible) {
-        const vIndex = inViewport.indexOf(el);
-        el.style.transitionDelay = `${vIndex * 0.15}s`;
-        
-        requestAnimationFrame(() => {
-          el.classList.add("visible");
-        });
-      } else {
-        el.style.transitionDelay = "0.1s"; 
-        obs.observe(el);
-      }
-    });
-  
-    return () => obs.disconnect();
-  }, [opened]);
+    useEffect(() => {
+      if (!opened) return;
+    
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              if (entry.target.classList.contains('intro-section')) {
+                entry.target.classList.add('intro-animate');
+                setIntroActive(true);
+              }
+              obs.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+    
+      const elements = document.querySelectorAll(".reveal, .reveal-left, .reveal-right, .intro-section");
+    
+      const inViewport = Array.from(elements).filter(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
+      });
+    
+      elements.forEach((el) => {
+        if (!(el instanceof HTMLElement)) return;
+    
+        const rect = el.getBoundingClientRect();
+        const isCurrentlyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    
+        if (isCurrentlyVisible) {
+          const vIndex = inViewport.indexOf(el);
+          el.style.transitionDelay = `${vIndex * 0.15}s`;
+          
+          requestAnimationFrame(() => {
+            el.classList.add("visible");
+            if (el.classList.contains('intro-section')) {
+              el.classList.add('intro-animate');
+              setIntroActive(true);
+            }
+          });
+        } else {
+          el.style.transitionDelay = "0.1s"; 
+          obs.observe(el);
+        }
+      });
+    
+      return () => obs.disconnect();
+    }, [opened]);
 
   // ── Gallery scroll ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -449,48 +539,130 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       <AnimatedSongketDivider />
 
       {/* ── INTRODUCTION ─────────────────────────────────────────────────── */}
-      <section className="reveal" style={{ ...S, textAlign: 'center' }}>
-        <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase', marginBottom: '36px', lineHeight: 2.2 }}>
+      <section
+        className="intro-section"
+        style={{ ...S, textAlign: 'center' }}
+      >
+        <p
+          className="ia-salam-open"
+          style={{
+            fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
+            color: C.textLight, textTransform: 'uppercase',
+            marginBottom: '36px', lineHeight: 2.2,
+          }}
+        >
           Assalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
-        <div style={{
-          background: C.white, border: `1px solid rgba(196,151,59,0.18)`,
-          borderRadius: '8px', marginBottom: '36px',
-          position: 'relative', overflow: 'hidden',
-          boxShadow: '0 4px 28px rgba(44,24,16,0.06)',
-        }}>
+        <div
+          className="ia-box"
+          style={{
+            background: C.white,
+            border: `1px solid rgba(196,151,59,0.18)`,
+            borderRadius: '8px', marginBottom: '36px',
+            position: 'relative', overflow: 'hidden',
+            boxShadow: '0 4px 28px rgba(44,24,16,0.06)',
+          }}
+        >
           <SongketBand color={C.gold} opacity={0.09} />
           <div style={{ padding: '34px 28px', position: 'relative' }}>
-            <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
-            <p style={{ fontFamily: F.arabic, fontSize: '22px', color: C.navy, lineHeight: 2.5, direction: 'rtl', marginBottom: '22px' }}>
-              وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً
+            <Corner pos="tl" /><Corner pos="tr" />
+            <Corner pos="bl" /><Corner pos="br" />
+            <p
+              style={{
+                fontFamily: F.arabic, fontSize: '22px', color: C.navy,
+                lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
+              }}
+            >
+              <WordReveal startDelay={2.0} perWord={0.055} active={introActive}>
+                {'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً'}
+              </WordReveal>
             </p>
-            <div style={{ width: '36px', height: '0.5px', background: `${C.gold}70`, margin: '0 auto 18px' }} />
-            <p style={{ fontFamily: F.display, fontSize: '15px', color: C.textLight, fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px' }}>
-              "Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."
+            <div
+              className="ia-line"
+              style={{
+                '--d': '3.0s',
+                width: '36px', height: '0.5px',
+                background: `${C.gold}70`,
+                margin: '0 auto 18px',
+              } as React.CSSProperties}
+            />
+            <p
+              style={{
+                fontFamily: F.display, fontSize: '15px', color: C.textLight,
+                fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px',
+              }}
+            >
+              <CharReveal startDelay={3.3} perChar={0.018} active={introActive}>
+                {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
+              </CharReveal>
             </p>
-            <p style={{ fontFamily: F.body, fontSize: '11px', color: C.gold, letterSpacing: '1.5px' }}>QS. Ar-Rum: 21</p>
+            <p
+              className="ia-ref"
+              style={{
+                '--d': '7.4s',
+                fontFamily: F.body, fontSize: '11px',
+                color: C.gold, letterSpacing: '1.5px',
+              } as React.CSSProperties}
+            >
+              QS. Ar-Rum: 21
+            </p>
           </div>
           <SongketBand color={C.gold} opacity={0.09} />
         </div>
+        {/* 7 ── Invitation body */}
         <div style={{ marginBottom: '36px' }}>
-          <p style={{ fontFamily: F.display, fontSize: '16px', color: C.textMid, lineHeight: 2, fontStyle: 'italic', marginBottom: '0' }}>
+          <p
+            className="ia-invite-1"
+            style={{
+              '--d': '8.0s',
+              fontFamily: F.display, fontSize: '16px', color: C.textMid,
+              lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+            } as React.CSSProperties}
+          >
             Dengan memohon rahmat dan ridho Allah ﷻ, kami mengundang Bapak/Ibu/Saudara/i
           </p>
-          <div style={{ display: 'inline-block', position: 'relative', margin: '10px 0 12px', padding: '2px 12px' }}>
-            <p style={{ fontFamily: F.display, fontSize: '30px', fontWeight: 600, color: C.burgundy, lineHeight: 1.2, margin: 0 }}>
+          <div
+            className="ia-guest"
+            style={{
+              '--d': '8.9s',
+              display: 'inline-block', position: 'relative',
+              margin: '10px 0 12px', padding: '2px 12px',
+            } as React.CSSProperties}
+          >
+            <p
+              style={{
+                fontFamily: F.display, fontSize: '30px', fontWeight: 600,
+                color: C.burgundy, lineHeight: 1.2, margin: 0,
+              }}
+            >
               {guest.name}
             </p>
-            <div style={{
-              position: 'absolute', bottom: 0, left: '8%', right: '8%', height: '1.5px',
-              background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
-            }} />
+            <div
+              style={{
+                position: 'absolute', bottom: 0, left: '8%', right: '8%', height: '1.5px',
+                background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
+              }}
+            />
           </div>
-          <p style={{ fontFamily: F.display, fontSize: '16px', color: C.textMid, lineHeight: 2, fontStyle: 'italic', marginBottom: '0' }}>
+          <p
+            className="ia-invite-2"
+            style={{
+              '--d': '10.0s',
+              fontFamily: F.display, fontSize: '16px', color: C.textMid,
+              lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+            } as React.CSSProperties}
+          >
             untuk hadir memberikan do'a restu pada acara pernikahan kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
           </p>
         </div>
-        <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase' }}>
+        <p
+          className="ia-salam-close"
+          style={{
+            '--d': '11.0s',
+            fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
+            color: C.textLight, textTransform: 'uppercase',
+          } as React.CSSProperties}
+        >
           Wassalamu'alaikum Warahmatullahi Wabarakatuh
         </p>
       </section>
@@ -581,7 +753,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             transition: 'transform 1.4s cubic-bezier(0.16,1,0.3,1)',
           }} />
           {/* Section + stage label */}
-          <div style={{ textAlign: 'center', position: 'absolute', top: '10%', left: 0, right: 0, zIndex: 5 }}>
+          <div className="reveal" style={{ textAlign: 'center', position: 'absolute', top: '10%', left: 0, right: 0, zIndex: 5 }}>
             <SectionLabel>Perjalanan Kami</SectionLabel>
             <p
               key={galleryFrame}
@@ -612,7 +784,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 32px 88px rgba(44,24,16,0.28), 0 8px 24px rgba(44,24,16,0.14)',
-              width: 'clamp(240px, 72vw, 420px)',
+              width: 'clamp(240px, 86vw, 420px)',
               height: 'clamp(340px, 68vh, 600px)',
               position: 'relative',
             }}>
@@ -620,7 +792,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
                 background: `linear-gradient(90deg, transparent, ${C.gold}70, transparent)`,
               }} />
-              <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#E0D8CC' }}>
+              <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#E0D8CC' }}>
                 <img
                   src="/gallery/together.jpg"
                   alt="Vanya & Faiz"
@@ -640,7 +812,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             position: 'relative', zIndex: 10,
             opacity: galleryFrame < 6 ? 1 : 0,
             transform: galleryFrame < 6
-              ? `translateY(${scrollProgress * -20}px)`
+              ? `translateY(${scrollProgress * -32}px)`
               : 'translateY(-16px)',
             transition: galleryFrame < 6
               ? 'opacity 0.5s ease, transform 0.09s ease-out'
@@ -649,7 +821,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           }}>
             {/* Groom (left) */}
             <div>
-              <div style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
+              <div className="reveal-left" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
                     key={i}
@@ -668,11 +840,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
                       background: `linear-gradient(90deg, transparent, ${C.gold}50, transparent)`,
                     }} />
-                    <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
+                    <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
                       <img
                         src={`/gallery/groom-${i + 1}.jpg`}
                         alt={`Faiz – ${galleryStages[i].era}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 2.6s ease' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease' }}
                       />
                     </div>
                     <div style={{ height: '46px', flexShrink: 0 }} />
@@ -684,7 +856,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
             {/* Bride (right) */}
             <div>
-              <div style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
+              <div className="reveal-right" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
                     key={i}
@@ -703,11 +875,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
                       background: `linear-gradient(90deg, transparent, ${C.gold}50, transparent)`,
                     }} />
-                    <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
+                    <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
                       <img
                         src={`/gallery/bride-${i + 1}.jpg`}
                         alt={`Vanya – ${galleryStages[i].era}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 2.6s ease' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease' }}
                       />
                     </div>
                     <div style={{ height: '46px', flexShrink: 0 }} />
@@ -719,7 +891,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
 
           {/* Progress pill-dots */}
-          <div style={{ position: 'absolute', bottom: 'clamp(36px, 4vh, 40px)', display: 'flex', gap: '10px', alignItems: 'center', zIndex: 10 }}>
+          <div style={{ position: 'absolute', bottom: 'clamp(140px, 54vh, 40px)', display: 'flex', gap: '10px', alignItems: 'center', zIndex: 10 }}>
             {Array.from({ length: 7 }, (_, i) => (
               <div key={i} style={{
                 height: '7px',
