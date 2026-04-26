@@ -671,7 +671,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p
             className="ia-invite-2"
             style={{
-              '--d': '10.0s',
+              '--d': '9.5s',
               fontFamily: F.display, fontSize: '16px', color: C.textMid,
               lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
             } as React.CSSProperties}
@@ -682,7 +682,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         <p
           className="ia-salam-close"
           style={{
-            '--d': '11.0s',
+            '--d': '10.0s',
             fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
             color: C.textLight, textTransform: 'uppercase',
           } as React.CSSProperties}
@@ -797,8 +797,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             transition: 'transform 1.4s cubic-bezier(0.16,1,0.3,1)',
           }} />
           {/* Section + stage label */}
-          <div className="reveal" style={{ textAlign: 'center', position: 'absolute', top: '10%', left: 0, right: 0, zIndex: 5 }}>
-            <SectionLabel>Perjalanan Kami</SectionLabel>
+          <div className="reveal" style={{ textAlign: 'center', position: 'absolute', top: '8%', left: 0, right: 0, zIndex: 5 }}>
+          <SectionLabel>Galeri</SectionLabel>
+          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textLight, fontStyle: 'italic' }}>Perjalanan kami</p>
             <p
               key={galleryFrame}
               style={{
@@ -867,7 +868,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
           {/* ── Side-by-side polaroid stacks (frames 0–5) ───────────────────── */}
           <div style={{
-            display: 'flex', gap: 'clamp(12px, 3vw, 20px)', justifyContent: 'center',
+            display: 'flex', gap: 'clamp(10px, 4vw, 0px)', justifyContent: 'center', marginTop: '16px',
             position: 'relative', zIndex: 10,
             opacity: galleryFrame < 6 ? 1 : 0,
             transform: galleryFrame < 6
@@ -893,7 +894,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               }}
               style={{ transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
             >
-              <div className="reveal-left" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
+              <div className="reveal-left" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 380px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
                     key={i}
@@ -941,7 +942,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               }}
               style={{ transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
             >
-              <div className="reveal-right" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
+              <div className="reveal-right" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 380px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
                     key={i}
@@ -1205,7 +1206,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           Kehadiran dan do'a restu Anda adalah hadiah terbesar.<br />Namun jika berkenan, berikut informasinya.
         </p>
         {/* BCA */}
-        <div style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginBottom: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
+        <div className="reveal-left" style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginBottom: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
           <div style={{ background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, padding: '12px 24px' }}>
             <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Transfer Bank</p>
           </div>
@@ -1226,7 +1227,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
         </div>
         {/* Kirim Kado */}
-        <div style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginTop: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
+        <div className="reveal-right" style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginTop: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
           <div style={{ background: `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`, padding: '12px 24px' }}>
             <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: '5px' }}>Kirim Kado</p>
           </div>
