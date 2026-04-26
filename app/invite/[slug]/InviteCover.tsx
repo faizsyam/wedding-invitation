@@ -96,7 +96,7 @@ export default function InviteCover({ guest, closing, onOpen, preview }: Props) 
             {!preview && (
                 <button
                 onClick={onOpen}
-                className="shimmer-btn"
+                className="shimmer-btn cover-open-pulse"
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
                 style={{

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import './globals.css'
+import SmoothScroll from '@/components/SmoothScroll'
 
 export const metadata = {
   title: 'Undangan Pernikahan',
@@ -9,7 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   )
 }

@@ -115,9 +115,15 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [introActive, setIntroActive] = useState(false);
 
-
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
+
+  const brideCardRef = useRef<HTMLDivElement>(null)
+  const groomCardRef = useRef<HTMLDivElement>(null)
+
+  const leftPolaroidRef  = useRef<HTMLDivElement>(null)
+  const rightPolaroidRef = useRef<HTMLDivElement>(null)
+  const togetherRef      = useRef<HTMLDivElement>(null)
 
   const maxPax = guest.max_guests ?? 2
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
@@ -145,6 +151,21 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     if (!audioRef.current) return
     audioRef.current.muted = !audioRef.current.muted
     setMuted(prev => !prev)
+  }
+
+  function applyTilt(ref: React.RefObject<HTMLDivElement | null>, e: React.MouseEvent<HTMLDivElement>, intensity = 7) {
+    if (!ref.current || window.matchMedia('(hover: none)').matches) return
+    const r = ref.current.getBoundingClientRect()
+    const x = (e.clientX - r.left) / r.width  - 0.5
+    const y = (e.clientY - r.top)  / r.height - 0.5
+    ref.current.style.transform = `perspective(1000px) rotateX(${-y * intensity}deg) rotateY(${x * intensity}deg) scale3d(1.018,1.018,1.018)`
+    ref.current.style.boxShadow = `0 32px 80px rgba(125,37,53,0.28), 0 8px 32px rgba(125,37,53,0.16)`
+  }
+  
+  function resetTilt(ref: React.RefObject<HTMLDivElement | null>, originalShadow: string) {
+    if (!ref.current) return
+    ref.current.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)`
+    ref.current.style.boxShadow = originalShadow
   }
 
   // ── Countdown ──────────────────────────────────────────────────────────────
@@ -241,10 +262,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   
     const scrollToFrame = (frame: number): void => {
       if (!galleryRef.current) return
-      window.scrollTo({
-        top: galleryRef.current.offsetTop + frame * window.innerHeight + 10,
-        behavior: 'smooth',
-      })
+      const targetY = galleryRef.current.offsetTop + frame * window.innerHeight + 10
+      const lenis = (window as any).__lenis
+      if (lenis) {
+        lenis.scrollTo(targetY, { duration: 1.1, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) })
+      } else {
+        window.scrollTo({ top: targetY, behavior: 'smooth' })
+      }
     }
   
     const handleScroll = () => {
@@ -679,7 +703,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
           {/* Bride */}
           <div className="portrait-card reveal-left" style={{ marginBottom: '20px' }}>
-            <div style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px', boxShadow: '0 20px 60px rgba(125,37,53,0.18)' }}>
+            <div
+              ref={brideCardRef}
+              onMouseMove={(e) => applyTilt(brideCardRef, e)}
+              onMouseLeave={() => resetTilt(brideCardRef, '0 20px 60px rgba(125,37,53,0.18)')}
+              style={{
+                position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px',
+                boxShadow: '0 20px 60px rgba(125,37,53,0.18)',
+                transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1), box-shadow 0.8s cubic-bezier(0.16,1,0.3,1)',
+                willChange: 'transform',
+              }}
+            >
               <img src="/bride.png" alt="Vanya Alverissa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%), radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)` }} />
               {(['tl','tr','bl','br'] as const).map(p => {
@@ -710,7 +744,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
           {/* Groom */}
           <div className="portrait-card reveal-right" style={{ marginTop: '20px' }}>
-            <div style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px', boxShadow: '0 20px 60px rgba(30,58,95,0.18)' }}>
+            <div
+              ref={groomCardRef}
+              onMouseMove={(e) => applyTilt(groomCardRef, e, 6)}
+              onMouseLeave={() => resetTilt(groomCardRef, '0 20px 60px rgba(30,58,95,0.18)')}
+              style={{
+                position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px',
+                boxShadow: '0 20px 60px rgba(30,58,95,0.18)',
+                transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1), box-shadow 0.8s cubic-bezier(0.16,1,0.3,1)',
+                willChange: 'transform',
+              }}
+            >
               <img src="/groom.png" alt="Faizuddarain Syam" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%), radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)` }} />
               {(['tl','tr','bl','br'] as const).map(p => {
@@ -778,16 +822,31 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             transition: 'transform 2.95s cubic-bezier(0.16,1,0.3,1), opacity 0.75s cubic-bezier(0.16,1,0.3,1)',
             pointerEvents: galleryFrame === 6 ? 'auto' : 'none',
           }}>
-            <div style={{
-              background: C.white,
-              padding: '10px 10px 0',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 32px 88px rgba(44,24,16,0.28), 0 8px 24px rgba(44,24,16,0.14)',
-              width: 'clamp(240px, 86vw, 420px)',
-              height: 'clamp(340px, 68vh, 600px)',
-              position: 'relative',
-            }}>
+            <div
+              ref={togetherRef}
+              onMouseMove={(e) => {
+                if (!togetherRef.current || window.matchMedia('(hover: none)').matches) return
+                const r = togetherRef.current.getBoundingClientRect()
+                const x = (e.clientX - r.left) / r.width  - 0.5
+                const y = (e.clientY - r.top)  / r.height - 0.5
+                togetherRef.current.style.transform = `perspective(900px) rotateX(${-y * 12}deg) rotateY(${x * 12}deg) scale3d(1.015,1.015,1.015)`
+              }}
+              onMouseLeave={() => {
+                if (togetherRef.current) togetherRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)'
+              }}
+              style={{
+                background: C.white,
+                padding: '10px 10px 0',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 32px 88px rgba(44,24,16,0.28), 0 8px 24px rgba(44,24,16,0.14)',
+                width: 'clamp(240px, 86vw, 420px)',
+                height: 'clamp(340px, 68vh, 600px)',
+                position: 'relative',
+                transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)',
+                willChange: 'transform',
+              }}
+            >
               <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
                 background: `linear-gradient(90deg, transparent, ${C.gold}70, transparent)`,
@@ -820,7 +879,20 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             pointerEvents: galleryFrame < 6 ? 'auto' : 'none',
           }}>
             {/* Groom (left) */}
-            <div>
+            <div
+              ref={leftPolaroidRef}
+              onMouseMove={(e) => {
+                if (!leftPolaroidRef.current || window.matchMedia('(hover: none)').matches) return
+                const r = leftPolaroidRef.current.getBoundingClientRect()
+                const x = (e.clientX - r.left) / r.width  - 0.5
+                const y = (e.clientY - r.top)  / r.height - 0.5
+                leftPolaroidRef.current.style.transform = `perspective(900px) rotateX(${-y * 9}deg) rotateY(${x * 9}deg) scale3d(1.02,1.02,1.02)`
+              }}
+              onMouseLeave={() => {
+                if (leftPolaroidRef.current) leftPolaroidRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)'
+              }}
+              style={{ transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
+            >
               <div className="reveal-left" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
@@ -855,7 +927,20 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
 
             {/* Bride (right) */}
-            <div>
+            <div
+              ref={rightPolaroidRef}
+              onMouseMove={(e) => {
+                if (!rightPolaroidRef.current || window.matchMedia('(hover: none)').matches) return
+                const r = rightPolaroidRef.current.getBoundingClientRect()
+                const x = (e.clientX - r.left) / r.width  - 0.5
+                const y = (e.clientY - r.top)  / r.height - 0.5
+                rightPolaroidRef.current.style.transform = `perspective(900px) rotateX(${-y * 9}deg) rotateY(${x * 9}deg) scale3d(1.02,1.02,1.02)`
+              }}
+              onMouseLeave={() => {
+                if (rightPolaroidRef.current) rightPolaroidRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)'
+              }}
+              style={{ transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
+            >
               <div className="reveal-right" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 420px)' }}>
                 {[0,1,2,3,4,5].map(i => (
                   <div
