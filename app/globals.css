@@ -693,11 +693,6 @@ a {
   }
 }
 
-@keyframes nudgeDown {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(6px); }
-}
-
 /* ─── Gallery Polaroid Film Warmth ───────────────────────────────────────── */
 .portrait-card img {
   filter: sepia(6%) saturate(112%) brightness(1.01) contrast(1.015);

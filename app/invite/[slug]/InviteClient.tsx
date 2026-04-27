@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
   C, F, bgWajik,
@@ -14,7 +14,7 @@ import React from 'react'
 function CharReveal({
   children, startDelay = 0, perChar = 0.018, active = false,
 }: { children: string; startDelay?: number; perChar?: number; active?: boolean }) {
-  const chars = [...children];
+  const chars = useMemo(() => [...children], [children]);
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ function CharReveal({
 function WordReveal({
   children, startDelay = 0, perWord = 0.07, active = false,
 }: { children: string; startDelay?: number; perWord?: number; active?: boolean }) {
-  const words = children.split(' ');
+  const words = useMemo(() => children.split(' '), [children]);
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ function WordReveal({
     }, startDelay * 1000);
 
     return () => { clearTimeout(startTimer); clearInterval(interval); };
-  }, [active]);
+  }, [active, words.length]);
 
   return (
     <>
@@ -90,6 +90,16 @@ function WordReveal({
     </>
   );
 }
+
+const galleryStages = [
+  { era: 'Bayi',    label: 'Masa Bayi'        },
+  { era: 'Balita',  label: 'Masa Balita'       },
+  { era: 'SD',      label: 'Sekolah Dasar'     },
+  { era: 'SMP',     label: 'Sekolah Menengah'  },
+  { era: 'SMA',     label: 'Sekolah Atas'      },
+  { era: '...',     label: 'Menjelang Bertemu' },
+  { era: '2026',    label: 'Akhirnya Bersama 🤍'},
+]
 
 export default function InviteClient({ guest }: { guest: Guest }) {
   const [opened,      setOpened]      = useState(false)
@@ -112,7 +122,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [showRsvpWarning,   setShowRsvpWarning]   = useState(false)
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
   const [galleryFrame, setGalleryFrame] = useState(0)
-  const [scrollProgress, setScrollProgress] = useState(0)
   const [introActive, setIntroActive] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -124,6 +133,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const leftPolaroidRef  = useRef<HTMLDivElement>(null)
   const rightPolaroidRef = useRef<HTMLDivElement>(null)
   const togetherRef      = useRef<HTMLDivElement>(null)
+
+  const galleryFrameRef   = useRef(0)
+  const galleryStackElRef = useRef<HTMLDivElement>(null)
 
   const maxPax = guest.max_guests ?? 2
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
@@ -275,9 +287,25 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
         const scrolled = getScrolled()
-        const raw = scrolled / window.innerHeight
-        setGalleryFrame(Math.min(6, Math.floor(raw)))
-        setScrollProgress(raw - Math.floor(raw))
+        const raw      = scrolled / window.innerHeight
+        const frame    = Math.min(6, Math.floor(raw))
+        const progress = raw - Math.floor(raw)
+    
+        // Direct DOM updates — zero React re-renders
+        if (galleryRef.current) {
+          galleryRef.current.style.setProperty('--gallery-progress', `${progress * 100}%`)
+        }
+        if (galleryStackElRef.current) {
+          galleryStackElRef.current.style.transform = frame < 6
+            ? `translateY(${progress * -32}px)`
+            : 'translateY(-16px)'
+        }
+    
+        // React re-render only on integer frame change (≤7 times)
+        if (frame !== galleryFrameRef.current) {
+          galleryFrameRef.current = frame
+          setGalleryFrame(frame)
+        }
       })
     }
   
@@ -378,18 +406,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     setRsvpWarningClosing(true)
     setTimeout(() => { setShowRsvpWarning(false); setRsvpWarningClosing(false) }, 280)
   }
-
-  const galleryStages = [
-    { era: 'Bayi',    label: 'Masa Bayi'        },
-    { era: 'Balita',  label: 'Masa Balita'       },
-    { era: 'SD',      label: 'Sekolah Dasar'     },
-    { era: 'SMP',     label: 'Sekolah Menengah'  },
-    { era: 'SMA',     label: 'Sekolah Atas'      },
-    { era: '...',     label: 'Menjelang Bertemu' },
-    { era: '2026',    label: 'Akhirnya Bersama 🤍'},
-  ]
   
-  const galleryStackStyle = (i: number, isLeft: boolean): React.CSSProperties => {
+  const galleryStackStyle = useCallback((i: number, isLeft: boolean): React.CSSProperties => {
     const depth = galleryFrame - i
     if (i > galleryFrame) return {
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -409,7 +427,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       willChange: 'transform, opacity',
       transformOrigin: isLeft ? 'bottom right' : 'bottom left',
     }
-  }
+  }, [galleryFrame])
 
   // ── Cover ──────────────────────────────────────────────────────────────────
   if (!opened) return <InviteCover guest={guest} closing={closing} onOpen={openInvite} />
@@ -867,18 +885,19 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
 
           {/* ── Side-by-side polaroid stacks (frames 0–5) ───────────────────── */}
-          <div style={{
-            display: 'flex', gap: 'clamp(10px, 4vw, 0px)', justifyContent: 'center', marginTop: '16px',
-            position: 'relative', zIndex: 10,
-            opacity: galleryFrame < 6 ? 1 : 0,
-            transform: galleryFrame < 6
-              ? `translateY(${scrollProgress * -32}px)`
-              : 'translateY(-16px)',
-            transition: galleryFrame < 6
-              ? 'opacity 0.5s ease, transform 0.09s ease-out'
-              : 'opacity 0.5s ease, transform 0.5s ease',
-            pointerEvents: galleryFrame < 6 ? 'auto' : 'none',
-          }}>
+          <div
+            ref={galleryStackElRef}
+            style={{
+              display: 'flex', gap: 'clamp(10px, 4vw, 0px)', justifyContent: 'center',
+              position: 'relative', zIndex: 10,
+              opacity: galleryFrame < 6 ? 1 : 0,
+              // transform is now set directly by the DOM ref in handleScroll
+              transition: galleryFrame < 6
+                ? 'opacity 0.5s ease, transform 0.09s ease-out'
+                : 'opacity 0.5s ease, transform 0.5s ease',
+              pointerEvents: galleryFrame < 6 ? 'auto' : 'none',
+            }}
+          >
             {/* Groom (left) */}
             <div
               ref={leftPolaroidRef}
@@ -988,16 +1007,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 position: 'relative',
                 overflow: 'hidden',
               }}>
-                {i === galleryFrame && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, bottom: 0,
-                    width: `${scrollProgress * 100}%`,
-                    background: C.gold,
-                    borderRadius: '4px',
-                    transition: 'width 0.07s linear',
-                  }} />
-                )}
+                <div style={{
+                  position: 'absolute',
+                  top: 0, left: 0, bottom: 0,
+                  width: i === galleryFrame ? 'var(--gallery-progress, 0%)' : '0%',
+                  background: C.gold,
+                  borderRadius: '4px',
+                  transition: 'width 0.07s linear',
+                }} />
               </div>
             ))}
           </div>
@@ -1309,8 +1326,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   {[0.5, 0.8, 1].map((o, i) => <div key={i} style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: o }} />)}
                 </div>
               </div>
-              <div id="messages-scroll" style={{ height: '300px', overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '4px', scrollbarWidth: 'thin', scrollbarColor: `${C.gold}40 transparent` }}>
-                {(messages.length > 2 ? [...messages, ...messages] : messages).map((msg, i) => (
+              <div id="messages-scroll" data-lenis-prevent style={{ height: '300px', overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '4px', scrollbarWidth: 'thin', scrollbarColor: `${C.gold}40 transparent` }}>
+                {messages.map((msg, i) => (
                   <div key={`${msg.id ?? 'opt'}-${i}`} className={msg.isNew ? 'msg-new' : ''} style={{ background: msg.isNew ? `linear-gradient(135deg, rgba(125,37,53,0.04), rgba(196,151,59,0.06))` : i % 2 === 0 ? '#FAFAF8' : C.cream, borderRadius: '8px', padding: '0 20px', border: msg.isNew ? `1px solid rgba(196,151,59,0.35)` : `1px solid rgba(196,151,59,0.13)`, boxShadow: msg.isNew ? `0 4px 20px rgba(125,37,53,0.08)` : '0 2px 10px rgba(44,24,16,0.03)', flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                       <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: msg.isNew ? `linear-gradient(135deg, rgba(125,37,53,0.2), rgba(196,151,59,0.2))` : `linear-gradient(135deg, rgba(125,37,53,0.12), rgba(30,58,95,0.12))`, border: `1px solid ${C.gold}${msg.isNew ? '55' : '28'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy, flexShrink: 0, marginTop: '16px' }}>
