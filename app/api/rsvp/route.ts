@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/ratelimit'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,6 +23,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid pax' }, { status: 400 })
     if (note && (typeof note !== 'string' || note.length > NOTE_MAX))
       return NextResponse.json({ error: 'Note too long' }, { status: 400 })
+
+    const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
+    const allowed = rateLimit(`${ip}:${guest_slug}`, 10, 60_000) // 10 req/min per IP+slug
+    if (!allowed)
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
     // Verify guest exists — prevents writes for invented slugs
     const { data: guest, error: guestErr } = await supabase
