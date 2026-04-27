@@ -387,37 +387,53 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   async function submitRsvp(forceUpdate = false) {
     if (attending === null) return
     setRsvpLoading(true)
+  
     if (!forceUpdate) {
-      const { data: existing } = await supabase.from('rsvps').select('id').eq('guest_slug', guest.slug).maybeSingle()
-      if (existing) {
-        setExistingRsvpId(existing.id)
+      // Check for existing via a lightweight API call instead of direct Supabase read
+      const check = await fetch(`/api/rsvp/check?slug=${encodeURIComponent(guest.slug)}`)
+      const { exists } = await check.json()
+      if (exists) {
         setShowRsvpWarning(true)
         setRsvpLoading(false)
         return
       }
     }
-    if (forceUpdate && existingRsvpId) {
-      await supabase.from('rsvps').update({ attending, pax: attending ? pax : 0, note }).eq('id', existingRsvpId)
-    } else {
-      await supabase.from('rsvps').insert({ guest_slug: guest.slug, guest_name: guest.name, attending, pax: attending ? pax : 0, note })
+  
+    const res = await fetch('/api/rsvp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guest_slug: guest.slug, attending, pax, note }),
+    })
+  
+    if (res.ok) {
+      setShowRsvpWarning(false)
+      setRsvpDone(true)
     }
-    setShowRsvpWarning(false)
-    setRsvpDone(true)
     setRsvpLoading(false)
   }
 
   async function submitMessage() {
     if (!msgText.trim() || guestMsgCount >= 3) return
     setMsgLoading(true)
+  
+    // Optimistic update immediately
     const optimistic: Message = { guest_name: guest.name, message: msgText.trim(), isNew: true }
     setMessages(prev => [optimistic, ...prev])
-    setMsgDone(true)
+  
+    const res = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guest_slug: guest.slug, message: msgText.trim() }),
+    })
+  
+    if (res.ok) {
+      setMsgDone(true)
+      setTimeout(loadMessages, 3000)
+    } else {
+      // Rollback optimistic update on failure
+      setMessages(prev => prev.filter(m => !m.isNew))
+    }
     setMsgLoading(false)
-    await supabase.from('messages').insert({ guest_slug: guest.slug, guest_name: guest.name, message: msgText.trim() })
-    setTimeout(async () => {
-      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50)
-      if (data) setMessages(data)
-    }, 3000)
   }
 
   function copyText(text: string, key: string) {
