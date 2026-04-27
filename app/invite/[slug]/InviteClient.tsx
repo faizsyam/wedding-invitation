@@ -14,6 +14,8 @@ import React from 'react'
 function CharReveal({
   children, startDelay = 0, perChar = 0.018, active = false,
 }: { children: string; startDelay?: number; perChar?: number; active?: boolean }) {
+
+  const words = useMemo(() => children.split(' '), [children]);
   const chars = useMemo(() => [...children], [children]);
   const [visibleCount, setVisibleCount] = useState(0);
 
@@ -33,17 +35,32 @@ function CharReveal({
     return () => { clearTimeout(startTimer); clearInterval(interval); };
   }, [active, chars.length]);
 
+  let charIndex = 0;
+
   return (
     <>
-      {chars.map((ch, i) => (
-        <span key={i} style={{
-          display: 'inline-block',
-          opacity: i < visibleCount ? 1 : 0,
-          transform: i < visibleCount ? 'translateY(0) scale(1)' : 'translateY(6px) scale(0.9)',
-          filter: i < visibleCount ? 'blur(0)' : 'blur(3px)',
-          transition: 'opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease',
-        }}>
-          {ch === ' ' ? '\u00A0' : ch}
+      {words.map((word, wIdx) => (
+        <span key={wIdx} style={{ display: 'inline-block' }}>
+          {[...word].map((ch, i) => {
+            const currentIndex = charIndex++;
+            return (
+              <span
+                key={i}
+                style={{
+                  display: 'inline-block',
+                  opacity: currentIndex < visibleCount ? 1 : 0,
+                  transform: currentIndex < visibleCount
+                    ? 'translateY(0) scale(1)'
+                    : 'translateY(6px) scale(0.9)',
+                  filter: currentIndex < visibleCount ? 'blur(0)' : 'blur(3px)',
+                  transition: 'opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease',
+                }}
+              >
+                {ch}
+              </span>
+            );
+          })}
+          &nbsp;
         </span>
       ))}
     </>
@@ -136,6 +153,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   const galleryFrameRef   = useRef(0)
   const galleryStackElRef = useRef<HTMLDivElement>(null)
+
+  const togetherWrapperRef = useRef<HTMLDivElement>(null)
 
   const maxPax = guest.max_guests ?? 2
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
@@ -299,6 +318,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           galleryStackElRef.current.style.transform = frame < 6
             ? `translateY(${progress * -32}px)`
             : 'translateY(-16px)'
+        }
+    
+        if (togetherWrapperRef.current && frame === 6) {
+          const scale = 1 + progress * 0.08
+          togetherWrapperRef.current.style.transform = `translate(-50%, -48%) rotate(-1.5deg) scale(${scale})`
         }
     
         // React re-render only on integer frame change (≤7 times)
@@ -632,6 +656,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               style={{
                 fontFamily: F.display, fontSize: '15px', color: C.textLight,
                 fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px',
+
               }}
             >
               <CharReveal startDelay={3.3} perChar={0.018} active={introActive}>
@@ -830,17 +855,20 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
 
           {/* ── Together photo (frame 6) ─────────────────────────────────────── */}
-          <div style={{
-            position: 'absolute',
-            top: '50%', left: '50%',
-            transform: galleryFrame === 6
-              ? 'translate(-50%, -48%) rotate(-1.5deg) scale(1)'
-              : 'translate(-50%, -38%) rotate(-1.5deg) scale(0.86)',
-            opacity: galleryFrame === 6 ? 1 : 0,
-            zIndex: galleryFrame === 6 ? 30 : 3,
-            transition: 'transform 2.95s cubic-bezier(0.16,1,0.3,1), opacity 0.75s cubic-bezier(0.16,1,0.3,1)',
-            pointerEvents: galleryFrame === 6 ? 'auto' : 'none',
-          }}>
+          <div
+            ref={togetherWrapperRef}
+            style={{
+              position: 'absolute',
+              top: '50%', left: '50%',
+              transform: galleryFrame === 6
+                ? 'translate(-50%, -48%) rotate(-1.5deg) scale(1)'
+                : 'translate(-50%, -38%) rotate(-1.5deg) scale(0.86)',
+              opacity: galleryFrame === 6 ? 1 : 0,
+              zIndex: galleryFrame === 6 ? 30 : 3,
+              transition: 'transform 2.95s cubic-bezier(0.16,1,0.3,1), opacity 0.75s cubic-bezier(0.16,1,0.3,1)',
+              pointerEvents: galleryFrame === 6 ? 'auto' : 'none',
+            }}
+          >
             <div
               ref={togetherRef}
               onMouseMove={(e) => {
