@@ -416,10 +416,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     if (!msgText.trim() || guestMsgCount >= 3) return
     setMsgLoading(true)
   
-    // Optimistic update immediately
-    const optimistic: Message = { guest_name: guest.name, message: msgText.trim(), isNew: true }
-    setMessages(prev => [optimistic, ...prev])
-  
     const res = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -427,11 +423,10 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     })
   
     if (res.ok) {
+      const optimistic: Message = { guest_name: guest.name, message: msgText.trim(), isNew: true }
+      setMessages(prev => [optimistic, ...prev])
       setMsgDone(true)
       setTimeout(loadMessages, 3000)
-    } else {
-      // Rollback optimistic update on failure
-      setMessages(prev => prev.filter(m => !m.isNew))
     }
     setMsgLoading(false)
   }
@@ -655,7 +650,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
               }}
             >
-              <WordReveal startDelay={2.0} perWord={0.055} active={introActive}>
+              <WordReveal startDelay={1.5} perWord={0.055} active={introActive}>
                 {'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً'}
               </WordReveal>
             </p>
@@ -675,14 +670,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
               }}
             >
-              <CharReveal startDelay={3.3} perChar={0.018} active={introActive}>
+              <CharReveal startDelay={2.8} perChar={0.018} active={introActive}>
                 {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
               </CharReveal>
             </p>
             <p
               className="ia-ref"
               style={{
-                '--d': '7.4s',
+                '--d': '6.9s',
                 fontFamily: F.body, fontSize: '11px',
                 color: C.gold, letterSpacing: '1.5px',
               } as React.CSSProperties}
@@ -697,7 +692,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p
             className="ia-invite-1"
             style={{
-              '--d': '8.0s',
+              '--d': '7.5s',
               fontFamily: F.display, fontSize: '16px', color: C.textMid,
               lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
             } as React.CSSProperties}
@@ -707,7 +702,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <div
             className="ia-guest"
             style={{
-              '--d': '8.9s',
+              '--d': '8.4s',
               display: 'inline-block', position: 'relative',
               margin: '10px 0 12px', padding: '2px 12px',
             } as React.CSSProperties}
@@ -730,7 +725,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p
             className="ia-invite-2"
             style={{
-              '--d': '9.5s',
+              '--d': '9.0s',
               fontFamily: F.display, fontSize: '16px', color: C.textMid,
               lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
             } as React.CSSProperties}
@@ -741,7 +736,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         <p
           className="ia-salam-close"
           style={{
-            '--d': '10.0s',
+            '--d': '9.5s',
             fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
             color: C.textLight, textTransform: 'uppercase',
           } as React.CSSProperties}
@@ -1172,7 +1167,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               <div style={{ padding: '22px 24px' }}>
                 <p style={{ fontSize: '42px', marginBottom: '18px', marginTop: '8px' }}>🤍</p>
                 <p style={{ fontFamily: F.display, fontSize: '28px', color: C.burgundy, marginBottom: '10px' }}>Terima kasih, {guest.name.split(' ')[0]}!</p>
-                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9 }}>Konfirmasi kehadiranmu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</p>
+                <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9 }}>
+                  {attending
+                    ? <>Konfirmasi kehadiranmu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</>
+                    : <>Konfirmasimu sudah kami terima dengan baik.<br />Semoga kita bisa bertemu di lain kesempatan.</>
+                  }
+                </p>
               </div>
               <SongketBand color={C.burgundy} opacity={0.05} />
             </div>
