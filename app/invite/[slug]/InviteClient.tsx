@@ -618,136 +618,141 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       {/* ── INTRODUCTION ─────────────────────────────────────────────────── */}
       <section
         className="intro-section"
-        style={{ ...S, textAlign: 'center' }}
+        style={{ position: 'relative', overflow: 'hidden', padding: '80px 28px' }}
       >
-        <p
-          className="ia-salam-open"
-          style={{
-            fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
-            color: C.textLight, textTransform: 'uppercase',
-            marginBottom: '36px', lineHeight: 2.2,
-          }}
-        >
-          Assalamu'alaikum Warahmatullahi Wabarakatuh
-        </p>
-        <div
-          className="ia-box"
-          style={{
-            background: C.white,
-            border: `1px solid rgba(196,151,59,0.18)`,
-            borderRadius: '8px', marginBottom: '36px',
-            position: 'relative', overflow: 'hidden',
-            boxShadow: '0 4px 28px rgba(44,24,16,0.06)',
-          }}
-        >
-          <SongketBand color={C.gold} opacity={0.09} />
-          <div style={{ padding: '34px 28px', position: 'relative' }}>
-            <Corner pos="tl" /><Corner pos="tr" />
-            <Corner pos="bl" /><Corner pos="br" />
-            <p
-              style={{
-                fontFamily: F.arabic, fontSize: '22px', color: C.navy,
-                lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
-              }}
-            >
-              <WordReveal startDelay={1.5} perWord={0.055} active={introActive}>
-                {'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً'}
-              </WordReveal>
-            </p>
-            <div
-              className="ia-line"
-              style={{
-                '--d': '3.0s',
-                width: '36px', height: '0.5px',
-                background: `${C.gold}70`,
-                margin: '0 auto 18px',
-              } as React.CSSProperties}
-            />
-            <p
-              style={{
-                fontFamily: F.display, fontSize: '15px', color: C.textLight,
-                fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px',
-
-              }}
-            >
-              <CharReveal startDelay={2.8} perChar={0.018} active={introActive}>
-                {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
-              </CharReveal>
-            </p>
-            <p
-              className="ia-ref"
-              style={{
-                '--d': '6.9s',
-                fontFamily: F.body, fontSize: '11px',
-                color: C.gold, letterSpacing: '1.5px',
-              } as React.CSSProperties}
-            >
-              QS. Ar-Rum: 21
-            </p>
-          </div>
-          <SongketBand color={C.gold} opacity={0.09} />
-        </div>
-        {/* 7 ── Invitation body */}
-        <div style={{ marginBottom: '36px' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+          background: `radial-gradient(ellipse 110% 52% at 50% 0%, rgba(196,151,59,0.09) 0%, transparent 62%), radial-gradient(ellipse 55% 38% at 5% 100%, rgba(196,151,59,0.05) 0%, transparent 55%), radial-gradient(ellipse 55% 38% at 95% 100%, rgba(125,37,53,0.04) 0%, transparent 55%)`,
+        }} />
+        <div style={{ maxWidth: '424px', margin: '0 auto', position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <p
-            className="ia-invite-1"
+            className="ia-salam-open"
             style={{
-              '--d': '7.5s',
-              fontFamily: F.display, fontSize: '16px', color: C.textMid,
-              lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
-            } as React.CSSProperties}
+              fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
+              color: C.textLight, textTransform: 'uppercase',
+              marginBottom: '36px', lineHeight: 2.2,
+            }}
           >
-            Dengan memohon rahmat dan ridho Allah ﷻ, kami mengundang Bapak/Ibu/Saudara/i
+            Assalamu'alaikum Warahmatullahi Wabarakatuh
           </p>
           <div
-            className="ia-guest"
+            className="ia-box"
             style={{
-              '--d': '8.4s',
-              display: 'inline-block', position: 'relative',
-              margin: '10px 0 12px', padding: '2px 12px',
-            } as React.CSSProperties}
+              background: C.white,
+              border: `1px solid rgba(196,151,59,0.18)`,
+              borderRadius: '8px', marginBottom: '36px',
+              position: 'relative', overflow: 'hidden',
+              boxShadow: '0 4px 28px rgba(44,24,16,0.06)',
+            }}
           >
+            <SongketBand color={C.gold} opacity={0.09} />
+            <div style={{ padding: '34px 28px', position: 'relative' }}>
+              <Corner pos="tl" /><Corner pos="tr" />
+              <Corner pos="bl" /><Corner pos="br" />
+              <p
+                style={{
+                  fontFamily: F.arabic, fontSize: '22px', color: C.navy,
+                  lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
+                }}
+              >
+                <WordReveal startDelay={1.5} perWord={0.055} active={introActive}>
+                  {'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً'}
+                </WordReveal>
+              </p>
+              <div
+                className="ia-line"
+                style={{
+                  '--d': '3.0s',
+                  width: '36px', height: '0.5px',
+                  background: `${C.gold}70`,
+                  margin: '0 auto 18px',
+                } as React.CSSProperties}
+              />
+              <p
+                style={{
+                  fontFamily: F.display, fontSize: '15px', color: C.textLight,
+                  fontStyle: 'italic', lineHeight: 2.1, marginBottom: '12px',
+
+                }}
+              >
+                <CharReveal startDelay={2.8} perChar={0.018} active={introActive}>
+                  {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
+                </CharReveal>
+              </p>
+              <p
+                className="ia-ref"
+                style={{
+                  '--d': '6.9s',
+                  fontFamily: F.body, fontSize: '11px',
+                  color: C.gold, letterSpacing: '1.5px',
+                } as React.CSSProperties}
+              >
+                QS. Ar-Rum: 21
+              </p>
+            </div>
+            <SongketBand color={C.gold} opacity={0.09} />
+          </div>
+          {/* 7 ── Invitation body */}
+          <div style={{ marginBottom: '36px' }}>
             <p
+              className="ia-invite-1"
               style={{
-                fontFamily: F.display, fontSize: '30px', fontWeight: 600,
-                color: C.burgundy, lineHeight: 1.2, margin: 0,
-              }}
+                '--d': '7.5s',
+                fontFamily: F.display, fontSize: '16px', color: C.textMid,
+                lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+              } as React.CSSProperties}
             >
-              {guest.name}
+              Dengan memohon rahmat dan ridho Allah ﷻ, kami mengundang Bapak/Ibu/Saudara/i
             </p>
             <div
+              className="ia-guest"
               style={{
-                position: 'absolute', bottom: 0, left: '8%', right: '8%', height: '1.5px',
-                background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
-              }}
-            />
+                '--d': '8.4s',
+                display: 'inline-block', position: 'relative',
+                margin: '10px 0 12px', padding: '2px 12px',
+              } as React.CSSProperties}
+            >
+              <p
+                style={{
+                  fontFamily: F.display, fontSize: '30px', fontWeight: 600,
+                  color: C.burgundy, lineHeight: 1.2, margin: 0,
+                }}
+              >
+                {guest.name}
+              </p>
+              <div
+                style={{
+                  position: 'absolute', bottom: 0, left: '8%', right: '8%', height: '1.5px',
+                  background: `linear-gradient(to right, transparent, ${C.gold}90, transparent)`,
+                }}
+              />
+            </div>
+            <p
+              className="ia-invite-2"
+              style={{
+                '--d': '9.0s',
+                fontFamily: F.display, fontSize: '16px', color: C.textMid,
+                lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+              } as React.CSSProperties}
+            >
+              untuk hadir memberikan do'a restu pada acara pernikahan kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
+            </p>
           </div>
           <p
-            className="ia-invite-2"
+            className="ia-salam-close"
             style={{
-              '--d': '9.0s',
-              fontFamily: F.display, fontSize: '16px', color: C.textMid,
-              lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
+              '--d': '9.5s',
+              fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
+              color: C.textLight, textTransform: 'uppercase',
             } as React.CSSProperties}
           >
-            untuk hadir memberikan do'a restu pada acara pernikahan kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
+            Wassalamu'alaikum Warahmatullahi Wabarakatuh
           </p>
         </div>
-        <p
-          className="ia-salam-close"
-          style={{
-            '--d': '9.5s',
-            fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
-            color: C.textLight, textTransform: 'uppercase',
-          } as React.CSSProperties}
-        >
-          Wassalamu'alaikum Warahmatullahi Wabarakatuh
-        </p>
       </section>
 
       {/* ── MEMPELAI ─────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ background: `linear-gradient(160deg, #fdfdfd 0%, #f5f7fa 60%, #fdfdfd 100%)`, padding: '72px 0 80px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.06, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")` }} />
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.09, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")` }} />
         <div style={{ position: 'absolute', top: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,150,120,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '-80px', right: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(120,160,200,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 24px' }}>
@@ -1076,37 +1081,42 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         </div>
       </section>
       {/* ── EVENTS ───────────────────────────────────────────────────────── */}
-      <section className="reveal" style={{ ...S }}>
-        <SectionLabel>Rangkaian Acara</SectionLabel>
-        <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, textAlign: 'center', marginBottom: '44px', lineHeight: 1.1, fontStyle: 'italic' }}>
-          Hari Istimewa Kami
-        </p>
-        {[
-          { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '16.00 WIB',          icon: '☪', revealClass: 'reveal-left'  },
-          { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
-        ].map((ev, i) => (
-          <div key={i} className={`portrait-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
-            <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
-            <div style={{ background: ev.gradient, padding: '26px 28px 32px', position: 'relative' }}>
-              <div style={{ position: 'absolute', right: '-28px', top: '-28px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '18px' }}>
-                <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, marginTop: '2px' }}>
-                  {ev.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', opacity: 0.55, marginBottom: '7px' }}>{ev.label}</p>
-                  <p style={{ fontFamily: F.display, fontSize: '26px', fontWeight: 600, lineHeight: 1.1, marginBottom: '10px' }}>Jum'at, 26 Juni 2026</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                    <div style={{ width: '14px', height: '1px', background: 'rgba(255,255,255,0.38)' }} />
-                    <p style={{ fontFamily: F.body, fontSize: '14px', opacity: 0.88 }}>{ev.time}</p>
+      <section className="reveal" style={{ position: 'relative', overflow: 'hidden', padding: '80px 28px' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+          background: `radial-gradient(ellipse 65% 55% at 100% 0%, rgba(196,151,59,0.075) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 0% 100%, rgba(125,37,53,0.04) 0%, transparent 52%), linear-gradient(175deg, #FAF7F0 0%, #F7F1E8 48%, #FAF7F0 100%)`,
+        }} />
+        <div style={{ maxWidth: '424px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <SectionLabel>Rangkaian Acara</SectionLabel>
+          <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, textAlign: 'center', marginBottom: '44px', lineHeight: 1.1, fontStyle: 'italic' }}>
+            Hari Istimewa Kami
+          </p>
+          {[
+            { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '16.00 WIB',          icon: '☪', revealClass: 'reveal-left'  },
+            { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
+          ].map((ev, i) => (
+            <div key={i} className={`portrait-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
+              <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
+              <div style={{ background: ev.gradient, padding: '26px 28px 32px', position: 'relative' }}>
+                <div style={{ position: 'absolute', right: '-28px', top: '-28px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '18px' }}>
+                  <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, marginTop: '2px' }}>
+                    {ev.icon}
                   </div>
-                  <p style={{ fontFamily: F.body, fontSize: '13px', opacity: 0.58 }}>Pejaten Terrace, Jakarta Selatan</p>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', opacity: 0.55, marginBottom: '7px' }}>{ev.label}</p>
+                    <p style={{ fontFamily: F.display, fontSize: '26px', fontWeight: 600, lineHeight: 1.1, marginBottom: '10px' }}>Jum'at, 26 Juni 2026</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                      <div style={{ width: '14px', height: '1px', background: 'rgba(255,255,255,0.38)' }} />
+                      <p style={{ fontFamily: F.body, fontSize: '14px', opacity: 0.88 }}>{ev.time}</p>
+                    </div>
+                    <p style={{ fontFamily: F.body, fontSize: '13px', opacity: 0.58 }}>Pejaten Terrace, Jakarta Selatan</p>
+                  </div>
                 </div>
               </div>
+              <SongketBand color="rgba(255,255,255,1)" opacity={0.04} />
             </div>
-            <SongketBand color="rgba(255,255,255,1)" opacity={0.04} />
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
       <AnimatedSongketDivider />
@@ -1154,8 +1164,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       </section>
 
       {/* ── RSVP ─────────────────────────────────────────────────────────── */}
-      <section className="reveal" id="rsvp-section" style={{ background: C.white, padding: '80px 28px' }}>
-        <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
+      <section className="reveal" id="rsvp-section" style={{ background: C.white, padding: '80px 28px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+          background: `radial-gradient(ellipse 45% 35% at 0% 0%, rgba(125,37,53,0.055) 0%, transparent 55%), radial-gradient(ellipse 35% 28% at 100% 0%, rgba(125,37,53,0.03) 0%, transparent 50%), radial-gradient(ellipse 35% 28% at 0% 100%, rgba(125,37,53,0.03) 0%, transparent 50%), radial-gradient(ellipse 45% 35% at 100% 100%, rgba(125,37,53,0.055) 0%, transparent 55%)`,
+        }} />
+        <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <SectionLabel>Konfirmasi Kehadiran</SectionLabel>
           <p style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, marginBottom: '10px', lineHeight: 1.05 }}>Apakah kamu hadir?</p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2, marginBottom: '42px' }}>
