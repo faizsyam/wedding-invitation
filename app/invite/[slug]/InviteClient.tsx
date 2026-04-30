@@ -140,6 +140,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
   const [galleryFrame, setGalleryFrame] = useState(0)
   const [introActive, setIntroActive] = useState(false);
+  const [showQris, setShowQris] = useState(false)
+  const [qrisClosing, setQrisClosing] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -440,6 +442,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   function closeRsvpWarning() {
     setRsvpWarningClosing(true)
     setTimeout(() => { setShowRsvpWarning(false); setRsvpWarningClosing(false) }, 280)
+  }
+
+  function closeQris() {
+    setQrisClosing(true)
+    setTimeout(() => { setShowQris(false); setQrisClosing(false) }, 280)
   }
   
   const galleryStackStyle = useCallback((i: number, isLeft: boolean): React.CSSProperties => {
@@ -1282,23 +1289,48 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         {/* BCA */}
         <div className="reveal-left" style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginBottom: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
           <div style={{ background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, padding: '12px 24px' }}>
-            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Transfer Bank</p>
+            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Transfer</p>
           </div>
           <div style={{ padding: '8px 24px 26px' }}>
             <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark }}>Bank BCA</p>
             <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginTop: '-8px', marginBottom: '5px' }}>8288061851</p>
             <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>a.n. Vanya Alverissa</p>
-            <button
-              onClick={() => copyText('8288061851', 'rek')}
-              className={copied === 'rek' ? '' : 'shimmer-btn'}
-              onMouseEnter={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = C.burgundy; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
-              onMouseLeave={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.burgundy } }}
-              style={{ padding: '10px 22px', position: 'relative', overflow: 'hidden', background: copied === 'rek' ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})` : 'transparent', border: `1.5px solid ${C.burgundy}`, color: copied === 'rek' ? C.white : C.burgundy, borderRadius: '4px', fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px', cursor: 'pointer', transition: 'all 0.3s ease' }}
-            >
-              {copied === 'rek' && <span className="copy-ripple" />}
-              {copied === 'rek' ? '✓ Tersalin!' : 'Salin Nomor'}
-            </button>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => copyText('8288061851', 'rek')}
+                className={copied === 'rek' ? '' : 'shimmer-btn'}
+                onMouseEnter={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = C.burgundy; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
+                onMouseLeave={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.burgundy } }}
+                style={{ padding: '10px 22px', position: 'relative', overflow: 'hidden', background: copied === 'rek' ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})` : 'transparent', border: `1.5px solid ${C.burgundy}`, color: copied === 'rek' ? C.white : C.burgundy, borderRadius: '4px', fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px', cursor: 'pointer', transition: 'all 0.3s ease' }}
+              >
+                {copied === 'rek' && <span className="copy-ripple" />}
+                {copied === 'rek' ? '✓ Tersalin!' : 'Salin Nomor'}
+              </button>
+            </div>
           </div>
+
+        {/* ── QRIS separator ── */}
+        <div style={{ margin: '0 24px', height: '1px', background: `linear-gradient(to right, transparent, rgba(196,151,59,0.28), transparent)` }} />
+
+        {/* ── QRIS row ── */}
+        <div style={{ padding: '18px 24px 22px' }}>
+          <img src="/qris-logo.png" alt="QRIS" style={{ height: '28px', width: 'auto', objectFit: 'contain', display: 'block', marginBottom: '16px' }} />
+          <button
+            onClick={() => setShowQris(true)}
+            className="shimmer-btn"
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = C.burgundy; (e.currentTarget as HTMLButtonElement).style.color = C.white }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.burgundy }}
+            style={{ padding: '10px 22px', position: 'relative', overflow: 'hidden', background: 'transparent', border: `1.5px solid ${C.burgundy}`, color: C.burgundy, borderRadius: '4px', fontFamily: F.body, fontSize: '11px', letterSpacing: '1.5px', cursor: 'pointer', transition: 'all 0.3s ease', display: 'inline-flex', alignItems: 'center', gap: '7px' }}
+          >
+            <svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+              <rect x="1" y="1" width="5" height="5" rx="0.5"/><rect x="10" y="1" width="5" height="5" rx="0.5"/><rect x="1" y="10" width="5" height="5" rx="0.5"/>
+              <rect x="10" y="10" width="2" height="2"/><rect x="13" y="10" width="2" height="2"/><rect x="10" y="13" width="2" height="2"/><rect x="13" y="13" width="2" height="2"/>
+              <rect x="2.5" y="2.5" width="2" height="2" fill="currentColor" stroke="none"/><rect x="11.5" y="2.5" width="2" height="2" fill="currentColor" stroke="none"/><rect x="2.5" y="11.5" width="2" height="2" fill="currentColor" stroke="none"/>
+            </svg>
+            Lihat QRIS
+          </button>
+        </div>
+
         </div>
         {/* Kirim Kado */}
         <div className="reveal-right" style={{ background: C.white, borderRadius: '8px', border: `1px solid rgba(196,151,59,0.16)`, overflow: 'hidden', marginTop: '14px', boxShadow: '0 4px 22px rgba(44,24,16,0.055)' }}>
@@ -1476,6 +1508,69 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </button>
             </div>
             <SongketBand color={C.gold} opacity={0.06} />
+          </div>
+        </div>
+      </>
+    )}
+
+    {/* ── QRIS MODAL ──────────────────────────────────────────────────────────── */}
+    {showQris && (
+      <>
+        <div onClick={closeQris} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(20,10,8,0.55)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', animation: `${qrisClosing ? 'fadeOut' : 'fadeIn'} 0.28s ease forwards` }} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', pointerEvents: 'none' }}>
+          <div style={{ width: '100%', maxWidth: '360px', background: C.white, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(44,24,16,0.22), 0 4px 0 rgba(196,151,59,0.18)', pointerEvents: 'all', animation: `${qrisClosing ? 'dialogFadeOut' : 'dialogFadeIn'} 0.32s cubic-bezier(0.16,1,0.3,1) forwards` }}>
+            <div style={{ padding: '28px 28px 32px', textAlign: 'center' }}>
+
+              {/* Header */}
+              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', color: C.gold }}>Pembayaran QRIS</p>
+              <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '6px', lineHeight: 1.2 }}>Scan untuk Transfer</p>
+              <p style={{ fontFamily: F.body, fontSize: '12px', color: C.textLight, lineHeight: 1.2, marginBottom: '24px' }}>
+                Gunakan aplikasi mobile banking atau<br />dompet digital untuk scan QR berikut.
+              </p>
+
+              {/* QR frame */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <div style={{ position: 'relative', padding: '10px', background: C.white, border: `1px solid rgba(196,151,59,0.25)`, borderRadius: '8px', boxShadow: '0 4px 22px rgba(44,24,16,0.09)' }}>
+                  {(['tl','tr','bl','br'] as const).map(p => {
+                    const t = p[0] === 't', l = p[1] === 'l'
+                    return <div key={p} style={{
+                      position: 'absolute',
+                      [t ? 'top' : 'bottom']: '-1px', [l ? 'left' : 'right']: '-1px',
+                      width: '16px', height: '16px',
+                      borderTop:    t  ? `2px solid ${C.gold}` : 'none',
+                      borderBottom: !t ? `2px solid ${C.gold}` : 'none',
+                      borderLeft:   l  ? `2px solid ${C.gold}` : 'none',
+                      borderRight:  !l ? `2px solid ${C.gold}` : 'none',
+                      borderRadius: t && l ? '4px 0 0 0' : t && !l ? '0 4px 0 0' : !t && l ? '0 0 0 4px' : '0 0 4px 0',
+                    }} />
+                  })}
+                  <img
+                    src="/qris.jpeg"
+                    alt="QRIS Vanya Faiz"
+                    style={{ width: '220px', height: '220px', objectFit: 'contain', display: 'block' }}
+                  />
+                </div>
+              </div>
+
+              <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textMid, fontStyle: 'italic', marginBottom: '4px' }}>vanya&faiz</p>
+              <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textGhost, letterSpacing: '0.5px', marginBottom: '28px' }}>Merchant PAN · 9360091530242581556</p>
+
+              {/* Actions */}
+              
+              <a href="/qris.jpeg"
+                download="QRIS-Vanya-Faiz.png"
+                className="shimmer-btn"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '15px', background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, color: C.white, border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '10px', boxShadow: `0 4px 18px rgba(125,37,53,0.26)`, textDecoration: 'none', position: 'relative', overflow: 'hidden' }}
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 2v8M5 7l3 3 3-3"/><path d="M2 12h12"/>
+                </svg>
+                Download QRIS
+              </a>
+              <button onClick={closeQris} style={{ width: '100%', padding: '14px', background: 'transparent', color: C.textLight, border: `1.5px solid rgba(196,151,59,0.28)`, borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' }}>
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       </>
