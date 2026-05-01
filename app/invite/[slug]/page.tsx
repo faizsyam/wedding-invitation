@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Undangan Pernikahan Vanya & Faiz',
       images: [
         {
-          url: `${baseUrl}/og-image.jpg`,
+          url: `${baseUrl}/og-image.webp`,
           width: 1200,
           height: 630,
           alt: 'Undangan Pernikahan Faiz & Vanya',

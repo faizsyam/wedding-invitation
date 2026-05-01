@@ -571,7 +571,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               Tandai Kalendarmu
             </p>
             
-            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+16.00+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
+            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+15.30+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
               target="_blank" rel="noopener noreferrer"
               className="save-date-btn shimmer-btn"
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.gold; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
@@ -681,14 +681,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
                 }}
               >
-                <CharReveal startDelay={2.8} perChar={0.018} active={introActive}>
+                <CharReveal startDelay={2.5} perChar={0.018} active={introActive}>
                   {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
                 </CharReveal>
               </p>
               <p
                 className="ia-ref"
                 style={{
-                  '--d': '6.9s',
+                  '--d': '6.4s',
                   fontFamily: F.body, fontSize: '11px',
                   color: C.gold, letterSpacing: '1.5px',
                 } as React.CSSProperties}
@@ -703,7 +703,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <p
               className="ia-invite-1"
               style={{
-                '--d': '7.5s',
+                '--d': '7.0s',
                 fontFamily: F.display, fontSize: '16px', color: C.textMid,
                 lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
               } as React.CSSProperties}
@@ -713,7 +713,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div
               className="ia-guest"
               style={{
-                '--d': '8.4s',
+                '--d': '7.9s',
                 display: 'inline-block', position: 'relative',
                 margin: '10px 0 12px', padding: '2px 12px',
               } as React.CSSProperties}
@@ -736,7 +736,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <p
               className="ia-invite-2"
               style={{
-                '--d': '9.0s',
+                '--d': '8.5s',
                 fontFamily: F.display, fontSize: '16px', color: C.textMid,
                 lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
               } as React.CSSProperties}
@@ -747,7 +747,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p
             className="ia-salam-close"
             style={{
-              '--d': '9.5s',
+              '--d': '9.0s',
               fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
               color: C.textLight, textTransform: 'uppercase',
             } as React.CSSProperties}
@@ -780,7 +780,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 willChange: 'transform',
               }}
             >
-              <img src="/bride.png" alt="Vanya Alverissa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+              <img src="/bride.webp" alt="Vanya Alverissa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%), radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)` }} />
               {(['tl','tr','bl','br'] as const).map(p => {
                 const t = p[0]==='t', l = p[1]==='l'
@@ -821,7 +821,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 willChange: 'transform',
               }}
             >
-              <img src="/groom.png" alt="Faizuddarain Syam" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+              <img src="/groom.webp" alt="Faizuddarain Syam" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, rgba(0,0,0,0.0) 35%, rgba(20,8,12,0.78) 100%), radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.15) 0%, transparent 60%)` }} />
               {(['tl','tr','bl','br'] as const).map(p => {
                 const t = p[0]==='t', l = p[1]==='l'
@@ -923,7 +923,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               }} />
               <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#E0D8CC' }}>
                 <img
-                  src="/gallery/together.jpg"
+                  src="/gallery/together.webp"
                   alt="Vanya & Faiz"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
@@ -985,7 +985,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     }} />
                     <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
                       <img
-                        src={`/gallery/groom-${i + 1}.jpg`}
+                        src={`/gallery/groom-${i + 1}.webp`}
                         alt={`Faiz – ${galleryStages[i].era}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease' }}
                       />
@@ -1033,7 +1033,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     }} />
                     <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
                       <img
-                        src={`/gallery/bride-${i + 1}.jpg`}
+                        src={`/gallery/bride-${i + 1}.webp`}
                         alt={`Vanya – ${galleryStages[i].era}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease' }}
                       />
@@ -1098,7 +1098,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             Hari Istimewa Kami
           </p>
           {[
-            { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '16.00 WIB',          icon: '☪', revealClass: 'reveal-left'  },
+            { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '15.30 WIB',          icon: '☪', revealClass: 'reveal-left'  },
             { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
           ].map((ev, i) => (
             <div key={i} className={`portrait-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
@@ -1545,7 +1545,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     }} />
                   })}
                   <img
-                    src="/qris.jpeg"
+                    src="/qris.webp"
                     alt="QRIS Vanya Faiz"
                     style={{ width: '220px', height: '220px', objectFit: 'contain', display: 'block' }}
                   />
@@ -1557,8 +1557,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
               {/* Actions */}
               
-              <a href="/qris.jpeg"
-                download="QRIS-Vanya-Faiz.png"
+              <a href="/qris.webp"
+                download="QRIS-Vanya-Faiz.webp"
                 className="shimmer-btn"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '15px', background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, color: C.white, border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '10px', boxShadow: `0 4px 18px rgba(125,37,53,0.26)`, textDecoration: 'none', position: 'relative', overflow: 'hidden' }}
               >
