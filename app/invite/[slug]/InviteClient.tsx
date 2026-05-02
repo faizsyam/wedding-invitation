@@ -112,12 +112,12 @@ function WordReveal({
 }
 
 const galleryStages = [
-  { era: 'Bayi',    label: 'Masa Bayi'        },
-  { era: 'Balita',  label: 'Masa Balita'       },
-  { era: 'SD',      label: 'Sekolah Dasar'     },
-  { era: 'SMP',     label: 'Sekolah Menengah'  },
-  { era: 'SMA',     label: 'Sekolah Atas'      },
-  { era: '...',     label: 'Menjelang Bertemu' },
+  { era: '2000',    label: 'Masa Bayi'        },
+  { era: '2002',  label: 'Masa Balita'       },
+  { era: '2016',      label: 'Sekolah Dasar'     },
+  { era: '2021',     label: 'Sekolah Menengah'  },
+  { era: '2023',     label: 'Sekolah Atas'      },
+  { era: '2025',     label: 'Menjelang Bertemu' },
   { era: '2026',    label: 'Akhirnya Bersama 🤍'},
 ]
 
@@ -144,6 +144,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [qrisClosing, setQrisClosing] = useState(false)
   const [introActive, setIntroActive] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
+  const [lightboxClosing, setLightboxClosing] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -157,8 +159,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   const galleryFrameRef   = useRef(0)
   const galleryStackElRef = useRef<HTMLDivElement>(null)
-
   const togetherWrapperRef = useRef<HTMLDivElement>(null)
+  const lightboxRef = useRef<HTMLDivElement>(null)
 
   const introSectionRef = useRef<HTMLElement>(null)
 
@@ -286,6 +288,27 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => { tl.kill() }
   }, [opened])
 
+  useEffect(() => {
+    if (!lightboxRef.current) return
+  
+    if (lightbox && !lightboxClosing) {
+      // Entrance
+      gsap.fromTo(lightboxRef.current,
+        { opacity: 0, scale: 0.88, y: 24, filter: 'blur(6px)' },
+        { opacity: 1, scale: 1,    y: 0,  filter: 'blur(0px)',
+          duration: 0.45, ease: 'power3.out', clearProps: 'filter' }
+      )
+    }
+  
+    if (lightboxClosing) {
+      // Exit
+      gsap.to(lightboxRef.current,
+        { opacity: 0, scale: 0.92, y: 12, filter: 'blur(4px)',
+          duration: 0.32, ease: 'power2.in', clearProps: 'filter' }
+      )
+    }
+  }, [lightbox, lightboxClosing])
+
   // ── Audio ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const audio = new Audio('/it_aint_over_til_its_over.mp3')
@@ -302,6 +325,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [])
+
+  function closeLightbox() {
+    setLightboxClosing(true)
+    setTimeout(() => {
+      setLightbox(null)
+      setLightboxClosing(false)
+    }, 320)
+  }
 
   function toggleMute() {
     if (!audioRef.current) return
@@ -322,6 +353,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     if (!ref.current) return
     ref.current.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)`
     ref.current.style.boxShadow = originalShadow
+  }
+
+  function skipGallery() {
+    if (!galleryRef.current) return
+    const galleryBottom = galleryRef.current.offsetTop + galleryRef.current.offsetHeight
+    window.scrollTo({ top: galleryBottom, behavior: 'smooth' })
   }
 
   // ── Countdown ──────────────────────────────────────────────────────────────
@@ -639,7 +676,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               Tandai Kalendarmu
             </p>
             
-            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T090000Z%2F20260626T140000Z&details=Akad+Nikah+15.30+WIB+%7C+Resepsi+19.00–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
+            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T083000Z%2F20260626T140000Z&details=Akad+Nikah+15.30+WIB-selesai+%7C+Resepsi+18.30–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
               target="_blank" rel="noopener noreferrer"
               className="save-date-btn shimmer-btn"
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.gold; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
@@ -728,7 +765,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
                 }}
               >
-                <WordReveal startDelay={1.5} perWord={0.055} active={introActive}>
+                <WordReveal startDelay={1.0} perWord={0.055} active={introActive}>
                   {'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً'}
                 </WordReveal>
               </p>
@@ -747,7 +784,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
                 }}
               >
-                <CharReveal startDelay={2.5} perChar={0.018} active={introActive}>
+                <CharReveal startDelay={2.0} perChar={0.018} active={introActive}>
                   {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
                 </CharReveal>
               </p>
@@ -1044,13 +1081,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
                       background: `linear-gradient(90deg, transparent, ${C.gold}50, transparent)`,
                     }} />
-                    <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
-                      <img
-                        src={`/gallery/groom-${i + 1}.webp`}
-                        alt={`Faiz – ${galleryStages[i].era}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease' }}
-                      />
-                    </div>
+                    <img
+                      src={`/gallery/groom-${i + 1}.webp`}
+                      alt={`Faiz – ${galleryStages[i].era}`}
+                      onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/groom-${i + 1}.webp`, alt: `Faiz – ${galleryStages[i].era}` })}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', cursor: galleryFrame === i ? 'zoom-in' : 'default' }}
+                    />
                     <div style={{ height: '46px', flexShrink: 0 }} />
                   </div>
                 ))}
@@ -1096,7 +1132,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       <img
                         src={`/gallery/bride-${i + 1}.webp`}
                         alt={`Vanya – ${galleryStages[i].era}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease' }}
+                        onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/bride-${i + 1}.webp`, alt: `Vanya – ${galleryStages[i].era}` })}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', cursor: galleryFrame === i ? 'zoom-in' : 'default' }}
                       />
                     </div>
                     <div style={{ height: '46px', flexShrink: 0 }} />
@@ -1131,20 +1168,66 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             ))}
           </div>
 
-          {/* Scroll nudge — visible only on first frame */}
           <div style={{
             position: 'absolute', bottom: 'clamp(68px, 9vh, 84px)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-            opacity: galleryFrame === 0 ? 0.5 : 0,
-            transition: 'opacity 0.5s ease',
-            pointerEvents: 'none', zIndex: 10,
+            zIndex: 10,
           }}>
-            <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textLight, textTransform: 'uppercase', margin: 0 }}>
-              Scroll ke bawah untuk lanjut
-            </p>
-            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style={{ animation: 'nudgeDown 2.2s ease-in-out infinite' }}>
-              <path d="M3 6l5 5 5-5" stroke={C.gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+              opacity: galleryFrame === 0 ? 0.5 : 0,
+              transform: galleryFrame === 0 ? 'translateY(0)' : 'translateY(4px)',
+              transition: 'opacity 0.4s ease, transform 0.4s ease',
+              pointerEvents: 'none',
+              position: 'absolute',
+            }}>
+              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textLight, textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
+                Scroll ke bawah untuk lanjut
+              </p>
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style={{ animation: 'nudgeDown 2.2s ease-in-out infinite' }}>
+                <path d="M3 6l5 5 5-5" stroke={C.gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+
+            {/* Skip — only after frame 0 */}
+            <button
+              onClick={skipGallery}
+              style={{
+                background: 'transparent',
+                border: `1px solid ${C.gold}40`,
+                borderRadius: '20px',
+                padding: '7px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontFamily: F.body,
+                fontSize: '9px',
+                letterSpacing: '2.5px',
+                textTransform: 'uppercase',
+                color: C.textLight,
+                cursor: 'pointer',
+                opacity: galleryFrame > 0 && galleryFrame < 6 ? 0.7 : 0,
+                transform: galleryFrame > 0 && galleryFrame < 6 ? 'translateY(0)' : 'translateY(-4px)',
+                pointerEvents: galleryFrame > 0 && galleryFrame < 6 ? 'auto' : 'none',
+              }}
+              onMouseEnter={e => {
+                const b = e.currentTarget
+                b.style.opacity = '1'
+                b.style.borderColor = `${C.gold}90`
+                b.style.color = C.gold
+              }}
+              onMouseLeave={e => {
+                const b = e.currentTarget
+                b.style.opacity = '0.7'
+                b.style.borderColor = `${C.gold}40`
+                b.style.color = C.textLight
+              }}
+            >
+              Lewati galeri
+              <svg viewBox="0 0 16 16" width="10" height="10" fill="none">
+                <path d="M3 8h8M8 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </section>
@@ -1159,8 +1242,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             Hari Istimewa Kami
           </p>
           {[
-            { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '15.30 WIB',          icon: '☪', revealClass: 'reveal-left'  },
-            { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
+            { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '15.30 WIB - selesai',          icon: '☪', revealClass: 'reveal-left'  },
+            { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '18.30 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
           ].map((ev, i) => (
             <div key={i} className={`portrait-card ${ev.revealClass}`} data-parallax style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
               <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
@@ -1537,7 +1620,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         <SongketBand color="rgba(255,255,255,1)" opacity={0.07} />
       </footer>
     </div>
-
     {/* ── FLOATING MUSIC BUTTON ────────────────────────────────────────────── */}
     <button
       onClick={toggleMute} title={muted ? 'Nyalakan musik' : 'Matikan musik'}
@@ -1547,7 +1629,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     >
       {muted ? '🔇' : '🎵'}
     </button>
-
     {/* ── RSVP DUPLICATE WARNING ───────────────────────────────────────────── */}
     {showRsvpWarning && (
       <>
@@ -1573,7 +1654,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         </div>
       </>
     )}
-
     {/* ── QRIS MODAL ──────────────────────────────────────────────────────────── */}
     {showQris && (
       <>
@@ -1636,7 +1716,91 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         </div>
       </>
     )}
+    {/* ── LIGHTBOX ─────────────────────────────────────────────────────────── */}
+    {lightbox && (
+      <>
+        {/* Backdrop */}
+        <div
+          onClick={closeLightbox}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(12, 6, 4, 0.88)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            animation: `${lightboxClosing ? 'fadeOut' : 'fadeIn'} 0.32s ease forwards`,
+          }}
+        />
 
+        {/* Image container */}
+        <div
+          onClick={closeLightbox}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2001,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          {/* Polaroid frame */}
+          <div
+            ref={lightboxRef}
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff',
+              padding: '10px 10px 0',
+              boxShadow: '0 40px 100px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.3)',
+              position: 'relative',
+              maxWidth: 'min(92vw, 480px)',
+              width: '100%',
+              opacity: 0,          // GSAP starts from here
+              willChange: 'transform, opacity',
+            }}
+          >
+            {/* Gold top accent */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+              background: `linear-gradient(90deg, transparent, ${C.gold}70, transparent)`,
+            }} />
+
+            {/* Image */}
+            <img
+              src={lightbox.src}
+              alt={lightbox.alt}
+              style={{
+                width: '100%',
+                maxHeight: '72vh',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+
+            {/* Caption strip */}
+            <div style={{
+              height: '48px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <p style={{
+                fontFamily: F.display, fontSize: '13px',
+                fontStyle: 'italic', color: '#8B7355', margin: 0,
+              }}>
+                {lightbox.alt}
+              </p>
+            </div>
+          </div>
+
+          {/* Close hint */}
+          <p style={{
+            position: 'absolute', bottom: '20px',
+            fontFamily: F.body, fontSize: '9px',
+            letterSpacing: '3px', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.35)',
+            margin: 0,
+            animation: lightboxClosing ? 'none' : 'fadeIn 0.6s 0.4s both',
+          }}>
+            Ketuk di mana saja untuk tutup
+          </p>
+        </div>
+      </>
+    )}
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
       <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.65, letterSpacing: '2px', textTransform: 'uppercase', padding: '12px 0' }}>
         Made with ❤️ by Faizuddarain Syam
