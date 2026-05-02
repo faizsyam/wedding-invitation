@@ -112,13 +112,12 @@ function WordReveal({
 }
 
 const galleryStages = [
-  { era: '2000',    label: 'Masa Bayi'        },
-  { era: '2002',  label: 'Masa Balita'       },
-  { era: '2016',      label: 'Sekolah Dasar'     },
-  { era: '2021',     label: 'Sekolah Menengah'  },
-  { era: '2023',     label: 'Sekolah Atas'      },
-  { era: '2025',     label: 'Menjelang Bertemu' },
-  { era: '2026',    label: 'Akhirnya Bersama 🤍'},
+  { groomYear: '2000', brideYear: '2000' },
+  { groomYear: '2002', brideYear: '2001' },
+  { groomYear: '2016', brideYear: '2017' },
+  { groomYear: '2021', brideYear: '2018' },
+  { groomYear: '2023', brideYear: '2019' },
+  { groomYear: '2025', brideYear: '2025' },
 ]
 
 export default function InviteClient({ guest }: { guest: Guest }) {
@@ -1083,8 +1082,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     }} />
                     <img
                       src={`/gallery/groom-${i + 1}.webp`}
-                      alt={`Faiz – ${galleryStages[i].era}`}
-                      onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/groom-${i + 1}.webp`, alt: `Faiz – ${galleryStages[i].era}` })}
+                      onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/groom-${i + 1}.webp`, alt: `Faiz – ${galleryStages[i].groomYear}` })}
+                      alt={`Faiz – ${galleryStages[i].groomYear}`}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', cursor: galleryFrame === i ? 'zoom-in' : 'default' }}
                     />
                     <div style={{ height: '46px', flexShrink: 0 }} />
@@ -1131,8 +1130,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
                       <img
                         src={`/gallery/bride-${i + 1}.webp`}
-                        alt={`Vanya – ${galleryStages[i].era}`}
-                        onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/bride-${i + 1}.webp`, alt: `Vanya – ${galleryStages[i].era}` })}
+                        onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/bride-${i + 1}.webp`, alt: `Vanya – ${galleryStages[i].brideYear}` })}
+                        alt={`Vanya – ${galleryStages[i].brideYear}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', cursor: galleryFrame === i ? 'zoom-in' : 'default' }}
                       />
                     </div>
