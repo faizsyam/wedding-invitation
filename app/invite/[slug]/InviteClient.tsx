@@ -854,16 +854,25 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         </div>
       </section>
 
-      {/* ── MEMPELAI ─────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ background: `linear-gradient(160deg, #fdfdfd 0%, #f5f7fa 60%, #fdfdfd 100%)`, padding: '72px 0 80px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.09, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")` }} />
-        <div style={{ position: 'absolute', top: '-80px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,150,120,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-80px', right: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(120,160,200,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '52px' }}>
-            <SectionLabel>Mempelai</SectionLabel>
-            <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, fontStyle: 'italic', lineHeight: 1.2 }}>Kami yang berbahagia</p>
-          </div>
+          <img src="/flowers_m3.png" alt="" aria-hidden="true" style={{
+            position: 'absolute', top: -15, left: -10,
+            width: '125px',
+            objectFit: 'contain', opacity: .65,
+            pointerEvents: 'none', zIndex: 2,
+          }} />
+          <img src="/flowers_m4.png" alt="" aria-hidden="true" style={{
+            position: 'absolute', top: 0, right: -5,
+            width: '145px',
+            objectFit: 'contain', opacity: .65,
+            pointerEvents: 'none', zIndex: 2,
+          }} />
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.09, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")` }} />
+          <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 3 }}>
+            <div style={{ textAlign: 'center', marginBottom: '52px' }}>
+              <SectionLabel>Mempelai</SectionLabel>
+              <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, fontStyle: 'italic', lineHeight: 1.2 }}>Kami yang berbahagia</p>
+            </div>
           {/* Bride */}
           <div className="portrait-card reveal-left" data-parallax style={{ marginBottom: '20px' }}>
             <div
@@ -899,9 +908,27 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           {/* Separator */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', margin: '8px 0' }}>
             <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', position: 'relative' }}>
+              <img src="/flower_m1.png" alt="" aria-hidden="true" style={{
+                position: 'absolute',
+                right: '65%',
+                top: '50%',
+                transform: 'translateY(-40%)',
+                width: '300px',
+                objectFit: 'contain', opacity: 0.65,
+                pointerEvents: 'none',
+              }} />
               <div className="wajik-rotate"><WajikBadge size={34} /></div>
               <p style={{ fontFamily: F.display, fontSize: '13px', color: C.gold, fontStyle: 'italic', marginTop: '-2px' }}>bersama</p>
+              <img src="/flower_m2.png" alt="" aria-hidden="true" style={{
+                position: 'absolute',
+                left: '65%',
+                top: '50%',
+                transform: 'translateY(-43%)',
+                width: '280px',
+                objectFit: 'contain', opacity: 0.65,
+                pointerEvents: 'none',
+              }} />
             </div>
             <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
           </div>
