@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import { C, F, bgWajik, SongketBand, PucukRebungDivider, WajikBadge, FloatingParticles, Diamond, Corner, SectionLabel } from './ui'
+import { C, F, bgWajik, PucukRebungDivider, WajikBadge, FloatingParticles, Diamond, Corner, SectionLabel } from './ui'
 import type { Guest } from './ui'
 
 interface Props {
@@ -29,7 +29,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
 
   // ── Entrance timeline ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (preview) return
+    // if (preview) return
 
     const ctx = gsap.context(() => {
       // Card drops in from slight above, fades in with a scale bloom
@@ -140,16 +140,16 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
   // ── Exit animation (drives the "Buka Undangan" flow) ─────────────────────
   function handleOpen() {
     if (!cardRef.current) { onOpen(); return }
-
-    // Stop the idle float so it doesn't fight the exit
+  
     gsap.killTweensOf(cardRef.current, 'y')
-
-    // Background fades out in parallel
+  
     if (bgRef.current) {
       gsap.to(bgRef.current, { opacity: 0, duration: 0.55, ease: 'power2.in' })
     }
-
-    gsap.to(cardRef.current, {
+  
+    const tl = gsap.timeline({ onComplete: onOpen })
+  
+    tl.to(cardRef.current, {
       y: -32,
       opacity: 0,
       scale: 0.96,
@@ -158,8 +158,14 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
       transformPerspective: 900,
       duration: 0.58,
       ease: 'power2.in',
-      onComplete: onOpen,
-    })
+    }, 0)
+  
+    tl.to(diamondRowRef.current, {
+      opacity: 0,
+      scale: 0.6,
+      duration: 0.5,
+      ease: 'power2.in',
+    }, 0.2)
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -207,7 +213,31 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
           `,
           position: 'relative', overflow: 'hidden',
         }}>
-          <SongketBand color={C.gold} opacity={0.14} />
+
+          {/* ── Corner flowers ───────────────────────────────────────────── */}
+          {([
+            { src: '/flower-c1.png', opacity: '66%', top: -50,    left: -60,    transform: 'rotate(10deg)',   scale: 2.6 },
+            { src: '/flower-c2.png', opacity: '66%', top: -35,    right: -90,   transform: 'rotate(-10deg)' ,   scale: 2.5 },
+            { src: '/flower-c3.png', opacity: '66%', bottom: -25, left: -80,    transform: 'rotate(0deg)',   scale: 2.7 },
+            { src: '/flower-c4.png', opacity: '66%', bottom: -35, right: -70,   transform: 'rotate(-5deg)',   scale: 2.7 },
+          ] as const).map(({ src, transform, scale, ...pos }) => (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                width: `${100 * scale}px`,
+                height: `${100 * scale}px`,
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                zIndex: 0,
+                transform,
+                ...pos,
+              }}
+            />
+          ))}
 
           <div style={{ padding: '24px 34px 38px', textAlign: 'center', position: 'relative' }}>
             <Corner pos="tl" /><Corner pos="tr" />
@@ -352,7 +382,6 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
             )}
           </div>
 
-          <SongketBand color={C.gold} opacity={0.14} />
         </div>
       </div>
     </div>
