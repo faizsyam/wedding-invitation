@@ -10,6 +10,8 @@ import {
 import type { Guest, Message, Countdown } from './ui'
 import InviteCover from './InviteCover'
 import React from 'react'
+import { gsap } from '@/lib/gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 function CharReveal({
   children, startDelay = 0, perChar = 0.018, active = false,
@@ -120,7 +122,6 @@ const galleryStages = [
 
 export default function InviteClient({ guest }: { guest: Guest }) {
   const [opened,      setOpened]      = useState(false)
-  const [closing,     setClosing]     = useState(false)
   const [cd,          setCd]          = useState<Countdown>({ d: 0, h: 0, m: 0, s: 0 })
   const [attending,   setAttending]   = useState<boolean | null>(null)
   const [pax,         setPax]         = useState(1)
@@ -135,13 +136,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [muted,       setMuted]       = useState(false)
   const [mapLoaded,   setMapLoaded]   = useState(false)
   const [paxVisible,  setPaxVisible]  = useState(false)
-  const [existingRsvpId,    setExistingRsvpId]    = useState<number | null>(null)
   const [showRsvpWarning,   setShowRsvpWarning]   = useState(false)
   const [rsvpWarningClosing, setRsvpWarningClosing] = useState(false)
   const [galleryFrame, setGalleryFrame] = useState(0)
-  const [introActive, setIntroActive] = useState(false);
   const [showQris, setShowQris] = useState(false)
   const [qrisClosing, setQrisClosing] = useState(false)
+  const [introActive, setIntroActive] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -158,10 +158,108 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   const togetherWrapperRef = useRef<HTMLDivElement>(null)
 
+  const introSectionRef = useRef<HTMLElement>(null)
+
   const maxPax = guest.max_guests ?? 2
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
 
   const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
+
+  useEffect(() => {
+    if (!opened || !introSectionRef.current) return
+  
+    const section = introSectionRef.current
+  
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top 75%',
+      once: true,
+      onEnter: () => {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+  
+        tl.fromTo(section.querySelector('.ia-salam-open'),
+            { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 1.0 }, 0.3)
+          .fromTo(section.querySelector('.ia-box'),
+            { opacity: 0, y: 20, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 1.1 }, 0.6)
+          .fromTo(section.querySelector('.ia-line'),
+            { opacity: 0, scaleX: 0, transformOrigin: 'center' },
+            { opacity: 1, scaleX: 1, duration: 0.9 }, 1.0)
+          .fromTo(section.querySelector('.ia-ref'),
+            { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8 }, 6.0)
+          .fromTo(section.querySelector('.ia-invite-1'),
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.4)
+          .fromTo(section.querySelector('.ia-guest'),
+            { opacity: 0, y: 14, scale: 0.96, letterSpacing: '0.12em' },
+            { opacity: 1, y: 0, scale: 1, letterSpacing: 'normal', duration: 1.2 }, 6.8)
+          .fromTo(section.querySelector('.ia-invite-2'),
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 7.4)
+          .fromTo(section.querySelector('.ia-salam-close'),
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 7.8)
+  
+        // Trigger CharReveal/WordReveal (they still use active prop)
+        setIntroActive(true)  // ← keep this state just for CharReveal/WordReveal
+      },
+    })
+  }, [opened])
+
+  useEffect(() => {
+    if (!opened) return
+    
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+    tl.fromTo('[data-hero-bg]',
+      { opacity: 0 },
+      { opacity: 1, duration: 1.0 },
+      0)   
+    tl.fromTo('[data-hero="vanya"]',
+        { y: 36, opacity: 0, filter: 'blur(10px)', letterSpacing: '10px' },
+        { y: 0,  opacity: 1, filter: 'blur(0px)',  letterSpacing: '0.5px', duration: 1.9, clearProps: 'filter' },
+        0)
+      .fromTo('[data-hero="faiz"]',
+        { y: 36, opacity: 0, filter: 'blur(10px)', letterSpacing: '10px' },
+        { y: 0,  opacity: 1, filter: 'blur(0px)',  letterSpacing: '0.5px', duration: 1.9, clearProps: 'filter' },
+        0.3)
+      .fromTo('[data-hero="dan"]',
+        { scaleX: 0.5, opacity: 0, filter: 'blur(4px)' },
+        { scaleX: 1,   opacity: 1, filter: 'blur(0px)', duration: 1.1, transformOrigin: 'center', clearProps: 'filter' },
+        0.7)
+      .fromTo('[data-hero="bismillah"]',
+        { y: -18, opacity: 0, filter: 'blur(6px)' },
+        { y: 0,   opacity: 1, filter: 'blur(0px)', duration: 1.4, clearProps: 'filter' },
+        1.7)
+      .fromTo('[data-hero="label"]',
+        { y: 20, opacity: 0 },
+        { y: 0,  opacity: 1, duration: 1.1 },
+        2.3)
+      .fromTo('[data-hero="divider"]',
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 1, duration: 1.2, transformOrigin: 'center' },
+        2.7)
+      .fromTo('[data-hero="date"]',
+        { y: 18, opacity: 0, filter: 'blur(3px)' },
+        { y: 0,  opacity: 1, filter: 'blur(0px)', duration: 1.1, clearProps: 'filter' },
+        3.2)
+      .fromTo('[data-hero-countdown] > *',
+        { y: 22, opacity: 0, scale: 0.9 },
+        { y: 0,  opacity: 1, scale: 1, stagger: 0.12, duration: 0.85 },
+        3.65)
+      .fromTo('[data-hero="save-date"]',
+        { y: 20, opacity: 0 },
+        { y: 0,  opacity: 1, duration: 1.0 },
+        4.55)
+      .fromTo('[data-hero="scroll-btn"]',
+        { y: 8, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9,
+          // Restore nudgeDown CSS animation after entrance
+          onComplete: () => {
+            const el = document.querySelector('[data-hero="scroll-btn"]') as HTMLElement
+            if (el) el.style.animation = 'nudgeDown 2.4s ease-in-out infinite'
+          }
+        },
+        5.2)
+  
+    return () => { tl.kill() }
+  }, [opened])
 
   // ── Audio ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -218,150 +316,99 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     return () => clearInterval(id)
   }, [])
 
-  // ── Scroll reveal ──────────────────────────────────────────────────────────
-    useEffect(() => {
-      if (!opened) return;
-    
-      const obs = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              if (entry.target.classList.contains('intro-section')) {
-                entry.target.classList.add('intro-animate');
-                setIntroActive(true);
-              }
-              obs.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.1 }
-      );
-    
-      const elements = document.querySelectorAll(".reveal, .reveal-left, .reveal-right, .intro-section");
-    
-      const inViewport = Array.from(elements).filter(el => {
-        const rect = el.getBoundingClientRect();
-        return rect.top < window.innerHeight && rect.bottom > 0;
-      });
-    
-      elements.forEach((el) => {
-        if (!(el instanceof HTMLElement)) return;
-    
-        const rect = el.getBoundingClientRect();
-        const isCurrentlyVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    
-        if (isCurrentlyVisible) {
-          const vIndex = inViewport.indexOf(el);
-          el.style.transitionDelay = `${vIndex * 0.15}s`;
-          
-          requestAnimationFrame(() => {
-            el.classList.add("visible");
-            if (el.classList.contains('intro-section')) {
-              el.classList.add('intro-animate');
-              setIntroActive(true);
-            }
-          });
-        } else {
-          el.style.transitionDelay = "0.1s"; 
-          obs.observe(el);
-        }
-      });
-    
-      return () => obs.disconnect();
-    }, [opened]);
-
-  // ── Gallery scroll ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!opened) return
   
-    let rafId: number
-    let touchStartY = 0
-    let touchActive = false
+    // Batch reveals for performance
+    ScrollTrigger.batch('.reveal', {
+      onEnter: (els) => gsap.fromTo(els,
+        { opacity: 0, y: 28, scale: 0.98 },
+        { opacity: 1, y: 0, scale: 1, duration: 1.6, stagger: 0.1, ease: 'power3.out', clearProps: 'filter' }
+      ),
+      start: 'top 88%',
+    })
   
-    const getScrolled = (): number => {
-      if (!galleryRef.current) return 0
-      return Math.max(0, -galleryRef.current.getBoundingClientRect().top)
-    }
+    ScrollTrigger.batch('.reveal-left', {
+      onEnter: (els) => gsap.fromTo(els,
+        { opacity: 0, x: -52 },
+        { opacity: 1, x: 0, duration: 1.6, stagger: 0.12, ease: 'power3.out' }
+      ),
+      start: 'top 88%',
+    })
   
-    const isStuck = (): boolean => {
-      if (!galleryRef.current) return false
-      const rect = galleryRef.current.getBoundingClientRect()
-      return rect.top <= 0 && rect.bottom >= window.innerHeight
-    }
+    ScrollTrigger.batch('.reveal-right', {
+      onEnter: (els) => gsap.fromTo(els,
+        { opacity: 0, x: 52 },
+        { opacity: 1, x: 0, duration: 1.6, stagger: 0.12, ease: 'power3.out' }
+      ),
+      start: 'top 88%',
+    })
   
-    const frameFromScroll = (scrolled: number): number =>
-      Math.min(6, Math.floor(scrolled / window.innerHeight))
+    return () => ScrollTrigger.getAll().forEach(t => t.kill())
+  }, [opened])
+
+  useEffect(() => {
+    if (!opened || !galleryRef.current) return
   
-    const scrollToFrame = (frame: number): void => {
-      if (!galleryRef.current) return
-      const targetY = galleryRef.current.offsetTop + frame * window.innerHeight + 10
-      const lenis = (window as any).__lenis
-      if (lenis) {
-        lenis.scrollTo(targetY, { duration: 1.1, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) })
-      } else {
-        window.scrollTo({ top: targetY, behavior: 'smooth' })
-      }
-    }
-  
-    const handleScroll = () => {
-      cancelAnimationFrame(rafId)
-      rafId = requestAnimationFrame(() => {
-        const scrolled = getScrolled()
-        const raw      = scrolled / window.innerHeight
+    ScrollTrigger.create({
+      trigger: galleryRef.current,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 1.2,
+      onUpdate: (self) => {
+        const raw      = self.progress * 7
         const frame    = Math.min(6, Math.floor(raw))
         const progress = raw - Math.floor(raw)
-    
-        // Direct DOM updates — zero React re-renders
-        if (galleryRef.current) {
-          galleryRef.current.style.setProperty('--gallery-progress', `${progress * 100}%`)
-        }
+  
+        // Direct DOM — zero React re-renders during scroll
+        galleryRef.current?.style.setProperty('--gallery-progress', `${progress * 100}%`)
+  
         if (galleryStackElRef.current) {
           galleryStackElRef.current.style.transform = frame < 6
             ? `translateY(${progress * -32}px)`
             : 'translateY(-16px)'
         }
-    
+  
         if (togetherWrapperRef.current && frame === 6) {
           const scale = 1 + progress * 0.08
-          togetherWrapperRef.current.style.transform = `translate(-50%, -48%) rotate(-1.5deg) scale(${scale})`
+          togetherWrapperRef.current.style.transform =
+            `translate(-50%, -48%) rotate(-1.5deg) scale(${scale})`
         }
-    
-        // React re-render only on integer frame change (≤7 times)
+  
+        // React state only on integer frame change
         if (frame !== galleryFrameRef.current) {
           galleryFrameRef.current = frame
           setGalleryFrame(frame)
         }
-      })
-    }
+      },
+    })
   
-    const handleTouchStart = (e: TouchEvent) => {
-      if (!isStuck()) return
-      touchStartY = e.touches[0].clientY
-      touchActive = true
-    }
+    return () => ScrollTrigger.getAll().forEach(t => t.kill())
+  }, [opened])
+
+  useEffect(() => {
+    if (!opened) return
   
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!touchActive || !isStuck()) return
-      touchActive = false
-      const delta = touchStartY - e.changedTouches[0].clientY
-      if (Math.abs(delta) < 40) return
-      const current = frameFromScroll(getScrolled())
-      const target = Math.max(0, Math.min(6, current + (delta > 0 ? 1 : -1)))
-      if (target !== current) scrollToFrame(target)
-    }
+    // Subtle parallax on portrait images
+    gsap.utils.toArray<HTMLElement>('[data-parallax]').forEach(card => {
+      const img = card.querySelector('img')
+      if (!img) return
+      gsap.fromTo(img,
+        { yPercent: -7 },
+        {
+          yPercent: 7,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: card,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+        }
+      )
+    })
   
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchend', handleTouchEnd, { passive: true })
-    handleScroll()
-  
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchend', handleTouchEnd)
-      cancelAnimationFrame(rafId)
-    }
+    return () => ScrollTrigger.getAll().forEach(t => t.kill())
   }, [opened])
 
   // ── Messages ───────────────────────────────────────────────────────────────
@@ -382,8 +429,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   // ── Actions ────────────────────────────────────────────────────────────────
   function openInvite() {
-    setClosing(true)
-    setTimeout(() => setOpened(true), 640)
+    setTimeout(() => setOpened(true), 650)
   }
 
   async function submitRsvp(forceUpdate = false) {
@@ -472,7 +518,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   }, [galleryFrame])
 
   // ── Cover ──────────────────────────────────────────────────────────────────
-  if (!opened) return <InviteCover guest={guest} closing={closing} onOpen={openInvite} />
+  if (!opened) return <InviteCover guest={guest} onOpen={openInvite} />
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MAIN INVITATION CONTENT
@@ -487,7 +533,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         padding: '68px 24px 68px', textAlign: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        <div className="wajik-bg-animate" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
+        <div data-hero-bg className="wajik-bg-animate" style={{ position: 'absolute', inset: 0, backgroundImage: bgWajik, zIndex: 0 }} />
         <div className="orb-pulse" style={{
           position: 'absolute', top: '-60px', left: '50%', transform: 'translateX(-50%)',
           width: '560px', height: '480px', borderRadius: '50%',
@@ -495,52 +541,47 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           pointerEvents: 'none', zIndex: 0,
         }} />
         <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <p style={{
+          <p data-hero="bismillah" style={{
             fontFamily: F.arabic, fontSize: '32px', color: C.burgundy,
             lineHeight: 2.1, marginBottom: '10px', marginTop: '-24px',
-            animation: 'heroBismillahIn 1.8s 1.6s cubic-bezier(0.16,1,0.3,1) both',
           }}>
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
           </p>
-          <div style={{ animation: 'heroFadeRise 1.4s 2.3s cubic-bezier(0.16,1,0.3,1) both' }}>
+          <div data-hero="label">
             <SectionLabel>Undangan Pernikahan</SectionLabel>
           </div>
-          <div style={{ animation: 'heroDividerExpand 1.4s 2.7s cubic-bezier(0.16,1,0.3,1) both', transformOrigin: 'center' }}>
+          <div data-hero="divider" style={{ transformOrigin: 'center' }}>
             <PucukRebungDivider />
           </div>
-          <p style={{
+          <p data-hero="vanya" style={{
             fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)', fontWeight: 300,
             color: C.textDark, lineHeight: 1.0, letterSpacing: '0.5px',
             marginTop: '-2px', marginBottom: '-2px',
-            animation: 'heroNameIn 2.0s 0.0s cubic-bezier(0.16,1,0.3,1) both',
           }}>
             <span className="gold-shimmer-text">Vanya</span>
           </p>
-          <div style={{
+          <div data-hero="dan" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: '16px', margin: '10px 0',
-            animation: 'heroDanIn 1.4s 0.6s cubic-bezier(0.16,1,0.3,1) both',
           }}>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
             <p style={{ fontFamily: F.display, fontSize: '20px', color: C.gold, fontStyle: 'italic', margin: 0 }}>dan</p>
             <div style={{ height: '1px', flex: 1, maxWidth: '64px', background: `${C.gold}45` }} />
           </div>
-          <p style={{
+          <p data-hero="faiz" style={{
             fontFamily: F.display, fontSize: 'clamp(44px, 12vw, 60px)', fontWeight: 300,
             color: C.textDark, lineHeight: 1.0, letterSpacing: '0.5px',
             marginTop: '-2px', marginBottom: '36px',
-            animation: 'heroNameIn 2.0s 0.28s cubic-bezier(0.16,1,0.3,1) both',
           }}>
             <span className="gold-shimmer-text">Faiz</span>
           </p>
-          <p style={{
+          <p data-hero="date" style={{
             fontFamily: F.body, fontSize: '13px', color: C.textLight,
             letterSpacing: '2px', marginBottom: '58px',
-            animation: 'heroFadeRise 1.3s 3.2s cubic-bezier(0.16,1,0.3,1) both',
           }}>
             Jum'at, 26 Juni 2026 · Jakarta
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px' }}>
+          <div data-hero-countdown style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px' }}>
             {([
               { val: cd.d, label: 'Hari',  delay: '3.7s'  },
               { val: cd.h, label: 'Jam',   delay: '3.85s' },
@@ -551,21 +592,19 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 <p key={`sep${i}`} style={{
                   fontFamily: F.display, fontSize: '30px', color: C.gold,
                   opacity: 0.45, marginTop: '16px', lineHeight: 1,
-                  animation: `heroFadeRise 0.8s ${['3.8s','3.95s','4.1s'][i-1]} cubic-bezier(0.16,1,0.3,1) both`,
                 }}>:</p>
               )
               acc.push(
-                <div key={item.label} style={{ animation: `heroCountdownIn 1.0s ${item.delay} cubic-bezier(0.16,1,0.3,1) both`, willChange: 'transform, opacity' }}>
+                <div key={item.label}>
                   <CdBox value={item.val} label={item.label} />
                 </div>
               )
               return acc
             }, [])}
           </div>
-          <div style={{
+          <div data-hero="save-date" style={{
             marginTop: '40px', display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: '10px',
-            animation: 'heroFadeRise 1.2s 4.6s cubic-bezier(0.16,1,0.3,1) both',
           }}>
             <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3.5px', color: C.textLight, textTransform: 'uppercase', margin: 0 }}>
               Tandai Kalendarmu
@@ -599,8 +638,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               26 Juni 2026
             </p>
           </div>
-          <div style={{ marginTop: '36px', animation: 'heroFadeRise 1.0s 5.2s cubic-bezier(0.16,1,0.3,1) both' }}>
+          <div style={{ marginTop: '36px' }}>
             <button
+              data-hero="scroll-btn"
               onClick={() => document.getElementById('rsvp-section')?.scrollIntoView({ behavior: 'smooth' })}
               style={{
                 background: 'transparent', border: 'none', cursor: 'pointer',
@@ -608,7 +648,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 margin: '0 auto', padding: '8px 16px',
                 fontFamily: F.body, fontSize: '9px', letterSpacing: '3px',
                 color: C.textLight, textTransform: 'uppercase',
-                animation: 'nudgeDown 2.4s 6.2s ease-in-out infinite',
               }}
             >
               Konfirmasi Kehadiran
@@ -623,8 +662,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       <AnimatedSongketDivider />
 
       {/* ── INTRODUCTION ─────────────────────────────────────────────────── */}
-      <section
-        className="intro-section"
+      <section ref={introSectionRef}
         style={{ position: 'relative', overflow: 'hidden', padding: '80px 28px' }}
       >
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
@@ -668,7 +706,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               <div
                 className="ia-line"
                 style={{
-                  '--d': '3.0s',
                   width: '36px', height: '0.5px',
                   background: `${C.gold}70`,
                   margin: '0 auto 18px',
@@ -688,7 +725,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               <p
                 className="ia-ref"
                 style={{
-                  '--d': '6.4s',
                   fontFamily: F.body, fontSize: '11px',
                   color: C.gold, letterSpacing: '1.5px',
                 } as React.CSSProperties}
@@ -703,7 +739,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <p
               className="ia-invite-1"
               style={{
-                '--d': '7.0s',
                 fontFamily: F.display, fontSize: '16px', color: C.textMid,
                 lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
               } as React.CSSProperties}
@@ -713,7 +748,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div
               className="ia-guest"
               style={{
-                '--d': '7.9s',
                 display: 'inline-block', position: 'relative',
                 margin: '10px 0 12px', padding: '2px 12px',
               } as React.CSSProperties}
@@ -736,7 +770,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <p
               className="ia-invite-2"
               style={{
-                '--d': '8.5s',
                 fontFamily: F.display, fontSize: '16px', color: C.textMid,
                 lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
               } as React.CSSProperties}
@@ -747,7 +780,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <p
             className="ia-salam-close"
             style={{
-              '--d': '9.0s',
               fontFamily: F.body, fontSize: '10px', letterSpacing: '3.5px',
               color: C.textLight, textTransform: 'uppercase',
             } as React.CSSProperties}
@@ -768,7 +800,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, fontStyle: 'italic', lineHeight: 1.2 }}>Kami yang berbahagia</p>
           </div>
           {/* Bride */}
-          <div className="portrait-card reveal-left" style={{ marginBottom: '20px' }}>
+          <div className="portrait-card reveal-left" data-parallax style={{ marginBottom: '20px' }}>
             <div
               ref={brideCardRef}
               onMouseMove={(e) => applyTilt(brideCardRef, e)}
@@ -809,7 +841,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
           </div>
           {/* Groom */}
-          <div className="portrait-card reveal-right" style={{ marginTop: '20px' }}>
+          <div className="portrait-card reveal-right" data-parallax style={{ marginTop: '20px' }}>
             <div
               ref={groomCardRef}
               onMouseMove={(e) => applyTilt(groomCardRef, e, 6)}
@@ -1101,7 +1133,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '15.30 WIB',          icon: '☪', revealClass: 'reveal-left'  },
             { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '19.00 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
           ].map((ev, i) => (
-            <div key={i} className={`portrait-card ${ev.revealClass}`} style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
+            <div key={i} className={`portrait-card ${ev.revealClass}`} data-parallax style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
               <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
               <div style={{ background: ev.gradient, padding: '26px 28px 32px', position: 'relative' }}>
                 <div style={{ position: 'absolute', right: '-28px', top: '-28px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
