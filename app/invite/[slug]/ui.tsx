@@ -192,8 +192,6 @@ export function CdBox({ value, label }: { value: number; label: string }) {
         fontFamily: F.display, fontSize: '24px', fontWeight: 600,
         boxShadow: `0 6px 22px rgba(125,37,53,0.30), 0 1px 0 rgba(255,255,255,0.09) inset`,
         position: 'relative', overflow: 'hidden',
-        perspective: '300px',
-        transformStyle: 'preserve-3d',
       }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: '45%',

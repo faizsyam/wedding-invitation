@@ -555,7 +555,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 }}>:</p>
               )
               acc.push(
-                <div key={item.label} style={{ animation: `heroCountdownIn 1.0s ${item.delay} cubic-bezier(0.16,1,0.3,1) both` }}>
+                <div key={item.label} style={{ animation: `heroCountdownIn 1.0s ${item.delay} cubic-bezier(0.16,1,0.3,1) both`, willChange: 'transform, opacity' }}>
                   <CdBox value={item.val} label={item.label} />
                 </div>
               )
