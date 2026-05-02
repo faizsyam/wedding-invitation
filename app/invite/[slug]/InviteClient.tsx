@@ -319,29 +319,31 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   useEffect(() => {
     if (!opened) return
   
-    // Batch reveals for performance
     ScrollTrigger.batch('.reveal', {
       onEnter: (els) => gsap.fromTo(els,
         { opacity: 0, y: 28, scale: 0.98 },
-        { opacity: 1, y: 0, scale: 1, duration: 1.6, stagger: 0.1, ease: 'power3.out', clearProps: 'filter' }
+        { opacity: 1, y: 0, scale: 1, duration: 1.6, stagger: 0.1, ease: 'power3.out' }
       ),
-      start: 'top 88%',
+      onLeaveBack: (els) => gsap.set(els, { opacity: 0, y: 28, scale: 0.98 }),
+      start: 'top bottom',
     })
-  
+    
     ScrollTrigger.batch('.reveal-left', {
       onEnter: (els) => gsap.fromTo(els,
         { opacity: 0, x: -52 },
         { opacity: 1, x: 0, duration: 1.6, stagger: 0.12, ease: 'power3.out' }
       ),
-      start: 'top 88%',
+      onLeaveBack: (els) => gsap.set(els, { opacity: 0, x: -52 }),
+      start: 'top bottom',
     })
-  
+    
     ScrollTrigger.batch('.reveal-right', {
       onEnter: (els) => gsap.fromTo(els,
         { opacity: 0, x: 52 },
         { opacity: 1, x: 0, duration: 1.6, stagger: 0.12, ease: 'power3.out' }
       ),
-      start: 'top 88%',
+      onLeaveBack: (els) => gsap.set(els, { opacity: 0, x: 52 }),
+      start: 'top bottom',
     })
   
     return () => ScrollTrigger.getAll().forEach(t => t.kill())
