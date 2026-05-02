@@ -528,3 +528,8 @@ body {
   opacity: 0;
   will-change: transform, opacity;
 }
+
+@keyframes loadingSlide {
+  0%   { left: -45%; }
+  100% { left: 145%; }
+}

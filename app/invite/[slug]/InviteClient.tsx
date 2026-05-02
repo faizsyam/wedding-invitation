@@ -12,6 +12,7 @@ import InviteCover from './InviteCover'
 import React from 'react'
 import { gsap } from '@/lib/gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import LoadingScreen from '../../../components/LoadingScreen'
 
 function CharReveal({
   children, startDelay = 0, perChar = 0.018, active = false,
@@ -142,6 +143,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [showQris, setShowQris] = useState(false)
   const [qrisClosing, setQrisClosing] = useState(false)
   const [introActive, setIntroActive] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -164,6 +166,29 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
 
   const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
+
+  useEffect(() => {
+    const images = [
+      '/flower-c1.png',
+      '/flower-c2.png',
+      '/flower-c3.png',
+      '/flower-c4.png',
+      '/bride.webp',
+      '/groom.webp',
+      '/qris.webp',
+    ]
+  
+    let remaining = images.length
+  
+    images.forEach(src => {
+      const img = new Image()
+      img.onload = img.onerror = () => {
+        remaining -= 1
+        if (remaining === 0) setLoaded(true)
+      }
+      img.src = src
+    })
+  }, [])
 
   useEffect(() => {
     if (!opened || !introSectionRef.current) return
@@ -520,7 +545,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   }, [galleryFrame])
 
   // ── Cover ──────────────────────────────────────────────────────────────────
-  if (!opened) return <InviteCover guest={guest} onOpen={openInvite} />
+  if (!opened) return loaded
+    ? <InviteCover guest={guest} onOpen={openInvite} />
+    : <LoadingScreen />
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MAIN INVITATION CONTENT
