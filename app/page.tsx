@@ -14,7 +14,6 @@ export default function Home() {
   return (
     <InviteCover
       guest={dummyGuest}
-      closing={false}
       onOpen={() => {}}
       preview={true}
     />
