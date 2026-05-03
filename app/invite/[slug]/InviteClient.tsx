@@ -855,16 +855,28 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       </section>
 
       <section className="reveal" style={{ background: `linear-gradient(160deg, #fdfdfd 0%, #f5f7fa 60%, #fdfdfd 100%)`, padding: '72px 0 80px', position: 'relative', overflow: 'hidden' }}>
-          <img src="/flowers_m3.png" alt="" aria-hidden="true" style={{
+          <img src="/flower-m3.png" alt="" aria-hidden="true" style={{
             position: 'absolute', top: -15, left: -10,
             width: '125px',
             objectFit: 'contain', opacity: .65,
             pointerEvents: 'none', zIndex: 2,
           }} />
-          <img src="/flowers_m4.png" alt="" aria-hidden="true" style={{
+          <img src="/flower-m4.png" alt="" aria-hidden="true" style={{
             position: 'absolute', top: 0, right: -5,
             width: '145px',
             objectFit: 'contain', opacity: .65,
+            pointerEvents: 'none', zIndex: 2,
+          }} />
+          <img src="/flower-m5.png" alt="" aria-hidden="true" style={{
+            position: 'absolute', bottom: -15, left: -10,
+            width: '135px',
+            objectFit: 'contain', opacity: .6,
+            pointerEvents: 'none', zIndex: 2,
+          }} />
+          <img src="/flower-m6.png" alt="" aria-hidden="true" style={{
+            position: 'absolute', bottom: -10, right: -20,
+            width: '180px',
+            objectFit: 'contain', opacity: .6,
             pointerEvents: 'none', zIndex: 2,
           }} />
           <div style={{ position: 'absolute', inset: 0, opacity: 0.09, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='17' y='2' width='6' height='6' transform='rotate(45 20 5)' fill='%23C4973B'/%3E%3C/svg%3E")` }} />
@@ -909,7 +921,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', margin: '8px 0' }}>
             <div style={{ height: '1px', flex: 1, background: `${C.gold}38` }} />
             <div style={{ textAlign: 'center', position: 'relative' }}>
-              <img src="/flower_m1.png" alt="" aria-hidden="true" style={{
+              <img src="/flower-m1.png" alt="" aria-hidden="true" style={{
                 position: 'absolute',
                 right: '65%',
                 top: '50%',
@@ -920,7 +932,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               }} />
               <div className="wajik-rotate"><WajikBadge size={34} /></div>
               <p style={{ fontFamily: F.display, fontSize: '13px', color: C.gold, fontStyle: 'italic', marginTop: '-2px' }}>bersama</p>
-              <img src="/flower_m2.png" alt="" aria-hidden="true" style={{
+              <img src="/flower-m2.png" alt="" aria-hidden="true" style={{
                 position: 'absolute',
                 left: '65%',
                 top: '50%',
@@ -989,7 +1001,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           {/* Section + stage label */}
           <div className="reveal" style={{ textAlign: 'center', position: 'absolute', top: '8%', left: 0, right: 0, zIndex: 5 }}>
           <SectionLabel>Galeri</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textLight, fontStyle: 'italic' }}>Perjalanan kami</p>
+          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textMid, fontStyle: 'italic' }}>Perjalanan kami</p>
             <p
               key={galleryFrame}
               style={{
@@ -1207,7 +1219,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               pointerEvents: 'none',
               position: 'absolute',
             }}>
-              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textLight, textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
+              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textMid, textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
                 Scroll ke bawah untuk lanjut
               </p>
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style={{ animation: 'nudgeDown 2.2s ease-in-out infinite' }}>
@@ -1230,7 +1242,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 fontSize: '9px',
                 letterSpacing: '2.5px',
                 textTransform: 'uppercase',
-                color: C.textLight,
+                color: C.textMid,
                 cursor: 'pointer',
                 opacity: galleryFrame > 0 && galleryFrame < 6 ? 0.7 : 0,
                 transform: galleryFrame > 0 && galleryFrame < 6 ? 'translateY(0)' : 'translateY(-4px)',
@@ -1246,7 +1258,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 const b = e.currentTarget
                 b.style.opacity = '0.7'
                 b.style.borderColor = `${C.gold}40`
-                b.style.color = C.textLight
+                b.style.color = C.textMid
               }}
             >
               Lewati galeri
