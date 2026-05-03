@@ -109,7 +109,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
       tl.fromTo(dateLineRef.current,
         { opacity: 0, y: 10 },
         { opacity: 1, y: 0, duration: 0.6 },
-        1.28
+        1.16
       )
 
       // CTA button rises last — slight bounce
@@ -118,7 +118,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
           { opacity: 0, y: 18, scale: 0.94 },
           { opacity: 1, y: 0,  scale: 1,
             duration: 0.7, ease: 'back.out(1.6)' },
-          1.52
+          1.2
         )
       }
 

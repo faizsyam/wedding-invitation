@@ -209,6 +209,27 @@ a {
   100% { background-position: -150% center; }
 }
 
+.silver-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #9B2D3F 0%,
+    #9B2D3F 30%,
+    #a78888 48%,
+    #d9afaf 52%,
+    #ac8a8a 56%,
+    #9B2D3F 70%,
+    #9B2D3F 100%
+  );
+  background-size: 250% auto;
+  background-position: 150% center;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  animation: goldShimmerMove 5s 1.5s ease-in-out infinite;
+}
+
 .wajik-bg-animate {
   animation: wajikDrift 14s linear infinite;
 }

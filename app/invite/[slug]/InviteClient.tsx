@@ -174,7 +174,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     const images = [
       '/flower-c1.png', '/flower-c2.png', '/flower-c3.png', '/flower-c4.png',
       '/flower-m1.png', '/flower-m2.png', '/flower-m3.png', '/flower-m4.png', '/flower-m5.png', '/flower-m6.png',
-      '/bride.webp', '/groom.webp',
+      '/bride.webp', '/groom.webp', '/pejaten-terrace.png',
       '/qris.webp',
     ]
   
@@ -210,16 +210,16 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             { opacity: 0, scaleX: 0, transformOrigin: 'center' },
             { opacity: 1, scaleX: 1, duration: 0.9 }, 1.0)
           .fromTo(section.querySelector('.ia-ref'),
-            { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8 }, 6.0)
+            { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8 }, 5.0)
           .fromTo(section.querySelector('.ia-invite-1'),
-            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.4)
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 5.4)
           .fromTo(section.querySelector('.ia-guest'),
             { opacity: 0, y: 14, scale: 0.96, letterSpacing: '0.12em' },
-            { opacity: 1, y: 0, scale: 1, letterSpacing: 'normal', duration: 1.2 }, 6.8)
+            { opacity: 1, y: 0, scale: 1, letterSpacing: 'normal', duration: 1.2 }, 5.8)
           .fromTo(section.querySelector('.ia-invite-2'),
-            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 7.4)
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.4)
           .fromTo(section.querySelector('.ia-salam-close'),
-            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 7.8)
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.8)
   
         // Trigger CharReveal/WordReveal (they still use active prop)
         setIntroActive(true)  // ← keep this state just for CharReveal/WordReveal
@@ -782,7 +782,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
                 }}
               >
-                <CharReveal startDelay={2.0} perChar={0.018} active={introActive}>
+                <CharReveal startDelay={2.0} perChar={0.008} active={introActive}>
                   {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
                 </CharReveal>
               </p>
@@ -810,7 +810,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               Dengan memohon rahmat dan ridho Allah ﷻ, kami mengundang Bapak/Ibu/Saudara/i
             </p>
             <div
-              className="ia-guest"
+              className="ia-guest silver-shimmer-text"
               style={{
                 display: 'inline-block', position: 'relative',
                 margin: '10px 0 12px', padding: '2px 12px',
@@ -892,6 +892,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               onMouseLeave={() => resetTilt(brideCardRef, '0 20px 60px rgba(125,37,53,0.18)')}
               style={{
                 position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px',
+                backgroundColor: 'rgb(218, 215, 206)',
                 boxShadow: '0 20px 60px rgba(125,37,53,0.18)',
                 transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1), box-shadow 0.8s cubic-bezier(0.16,1,0.3,1)',
                 willChange: 'transform',
@@ -952,6 +953,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               style={{
                 position: 'relative', borderRadius: '6px', overflow: 'hidden', height: '480px',
                 boxShadow: '0 20px 60px rgba(30,58,95,0.18)',
+                backgroundColor: 'rgb(209, 206, 199)',
                 transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1), box-shadow 0.8s cubic-bezier(0.16,1,0.3,1)',
                 willChange: 'transform',
               }}
@@ -1313,28 +1315,36 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       <section className="reveal" style={{ paddingTop: '64px', paddingBottom: '68px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px', padding: '0 24px' }}>
           <SectionLabel>Lokasi</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textLight, fontStyle: 'italic' }}>Temukan kami di sini</p>
+          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textMid, fontStyle: 'italic' }}>Temukan kami di sini</p>
         </div>
-        <div style={{ position: 'relative' }}>
-          <SongketBand color={C.gold} opacity={0.11} />
-          {!mapLoaded && (
-            <div style={{ position: 'absolute', inset: 0, height: '280px', background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`, backgroundSize: '200% 100%', animation: 'shimmerSweepBg 1.8s infinite linear', zIndex: 1 }} />
-          )}
-          <iframe
-            onLoad={() => setMapLoaded(true)}
-            src="https://maps.google.com/maps?q=Pejaten+Terrace+Jl+Warung+Jati+Barat+No+39+Jakarta+Selatan&output=embed&hl=id"
-            width="100%" height="280" style={{ border: 'none', display: 'block' }}
-            loading="lazy" title="Pejaten Terrace"
+        {/* Venue painting */}
+        <div style={{
+          position: 'relative',
+          maxWidth: '640px',
+          margin: '-10px auto 0px',
+          padding: '0 0px',
+          display: 'flex',
+          justifyContent: 'center',
+        }}>
+          <img
+            src="/pejaten-terrace.png"
+            alt="Pejaten Terrace"
+            style={{
+              width: '100%',
+              height: 'auto',
+              objectFit: 'contain',
+              display: 'block',
+              opacity: 0.92,
+            }}
           />
-          <SongketBand color={C.gold} opacity={0.11} />
         </div>
-        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '28px 24px 0', textAlign: 'center' }}>
+        <div style={{ maxWidth: '480px', margin: '20px auto', padding: '0px 24px 0', textAlign: 'center' }}>
           <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '8px' }}>Pejaten Terrace</p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2.1, marginBottom: '26px' }}>
             Jl. Warung Jati Barat No.39<br />Pejaten Timur, Pasar Minggu, Jakarta Selatan
           </p>
           
-            <a href="https://maps.app.goo.gl/bxiGv4QxUE3u2bNPA"
+          <a href="https://maps.app.goo.gl/bxiGv4QxUE3u2bNPA"
             target="_blank" rel="noopener noreferrer"
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.navy; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = C.navy }}
@@ -1348,6 +1358,19 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           >
             📍 Buka di Google Maps
           </a>
+        </div>
+        <div style={{ position: 'relative', marginTop: '30px' }}>
+          <SongketBand color={C.gold} opacity={0.11} />
+          {!mapLoaded && (
+            <div style={{ position: 'absolute', inset: 0, height: '280px', background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`, backgroundSize: '200% 100%', animation: 'shimmerSweepBg 1.8s infinite linear', zIndex: 1 }} />
+          )}
+          <iframe
+            onLoad={() => setMapLoaded(true)}
+            src="https://maps.google.com/maps?q=Pejaten+Terrace+Jl+Warung+Jati+Barat+No+39+Jakarta+Selatan&output=embed&hl=id"
+            width="100%" height="280" style={{ border: 'none', display: 'block' }}
+            loading="lazy" title="Pejaten Terrace"
+          />
+          <SongketBand color={C.gold} opacity={0.11} />
         </div>
       </section>
 
