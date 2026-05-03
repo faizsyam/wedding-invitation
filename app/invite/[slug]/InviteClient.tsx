@@ -145,6 +145,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [loaded, setLoaded] = useState(false)
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
   const [lightboxClosing, setLightboxClosing] = useState(false)
+  const [qrisDownloaded, setQrisDownloaded] = useState(false)
+  const [qrisImgLoaded, setQrisImgLoaded] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -170,12 +172,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   useEffect(() => {
     const images = [
-      '/flower-c1.png',
-      '/flower-c2.png',
-      '/flower-c3.png',
-      '/flower-c4.png',
-      '/bride.webp',
-      '/groom.webp',
+      '/flower-c1.png', '/flower-c2.png', '/flower-c3.png', '/flower-c4.png',
+      '/flower-m1.png', '/flower-m2.png', '/flower-m3.png', '/flower-m4.png', '/flower-m5.png', '/flower-m6.png',
+      '/bride.webp', '/groom.webp',
       '/qris.webp',
     ]
   
@@ -403,7 +402,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         { opacity: 0, x: 52 },
         { opacity: 1, x: 0, duration: 1.6, stagger: 0.12, ease: 'power3.out' }
       ),
-      onLeaveBack: (els) => gsap.set(els, { opacity: 0, x: 52 }),
+      onLeaveBack: (els) => gsap.set(els, { opacity: 0, x: 0 }),
       start: 'top bottom',
     })
   
@@ -1723,10 +1722,40 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       borderRadius: t && l ? '4px 0 0 0' : t && !l ? '0 4px 0 0' : !t && l ? '0 0 0 4px' : '0 0 4px 0',
                     }} />
                   })}
+                  {!qrisImgLoaded && (
+                    <div style={{
+                      width: '220px', height: '220px',
+                      background: C.cream,
+                      borderRadius: '4px',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      gap: '10px',
+                    }}>
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        background: `linear-gradient(90deg, transparent 25%, rgba(196,151,59,0.10) 50%, transparent 75%)`,
+                        backgroundSize: '200% 100%',
+                        animation: 'loadingSlide 1.6s ease-in-out infinite',
+                      }} />
+                      {[70, 50, 62, 44, 56].map((w, i) => (
+                        <div key={i} style={{
+                          width: `${w}%`, height: '6px',
+                          background: `rgba(196,151,59,0.15)`,
+                          borderRadius: '3px',
+                        }} />
+                      ))}
+                    </div>
+                  )}
                   <img
                     src="/qris.webp"
                     alt="QRIS Vanya Faiz"
-                    style={{ width: '220px', height: '220px', objectFit: 'contain', display: 'block' }}
+                    onLoad={() => setQrisImgLoaded(true)}
+                    style={{
+                      width: '220px', height: '220px',
+                      objectFit: 'contain', display: qrisImgLoaded ? 'block' : 'none',
+                    }}
                   />
                 </div>
               </div>
@@ -1736,16 +1765,47 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
               {/* Actions */}
               
-              <a href="/qris.webp"
-                download="QRIS-Vanya-Faiz.webp"
-                className="shimmer-btn"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '15px', background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`, color: C.white, border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '10px', boxShadow: `0 4px 18px rgba(125,37,53,0.26)`, textDecoration: 'none', position: 'relative', overflow: 'hidden' }}
+              <button
+                onClick={() => {
+                  const a = document.createElement('a')
+                  a.href = '/qris.webp'
+                  a.download = 'QRIS-Vanya-Faiz.webp'
+                  a.click()
+                  setQrisDownloaded(true)
+                  setTimeout(() => setQrisDownloaded(false), 2500)
+                }}
+                className={qrisDownloaded ? '' : 'shimmer-btn'}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  width: '100%', padding: '15px',
+                  background: qrisDownloaded
+                    ? `linear-gradient(135deg, ${C.burgundyDeep}, #3a0f1a)`
+                    : `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`,
+                  color: C.white, border: 'none', borderRadius: '5px',
+                  fontFamily: F.body, fontSize: '11px', letterSpacing: '3px',
+                  textTransform: 'uppercase', cursor: 'pointer', marginBottom: '10px',
+                  boxShadow: `0 4px 18px rgba(125,37,53,0.26)`,
+                  position: 'relative', overflow: 'hidden',
+                  transition: 'background 0.3s ease',
+                }}
               >
-                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 2v8M5 7l3 3 3-3"/><path d="M2 12h12"/>
-                </svg>
-                Download QRIS
-              </a>
+                {qrisDownloaded ? (
+                  <>
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 8l4 4 8-8"/>
+                    </svg>
+                    Tersimpan!
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 2v8M5 7l3 3 3-3"/><path d="M2 12h12"/>
+                    </svg>
+                    Download QRIS
+                  </>
+                )}
+                {qrisDownloaded && <span className="copy-ripple" />}
+              </button>
               <button onClick={closeQris} style={{ width: '100%', padding: '14px', background: 'transparent', color: C.textLight, border: `1.5px solid rgba(196,151,59,0.28)`, borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer' }}>
                 Tutup
               </button>
@@ -1781,7 +1841,6 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           {/* Polaroid frame */}
           <div
             ref={lightboxRef}
-            onClick={e => e.stopPropagation()}
             style={{
               background: '#fff',
               padding: '10px 10px 0',
