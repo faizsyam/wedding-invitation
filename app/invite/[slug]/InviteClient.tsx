@@ -114,6 +114,7 @@ function WordReveal({
 const galleryStages = [
   { groomYear: '2000', brideYear: '2000' },
   { groomYear: '2002', brideYear: '2001' },
+  { groomYear: '2012', brideYear: '2011' },
   { groomYear: '2016', brideYear: '2017' },
   { groomYear: '2021', brideYear: '2018' },
   { groomYear: '2023', brideYear: '2019' },
@@ -210,16 +211,16 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             { opacity: 0, scaleX: 0, transformOrigin: 'center' },
             { opacity: 1, scaleX: 1, duration: 0.9 }, 1.0)
           .fromTo(section.querySelector('.ia-ref'),
-            { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8 }, 5.0)
+            { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8 }, 4.4)
           .fromTo(section.querySelector('.ia-invite-1'),
-            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 5.4)
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 4.8)
           .fromTo(section.querySelector('.ia-guest'),
             { opacity: 0, y: 14, scale: 0.96, letterSpacing: '0.12em' },
-            { opacity: 1, y: 0, scale: 1, letterSpacing: 'normal', duration: 1.2 }, 5.8)
+            { opacity: 1, y: 0, scale: 1, letterSpacing: 'normal', duration: 1.2 }, 5.2)
           .fromTo(section.querySelector('.ia-invite-2'),
-            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.4)
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 5.8)
           .fromTo(section.querySelector('.ia-salam-close'),
-            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.8)
+            { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.2)
   
         // Trigger CharReveal/WordReveal (they still use active prop)
         setIntroActive(true)  // ← keep this state just for CharReveal/WordReveal
@@ -418,8 +419,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       end: 'bottom bottom',
       scrub: 1.2,
       onUpdate: (self) => {
-        const raw      = self.progress * 7
-        const frame    = Math.min(6, Math.floor(raw))
+        const raw      = self.progress * 8
+        const frame    = Math.min(7, Math.floor(raw))
         const progress = raw - Math.floor(raw)
   
         // Direct DOM — zero React re-renders during scroll
@@ -981,7 +982,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       </section>
       
       {/* ── GALLERY ──────────────────────────────────────────────────────── */}
-      <section ref={galleryRef} style={{ height: '800vh', position: 'relative' }}>
+      <section ref={galleryRef} style={{ height: '900vh', position: 'relative' }}>
         <div style={{
           position: 'sticky', top: 0, height: '100vh',
           background: `linear-gradient(180deg, ${C.cream} 0%, #EDE5D4 50%, ${C.cream} 100%)`,
@@ -999,10 +1000,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             pointerEvents: 'none',
             transition: 'transform 1.4s cubic-bezier(0.16,1,0.3,1)',
           }} />
-          {/* Section + stage label */}
+
+          {/* Section label */}
           <div className="reveal" style={{ textAlign: 'center', position: 'absolute', top: '8%', left: 0, right: 0, zIndex: 5 }}>
-          <SectionLabel>Galeri</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textMid, fontStyle: 'italic' }}>Perjalanan kami</p>
+            <SectionLabel>Galeri</SectionLabel>
+            <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textMid, fontStyle: 'italic' }}>Perjalanan kami</p>
             <p
               key={galleryFrame}
               style={{
@@ -1010,23 +1012,22 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 color: C.textLight, margin: '8px 0 0', lineHeight: 1.2,
                 animation: 'galleryLabelIn 0.55s cubic-bezier(0.22,1,0.36,1) both',
               }}
-            >
-            </p>
+            />
           </div>
 
-          {/* ── Together photo (frame 6) ─────────────────────────────────────── */}
+          {/* ── Together photo (frame 7) ──────────────────────────────────── */}
           <div
             ref={togetherWrapperRef}
             style={{
               position: 'absolute',
               top: '50%', left: '50%',
-              transform: galleryFrame === 6
+              transform: galleryFrame === 7
                 ? 'translate(-50%, -48%) rotate(-1.5deg) scale(1)'
                 : 'translate(-50%, -38%) rotate(-1.5deg) scale(0.86)',
-              opacity: galleryFrame === 6 ? 1 : 0,
-              zIndex: galleryFrame === 6 ? 30 : 3,
+              opacity: galleryFrame === 7 ? 1 : 0,
+              zIndex: galleryFrame === 7 ? 30 : 3,
               transition: 'transform 2.95s cubic-bezier(0.16,1,0.3,1), opacity 0.75s cubic-bezier(0.16,1,0.3,1)',
-              pointerEvents: galleryFrame === 6 ? 'auto' : 'none',
+              pointerEvents: galleryFrame === 7 ? 'auto' : 'none',
             }}
           >
             <div
@@ -1044,8 +1045,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               style={{
                 background: C.white,
                 padding: '10px 10px 0',
-                display: 'flex',
-                flexDirection: 'column',
+                display: 'flex', flexDirection: 'column',
                 boxShadow: '0 32px 88px rgba(44,24,16,0.28), 0 8px 24px rgba(44,24,16,0.14)',
                 width: 'clamp(240px, 86vw, 420px)',
                 height: 'clamp(340px, 68vh, 600px)',
@@ -1072,18 +1072,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
           </div>
 
-          {/* ── Side-by-side polaroid stacks (frames 0–5) ───────────────────── */}
+          {/* ── Polaroid stacks (frames 0–6) ─────────────────────────────── */}
           <div
             ref={galleryStackElRef}
             style={{
               display: 'flex', gap: 'clamp(10px, 4vw, 0px)', justifyContent: 'center',
               position: 'relative', zIndex: 10,
-              opacity: galleryFrame < 6 ? 1 : 0,
-              // transform is now set directly by the DOM ref in handleScroll
-              transition: galleryFrame < 6
+              opacity: galleryFrame < 7 ? 1 : 0,
+              transition: galleryFrame < 7
                 ? 'opacity 0.5s ease, transform 0.09s ease-out'
                 : 'opacity 0.5s ease, transform 0.5s ease',
-              pointerEvents: galleryFrame < 6 ? 'auto' : 'none',
+              pointerEvents: galleryFrame < 7 ? 'auto' : 'none',
             }}
           >
             {/* Groom (left) */}
@@ -1102,15 +1101,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               style={{ transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
             >
               <div className="reveal-left" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 380px)' }}>
-                {[0,1,2,3,4,5].map(i => (
+                {[0,1,2,3,4,5,6].map(i => (
                   <div
                     key={i}
                     style={{
                       ...galleryStackStyle(i, true),
                       background: C.white,
                       padding: '8px 8px 0',
-                      display: 'flex',
-                      flexDirection: 'column',
+                      display: 'flex', flexDirection: 'column',
                       boxShadow: galleryFrame === i
                         ? '0 22px 64px rgba(44,24,16,0.26), 0 6px 20px rgba(44,24,16,0.12)'
                         : '0 4px 14px rgba(44,24,16,0.08)',
@@ -1120,12 +1118,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                       position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
                       background: `linear-gradient(90deg, transparent, ${C.gold}50, transparent)`,
                     }} />
-                    <img
-                      src={`/gallery/groom-${i + 1}.webp`}
-                      onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/groom-${i + 1}.webp`, alt: `Faiz – ${galleryStages[i].groomYear}` })}
-                      alt={`Faiz – ${galleryStages[i].groomYear}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', cursor: galleryFrame === i ? 'zoom-in' : 'default' }}
-                    />
+                    <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#DDD5C8' }}>
+                      <img
+                        src={`/gallery/groom-${i + 1}.webp`}
+                        onClick={() => galleryFrame === i && setLightbox({ src: `/gallery/groom-${i + 1}.webp`, alt: `Faiz – ${galleryStages[i].groomYear}` })}
+                        alt={`Faiz – ${galleryStages[i].groomYear}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', cursor: galleryFrame === i ? 'zoom-in' : 'default' }}
+                      />
+                    </div>
                     <div style={{ height: '46px', flexShrink: 0 }} />
                   </div>
                 ))}
@@ -1149,15 +1149,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               style={{ transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
             >
               <div className="reveal-right" style={{ position: 'relative', width: 'clamp(155px, 43vw, 280px)', height: 'clamp(260px, 62vw, 380px)' }}>
-                {[0,1,2,3,4,5].map(i => (
+                {[0,1,2,3,4,5,6].map(i => (
                   <div
                     key={i}
                     style={{
                       ...galleryStackStyle(i, false),
                       background: C.white,
                       padding: '8px 8px 0',
-                      display: 'flex',
-                      flexDirection: 'column',
+                      display: 'flex', flexDirection: 'column',
                       boxShadow: galleryFrame === i
                         ? '0 22px 64px rgba(44,24,16,0.26), 0 6px 20px rgba(44,24,16,0.12)'
                         : '0 4px 14px rgba(44,24,16,0.08)',
@@ -1183,42 +1182,40 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
           </div>
 
-          {/* Progress pill-dots */}
+          {/* Progress pill-dots — 8 total */}
           <div style={{ position: 'absolute', bottom: 'clamp(140px, 54vh, 40px)', display: 'flex', gap: '10px', alignItems: 'center', zIndex: 10 }}>
-            {Array.from({ length: 7 }, (_, i) => (
+            {Array.from({ length: 8 }, (_, i) => (
               <div key={i} style={{
                 height: '7px',
                 width: i === galleryFrame ? '52px' : '7px',
                 borderRadius: '4px',
                 background: i < galleryFrame ? C.gold : `${C.gold}28`,
                 transition: 'width 0.45s cubic-bezier(0.34,1.56,0.64,1), background 0.45s ease',
-                position: 'relative',
-                overflow: 'hidden',
+                position: 'relative', overflow: 'hidden',
               }}>
                 <div style={{
-                  position: 'absolute',
-                  top: 0, left: 0, bottom: 0,
+                  position: 'absolute', top: 0, left: 0, bottom: 0,
                   width: i === galleryFrame ? 'var(--gallery-progress, 0%)' : '0%',
-                  background: C.gold,
-                  borderRadius: '4px',
+                  background: C.gold, borderRadius: '4px',
                   transition: 'width 0.07s linear',
                 }} />
               </div>
             ))}
           </div>
 
+          {/* Nudge + Skip */}
           <div style={{
             position: 'absolute', bottom: 'clamp(68px, 9vh, 84px)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
             zIndex: 10,
           }}>
+            {/* Nudge — frame 0 only */}
             <div style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
               opacity: galleryFrame === 0 ? 0.5 : 0,
               transform: galleryFrame === 0 ? 'translateY(0)' : 'translateY(4px)',
               transition: 'opacity 0.4s ease, transform 0.4s ease',
-              pointerEvents: 'none',
-              position: 'absolute',
+              pointerEvents: 'none', position: 'absolute',
             }}>
               <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textMid, textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
                 Scroll ke bawah untuk lanjut
@@ -1228,7 +1225,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </svg>
             </div>
 
-            {/* Skip — only after frame 0 */}
+            {/* Skip — frames 1–6 only */}
             <button
               onClick={skipGallery}
               style={{
@@ -1236,18 +1233,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 border: `1px solid ${C.gold}40`,
                 borderRadius: '20px',
                 padding: '7px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontFamily: F.body,
-                fontSize: '9px',
-                letterSpacing: '2.5px',
-                textTransform: 'uppercase',
-                color: C.textMid,
-                cursor: 'pointer',
-                opacity: galleryFrame > 0 && galleryFrame < 6 ? 0.7 : 0,
-                transform: galleryFrame > 0 && galleryFrame < 6 ? 'translateY(0)' : 'translateY(-4px)',
-                pointerEvents: galleryFrame > 0 && galleryFrame < 6 ? 'auto' : 'none',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                fontFamily: F.body, fontSize: '9px', letterSpacing: '2.5px',
+                textTransform: 'uppercase', color: C.textMid, cursor: 'pointer',
+                opacity: galleryFrame > 0 && galleryFrame < 7 ? 0.7 : 0,
+                transform: galleryFrame > 0 && galleryFrame < 7 ? 'translateY(0)' : 'translateY(-4px)',
+                transition: 'opacity 0.4s ease, transform 0.4s ease',
+                pointerEvents: galleryFrame > 0 && galleryFrame < 7 ? 'auto' : 'none',
               }}
               onMouseEnter={e => {
                 const b = e.currentTarget
