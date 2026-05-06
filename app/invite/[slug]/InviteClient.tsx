@@ -175,9 +175,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     const imgObjects: HTMLImageElement[] = []
     let loaded = 0
   
+    let preparing = 0
+    const prepInterval = setInterval(() => {
+      preparing = Math.min(preparing + 1, 8)
+      setLoadProgress(preparing)
+    }, 80)
+  
     fetch('/api/images')
       .then(res => res.json())
       .then((sources: string[]) => {
+        clearInterval(prepInterval)
+  
         if (sources.length === 0) { setLoadProgress(100); return }
   
         sources.forEach(src => {
@@ -185,12 +193,16 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           imgObjects.push(img)
           img.onload = img.onerror = () => {
             loaded += 1
-            setLoadProgress(Math.round((loaded / sources.length) * 100))
+            const real = 8 + Math.round((loaded / sources.length) * 92)
+            setLoadProgress(real)
           }
           img.src = src
         })
       })
-      .catch(() => setLoadProgress(100))
+      .catch(() => {
+        clearInterval(prepInterval)
+        setLoadProgress(100)
+      })
   }, [])
 
   useEffect(() => {
