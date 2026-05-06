@@ -143,7 +143,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [showQris, setShowQris] = useState(false)
   const [qrisClosing, setQrisClosing] = useState(false)
   const [introActive, setIntroActive] = useState(false)
-  const [loaded, setLoaded] = useState(false)
+  const [loadProgress, setLoadProgress] = useState(0)
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
   const [lightboxClosing, setLightboxClosing] = useState(false)
   const [qrisDownloaded, setQrisDownloaded] = useState(false)
@@ -172,23 +172,25 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
 
   useEffect(() => {
-    const images = [
-      '/flower-c1.png', '/flower-c2.png', '/flower-c3.png', '/flower-c4.png',
-      '/flower-m1.png', '/flower-m2.png', '/flower-m3.png', '/flower-m4.png', '/flower-m5.png', '/flower-m6.png',
-      '/bride.webp', '/groom.webp', '/pejaten-terrace.png',
-      '/qris.webp',
-    ]
+    const imgObjects: HTMLImageElement[] = []
+    let loaded = 0
   
-    let remaining = images.length
+    fetch('/api/images')
+      .then(res => res.json())
+      .then((sources: string[]) => {
+        if (sources.length === 0) { setLoadProgress(100); return }
   
-    images.forEach(src => {
-      const img = new Image()
-      img.onload = img.onerror = () => {
-        remaining -= 1
-        if (remaining === 0) setLoaded(true)
-      }
-      img.src = src
-    })
+        sources.forEach(src => {
+          const img = new Image()
+          imgObjects.push(img)
+          img.onload = img.onerror = () => {
+            loaded += 1
+            setLoadProgress(Math.round((loaded / sources.length) * 100))
+          }
+          img.src = src
+        })
+      })
+      .catch(() => setLoadProgress(100))
   }, [])
 
   useEffect(() => {
@@ -581,9 +583,9 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   }, [galleryFrame])
 
   // ── Cover ──────────────────────────────────────────────────────────────────
-  if (!opened) return loaded
-    ? <InviteCover guest={guest} onOpen={openInvite} />
-    : <LoadingScreen />
+  if (!opened) return loadProgress < 100
+    ? <LoadingScreen progress={loadProgress} />
+    : <InviteCover guest={guest} onOpen={openInvite} />
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MAIN INVITATION CONTENT

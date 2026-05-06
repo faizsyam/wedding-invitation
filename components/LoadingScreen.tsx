@@ -1,7 +1,11 @@
 'use client'
 import { C, F } from '../app/invite/[slug]/ui'
 
-export default function LoadingScreen() {
+interface Props {
+  progress: number  // 0–100
+}
+
+export default function LoadingScreen({ progress }: Props) {
   return (
     <div style={{
       minHeight: '100dvh',
@@ -22,23 +26,40 @@ export default function LoadingScreen() {
       }}>
         Menyiapkan undangan..
       </p>
+
+      {/* Track */}
       <div style={{
-        width: '120px',
+        width: '140px',
         height: '1.5px',
-        background: `rgba(196,151,59,0.18)`,
+        background: `rgba(196,151,59,0.15)`,
         borderRadius: '2px',
-        overflow: 'hidden',
         position: 'relative',
+        overflow: 'hidden',
       }}>
+        {/* Fill */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0,
           height: '100%',
-          width: '45%',
-          background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
-          animation: 'loadingSlide 1.6s ease-in-out infinite',
+          width: `${progress}%`,
+          background: `linear-gradient(90deg, ${C.gold}80, ${C.gold}, #EDD89A, ${C.gold})`,
+          backgroundSize: '200% 100%',
+          borderRadius: '2px',
+          transition: 'width 0.3s ease',
+          animation: 'shimmerSweepBg 1.8s infinite linear',
         }} />
       </div>
+
+      {/* Percentage */}
+      <p style={{
+        fontFamily: F.body,
+        fontSize: '10px',
+        letterSpacing: '3px',
+        color: `rgba(196,151,59,0.55)`,
+        margin: 0,
+      }}>
+        {Math.round(progress)}%
+      </p>
     </div>
   )
 }
