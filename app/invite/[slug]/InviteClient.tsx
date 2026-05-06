@@ -176,11 +176,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     let loaded = 0
   
     let preparing = 0
+    const base = Math.floor(Math.random() * 4) + 9  // 9–12
+
     const prepInterval = setInterval(() => {
-      preparing = Math.min(preparing + 1, 8)
+      preparing = Math.min(preparing + 1, base)
       setLoadProgress(preparing)
     }, 80)
-  
+
     fetch('/api/images')
       .then(res => res.json())
       .then((sources: string[]) => {
@@ -193,7 +195,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           imgObjects.push(img)
           img.onload = img.onerror = () => {
             loaded += 1
-            const real = 8 + Math.round((loaded / sources.length) * 92)
+            const real = base + Math.round((loaded / sources.length) * (100 - base))
             setLoadProgress(real)
           }
           img.src = src
