@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/ratelimit'
+import { sanitizeText, truncateText, validateSlug } from '@/lib/sanitize'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,25 +13,35 @@ const MSG_LIMIT = 3
 
 export async function POST(req: NextRequest) {
   try {
-    const { guest_slug, message } = await req.json()
+    const body = await req.json()
+    const guestSlugRaw = body?.guest_slug
+    const messageRaw = body?.message
 
-    if (typeof guest_slug !== 'string' || !guest_slug.trim())
+    // --- Validate and sanitize inputs before touching DB ---
+    const validSlug = validateSlug(guestSlugRaw)
+    if (!validSlug) {
       return NextResponse.json({ error: 'Invalid slug' }, { status: 400 })
-    if (typeof message !== 'string' || !message.trim())
-      return NextResponse.json({ error: 'Empty message' }, { status: 400 })
-    if (message.length > MSG_MAX)
-      return NextResponse.json({ error: 'Message too long' }, { status: 400 })
+    }
 
+    const sanitizedMessage = sanitizeText(messageRaw)
+    if (sanitizedMessage.length === 0) {
+      return NextResponse.json({ error: 'Empty message' }, { status: 400 })
+    }
+    if (sanitizedMessage.length > MSG_MAX) {
+      return NextResponse.json({ error: 'Message too long' }, { status: 400 })
+    }
+
+    // Rate limit by cleaned slug
     const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
-    const allowed = rateLimit(`${ip}:${guest_slug}`, 10, 60_000) // 10 req/min per IP+slug
+    const allowed = rateLimit(`${ip}:${validSlug}`, 10, 60_000) // 10 req/min per IP+slug
     if (!allowed)
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
     // Verify guest exists
     const { data: guest, error: guestErr } = await supabase
       .from('guests')
       .select('id, name')
-      .eq('slug', guest_slug.trim())
+      .eq('slug', validSlug)
       .maybeSingle()
 
     if (guestErr || !guest)
@@ -40,16 +51,17 @@ export async function POST(req: NextRequest) {
     const { count, error: countErr } = await supabase
       .from('messages')
       .select('id', { count: 'exact', head: true })
-      .eq('guest_slug', guest_slug.trim())
+      .eq('guest_slug', validSlug)
 
     if (countErr) throw countErr
     if ((count ?? 0) >= MSG_LIMIT)
       return NextResponse.json({ error: 'Message limit reached' }, { status: 429 })
 
+    const finalMessage = truncateText(sanitizedMessage, MSG_MAX)
     const { error } = await supabase.from('messages').insert({
-      guest_slug: guest_slug.trim(),
+      guest_slug: validSlug,
       guest_name: guest.name,           // always from DB
-      message:    message.trim(),
+      message:    finalMessage,
     })
 
     if (error) throw error

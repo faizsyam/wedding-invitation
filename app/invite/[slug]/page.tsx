@@ -2,11 +2,19 @@ import { supabase } from '@/lib/supabase'
 import InviteClient from './InviteClient'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { validateSlug } from '@/lib/sanitize'
 
 type Props = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { slug: rawSlug } = await params
+  const slug = validateSlug(rawSlug)
+  if (!slug) {
+    return {
+      title: 'Undangan Pernikahan | Vanya & Faiz',
+      description: 'Kami mengundang Anda untuk hadir di hari istimewa kami. 26 Juni 2026 · Jakarta',
+    }
+  }
 
   const { data: guest } = await supabase
     .from('guests')
@@ -40,7 +48,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function InvitePage({ params }: Props) {
-  const { slug } = await params
+  const { slug: rawSlug } = await params
+  const slug = validateSlug(rawSlug)
+
+  // Reject invalid or malformed slugs immediately, before touching DB
+  if (!slug) {
+    notFound()
+  }
 
   const { data: guest, error } = await supabase
     .from('guests')

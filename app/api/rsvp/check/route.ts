@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { validateSlug } from '@/lib/sanitize'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,9 +8,10 @@ const supabase = createClient(
 )
 
 export async function GET(req: NextRequest) {
-  const slug = req.nextUrl.searchParams.get('slug')
-  if (!slug) return NextResponse.json({ exists: false })
+  const slugRaw = req.nextUrl.searchParams.get('slug')
+  const validSlug = validateSlug(slugRaw)
+  if (!validSlug) return NextResponse.json({ exists: false })
   const { data } = await supabase
-    .from('rsvps').select('id').eq('guest_slug', slug).maybeSingle()
+    .from('rsvps').select('id').eq('guest_slug', validSlug).maybeSingle()
   return NextResponse.json({ exists: !!data })
 }

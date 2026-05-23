@@ -12,6 +12,7 @@ import InviteCover from './InviteCover'
 import React from 'react'
 import { gsap } from '@/lib/gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { sanitizeText, truncateText } from '@/lib/sanitize'
 import LoadingScreen from '../../../components/LoadingScreen'
 
 function CharReveal({
@@ -514,7 +515,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   async function submitRsvp(forceUpdate = false) {
     if (attending === null) return
     setRsvpLoading(true)
-  
+
     if (!forceUpdate) {
       // Check for existing via a lightweight API call instead of direct Supabase read
       const check = await fetch(`/api/rsvp/check?slug=${encodeURIComponent(guest.slug)}`)
@@ -525,11 +526,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         return
       }
     }
-  
+
+    // Sanitize note client-side (defense in depth)
+    const cleanNote = truncateText(sanitizeText(note), 280)
+
     const res = await fetch('/api/rsvp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guest_slug: guest.slug, attending, pax, note }),
+      body: JSON.stringify({ guest_slug: guest.slug, attending, pax, note: cleanNote }),
     })
   
     if (res.ok) {
@@ -542,15 +546,18 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   async function submitMessage() {
     if (!msgText.trim() || guestMsgCount >= 3) return
     setMsgLoading(true)
-  
+
+    // Sanitize message client-side (defense in depth)
+    const cleanMessage = truncateText(sanitizeText(msgText), 280)
+
     const res = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guest_slug: guest.slug, message: msgText.trim() }),
+      body: JSON.stringify({ guest_slug: guest.slug, message: cleanMessage }),
     })
-  
+
     if (res.ok) {
-      const optimistic: Message = { guest_name: guest.name, message: msgText.trim(), isNew: true }
+      const optimistic: Message = { guest_name: guest.name, message: cleanMessage, isNew: true }
       setMessages(prev => [optimistic, ...prev])
       setMsgDone(true)
       setTimeout(loadMessages, 3000)

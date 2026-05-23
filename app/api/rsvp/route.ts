@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/ratelimit'
+import { sanitizeText, truncateText, validateSlug } from '@/lib/sanitize'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,28 +13,42 @@ const ALLOWED_ATTENDING = [true, false]
 
 export async function POST(req: NextRequest) {
   try {
-    const { guest_slug, attending, pax, note } = await req.json()
+    const body = await req.json()
+    const guestSlugRaw = body?.guest_slug
+    const attending = body?.attending
+    const pax = body?.pax
+    const noteRaw = body?.note
 
-    // Type + presence checks
-    if (typeof guest_slug !== 'string' || !guest_slug.trim())
+    // --- Validate and sanitize slug ---
+    const validSlug = validateSlug(guestSlugRaw)
+    if (!validSlug) {
       return NextResponse.json({ error: 'Invalid slug' }, { status: 400 })
+    }
+
+    // --- Validate attending ---
     if (!ALLOWED_ATTENDING.includes(attending))
       return NextResponse.json({ error: 'Invalid attending value' }, { status: 400 })
+
+    // --- Validate pax ---
     if (typeof pax !== 'number' || pax < 0 || pax > 10 || !Number.isInteger(pax))
       return NextResponse.json({ error: 'Invalid pax' }, { status: 400 })
-    if (note && (typeof note !== 'string' || note.length > NOTE_MAX))
+
+    // --- Sanitize note ---
+    let sanitizedNote = sanitizeText(noteRaw)
+    if (sanitizedNote.length > NOTE_MAX) {
       return NextResponse.json({ error: 'Note too long' }, { status: 400 })
+    }
 
     const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
-    const allowed = rateLimit(`${ip}:${guest_slug}`, 10, 60_000) // 10 req/min per IP+slug
+    const allowed = rateLimit(`${ip}:${validSlug}`, 10, 60_000) // 10 req/min per IP+slug
     if (!allowed)
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
     // Verify guest exists — prevents writes for invented slugs
     const { data: guest, error: guestErr } = await supabase
       .from('guests')
       .select('id, name, max_guests')
-      .eq('slug', guest_slug.trim())
+      .eq('slug', validSlug)
       .maybeSingle()
 
     if (guestErr || !guest)
@@ -49,11 +64,11 @@ export async function POST(req: NextRequest) {
       .from('rsvps')
       .upsert(
         {
-          guest_slug: guest_slug.trim(),
+          guest_slug: validSlug,
           guest_name: guest.name,        // always from DB, not client
           attending,
           pax: attending ? pax : 0,
-          note: note?.trim() ?? '',
+          note: truncateText(sanitizedNote, NOTE_MAX),
         },
         { onConflict: 'guest_slug' }
       )
