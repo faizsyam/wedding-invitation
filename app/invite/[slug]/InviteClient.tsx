@@ -509,6 +509,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   // ── Actions ────────────────────────────────────────────────────────────────
   function openInvite() {
+    // Fire open-count API non-blocking — don't delay the reveal
+    fetch('/api/open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guest_slug: guest.slug }),
+    }).catch(() => {})
+
     setTimeout(() => setOpened(true), 650)
   }
 
