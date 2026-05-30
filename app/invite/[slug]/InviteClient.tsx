@@ -576,6 +576,19 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     navigator.clipboard.writeText(text)
     setCopied(key)
     setTimeout(() => setCopied(''), 2500)
+
+    // Track which button was clicked
+    const endpoint =
+      key === 'rek'    ? '/api/track/count-bank' :
+      key === 'alamat' ? '/api/track/count-address' :
+      null
+    if (endpoint) {
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guest_slug: guest.slug }),
+      }).catch(() => {})
+    }
   }
 
   function closeRsvpWarning() {
@@ -590,13 +603,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   
   const galleryStackStyle = useCallback((i: number, isLeft: boolean): React.CSSProperties => {
     const depth = galleryFrame - i
-    if (i > galleryFrame) return {
+  
+    // ── Ahead of current frame: waiting off-screen to the side (scroll DOWN will bring in)
+    if (depth < 0) return {
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
       transform: `translateX(${isLeft ? '-160%' : '160%'}) rotate(${isLeft ? -18 : 18}deg)`,
       opacity: 0, zIndex: i,
       transition: 'transform 0.90s cubic-bezier(0.16,1,0.3,1), opacity 0.90s cubic-bezier(0.16,1,0.3,1)',
       willChange: 'transform, opacity',
     }
+  
+    // ── Behind current frame: stacked underneath
     const d = Math.min(depth, 3)
     const rotate = isLeft ? -(2.5 - d) : (2.5 - d)
     return {
@@ -1247,11 +1264,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               transition: 'opacity 0.4s ease, transform 0.4s ease',
               pointerEvents: 'none', position: 'absolute',
             }}>
-              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textMid, textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
+              <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '3px', color: C.textDark, textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
                 Scroll ke bawah untuk lanjut
               </p>
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style={{ animation: 'nudgeDown 2.2s ease-in-out infinite' }}>
-                <path d="M3 6l5 5 5-5" stroke={C.gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 6l5 5 5-5" stroke={C.textDark} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
 
@@ -1542,7 +1559,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
         <div style={{ padding: '18px 24px 22px' }}>
           <img src="/qris-logo.png" alt="QRIS" style={{ height: '28px', width: 'auto', objectFit: 'contain', display: 'block', marginBottom: '16px' }} />
           <button
-            onClick={() => setShowQris(true)}
+            onClick={() => {
+              setShowQris(true)
+              fetch('/api/track/count-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ guest_slug: guest.slug }),
+              }).catch(() => {})
+            }}
             className="shimmer-btn"
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = C.burgundy; (e.currentTarget as HTMLButtonElement).style.color = C.white }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.burgundy }}

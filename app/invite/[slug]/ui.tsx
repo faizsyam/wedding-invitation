@@ -56,18 +56,23 @@ export function PucukRebungDivider({ color = C.gold }: { color?: string }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '28px auto', maxWidth: '300px' }}>
       <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to right, transparent, ${color}55)` }} />
       <svg viewBox="0 0 96 18" width="96" height="18" fill="none">
-        <polygon points="0,9 8,3 16,9 8,15"  fill={color} opacity="0.28" />
-        <polygon points="3,9 8,5 13,9 8,13"  fill={color} opacity="0.55" />
-        <circle cx="22" cy="9" r="1.5" fill={color} opacity="0.4" />
-        <circle cx="28" cy="9" r="1"   fill={color} opacity="0.22" />
-        <polygon points="33,9 38,4  43,9  38,14" fill={color} opacity="0.7" />
-        <polygon points="36,9 38,6.5 40,9 38,11.5" fill={color} opacity="1" />
-        <polygon points="45,9 50,4  55,9  50,14" fill={color} opacity="0.7" />
-        <polygon points="48,9 50,6.5 52,9 50,11.5" fill={color} opacity="1" />
-        <circle cx="68" cy="9" r="1"   fill={color} opacity="0.22" />
-        <circle cx="74" cy="9" r="1.5" fill={color} opacity="0.4" />
-        <polygon points="80,9 88,3 96,9 88,15" fill={color} opacity="0.28" />
-        <polygon points="83,9 88,5 93,9 88,13" fill={color} opacity="0.55" />
+        {/* Left outer diamond */}
+        <polygon points="0,9 8,3 16,9 8,15"   fill={color} opacity="0.28" />
+        <polygon points="3,9 8,5 13,9 8,13"   fill={color} opacity="0.55" />
+        {/* Left dots */}
+        <circle cx="26" cy="9" r="1.5" fill={color} opacity="0.4" />
+        <circle cx="32" cy="9" r="1"   fill={color} opacity="0.22" />
+        {/* Center two diamonds — midpoint = (42+54)/2 = 48 ✓ */}
+        <polygon points="37,9 42,4  47,9  42,14" fill={color} opacity="0.7" />
+        <polygon points="40,9 42,6.5 44,9 42,11.5" fill={color} opacity="1" />
+        <polygon points="49,9 54,4  59,9  54,14" fill={color} opacity="0.7" />
+        <polygon points="52,9 54,6.5 56,9 54,11.5" fill={color} opacity="1" />
+        {/* Right dots */}
+        <circle cx="64" cy="9" r="1"   fill={color} opacity="0.22" />
+        <circle cx="70" cy="9" r="1.5" fill={color} opacity="0.4" />
+        {/* Right outer diamond */}
+        <polygon points="80,9 88,3 96,9 88,15"  fill={color} opacity="0.28" />
+        <polygon points="83,9 88,5 93,9 88,13"  fill={color} opacity="0.55" />
       </svg>
       <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to left, transparent, ${color}55)` }} />
     </div>
