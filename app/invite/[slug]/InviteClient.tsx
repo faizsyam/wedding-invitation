@@ -523,8 +523,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     if (attending === null) return
     setRsvpLoading(true)
 
-    if (!forceUpdate) {
-      // Check for existing via a lightweight API call instead of direct Supabase read
+    if (!forceUpdate && !guest.is_group) {
       const check = await fetch(`/api/rsvp/check?slug=${encodeURIComponent(guest.slug)}`)
       const { exists } = await check.json()
       if (exists) {

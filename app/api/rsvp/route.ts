@@ -8,7 +8,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const NOTE_MAX   = 280
+const NOTE_MAX = 280
 const ALLOWED_ATTENDING = [true, false]
 
 export async function POST(req: NextRequest) {
@@ -21,9 +21,8 @@ export async function POST(req: NextRequest) {
 
     // --- Validate and sanitize slug ---
     const validSlug = validateSlug(guestSlugRaw)
-    if (!validSlug) {
+    if (!validSlug)
       return NextResponse.json({ error: 'Invalid slug' }, { status: 400 })
-    }
 
     // --- Validate attending ---
     if (!ALLOWED_ATTENDING.includes(attending))
@@ -34,20 +33,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid pax' }, { status: 400 })
 
     // --- Sanitize note ---
-    let sanitizedNote = sanitizeText(noteRaw)
-    if (sanitizedNote.length > NOTE_MAX) {
+    const sanitizedNote = sanitizeText(noteRaw)
+    if (sanitizedNote.length > NOTE_MAX)
       return NextResponse.json({ error: 'Note too long' }, { status: 400 })
-    }
 
     const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
-    const allowed = rateLimit(`${ip}:${validSlug}`, 10, 60_000) // 10 req/min per IP+slug
+    const allowed = rateLimit(`${ip}:${validSlug}`, 10, 60_000)
     if (!allowed)
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
     // Verify guest exists — prevents writes for invented slugs
     const { data: guest, error: guestErr } = await supabase
       .from('guests')
-      .select('id, name, max_guests')
+      .select('id, name, max_guests, is_group')
       .eq('slug', validSlug)
       .maybeSingle()
 
@@ -59,24 +57,29 @@ export async function POST(req: NextRequest) {
     if (attending && pax > maxPax)
       return NextResponse.json({ error: 'Pax exceeds allowance' }, { status: 400 })
 
-    // Upsert by slug — handles both insert and update atomically
-    const { error } = await supabase
-      .from('rsvps')
-      .upsert(
-        {
-          guest_slug: validSlug,
-          guest_name: guest.name,        // always from DB, not client
-          attending,
-          pax: attending ? pax : 0,
-          note: truncateText(sanitizedNote, NOTE_MAX),
-        },
-        { onConflict: 'guest_slug' }
-      )
-
-    if (error) throw error
-    return NextResponse.json({ ok: true })
-    } catch (err) {
-        console.error('RSVP error:', err)
-        return NextResponse.json({ error: (err as Error).message }, { status: 500 })
+    const rsvpData = {
+      guest_slug: validSlug,
+      guest_name: guest.name,
+      attending,
+      pax: attending ? pax : 0,
+      note: truncateText(sanitizedNote, NOTE_MAX),
     }
+
+    // Group guests: always insert a new row
+    // Non-group guests: upsert (replace previous)
+    if (guest.is_group) {
+      const { error } = await supabase.from('rsvps').insert(rsvpData)
+      if (error) throw error
+    } else {
+      // Delete existing row (if any) then insert fresh
+      await supabase.from('rsvps').delete().eq('guest_slug', validSlug)
+      const { error } = await supabase.from('rsvps').insert(rsvpData)
+      if (error) throw error
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('RSVP error:', err)
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 })
+  }
 }
