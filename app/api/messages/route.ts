@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const guestSlugRaw = body?.guest_slug
+    const guestNameRaw = body?.guest_name
     const messageRaw = body?.message
 
     // --- Validate and sanitize inputs before touching DB ---
@@ -58,9 +59,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message limit reached' }, { status: 429 })
 
     const finalMessage = truncateText(sanitizedMessage, MSG_MAX)
+    const finalGuestName = guestNameRaw ? sanitizeText(String(guestNameRaw)) : guest.name
     const { error } = await supabase.from('messages').insert({
       guest_slug: validSlug,
-      guest_name: guest.name,           // always from DB
+      guest_name: finalGuestName,
       message:    finalMessage,
     })
 

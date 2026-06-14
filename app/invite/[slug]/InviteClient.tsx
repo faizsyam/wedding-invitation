@@ -16,14 +16,15 @@ import { sanitizeText, truncateText } from '@/lib/sanitize'
 import LoadingScreen from '../../../components/LoadingScreen'
 
 function CharReveal({
-  children, startDelay = 0, perChar = 0.018, active = false,
-}: { children: string; startDelay?: number; perChar?: number; active?: boolean }) {
+  children, startDelay = 0, perChar = 0.018, active = false, skip = false,
+}: { children: string; startDelay?: number; perChar?: number; active?: boolean; skip?: boolean }) {
 
   const words = useMemo(() => children.split(' '), [children]);
   const chars = useMemo(() => [...children], [children]);
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
+    if (skip) return;
     if (!active) return;
     let interval: ReturnType<typeof setInterval>;
 
@@ -37,7 +38,7 @@ function CharReveal({
     }, startDelay * 1000);
 
     return () => { clearTimeout(startTimer); clearInterval(interval); };
-  }, [active, chars.length]);
+  }, [active, skip, chars.length]);
 
   let charIndex = 0;
 
@@ -52,11 +53,11 @@ function CharReveal({
                 key={i}
                 style={{
                   display: 'inline-block',
-                  opacity: currentIndex < visibleCount ? 1 : 0,
-                  transform: currentIndex < visibleCount
+                  opacity: (skip || currentIndex < visibleCount) ? 1 : 0,
+                  transform: (skip || currentIndex < visibleCount)
                     ? 'translateY(0) scale(1)'
                     : 'translateY(6px) scale(0.9)',
-                  filter: currentIndex < visibleCount ? 'blur(0)' : 'blur(3px)',
+                  filter: (skip || currentIndex < visibleCount) ? 'blur(0)' : 'blur(3px)',
                   transition: 'opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease',
                 }}
               >
@@ -72,12 +73,13 @@ function CharReveal({
 }
 
 function WordReveal({
-  children, startDelay = 0, perWord = 0.07, active = false,
-}: { children: string; startDelay?: number; perWord?: number; active?: boolean }) {
+  children, startDelay = 0, perWord = 0.07, active = false, skip = false,
+}: { children: string; startDelay?: number; perWord?: number; active?: boolean; skip?: boolean }) {
   const words = useMemo(() => children.split(' '), [children]);
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
+    if (skip) return;
     if (!active) return;
     let interval: ReturnType<typeof setInterval>;
 
@@ -91,7 +93,7 @@ function WordReveal({
     }, startDelay * 1000);
 
     return () => { clearTimeout(startTimer); clearInterval(interval); };
-  }, [active, words.length]);
+  }, [active, skip, words.length]);
 
   return (
     <>
@@ -99,8 +101,8 @@ function WordReveal({
         <React.Fragment key={i}>
           <span style={{
             display: 'inline-block',
-            opacity: i < visibleCount ? 1 : 0,
-            transform: i < visibleCount ? 'translateY(0)' : 'translateY(8px)',
+            opacity: (skip || i < visibleCount) ? 1 : 0,
+            transform: (skip || i < visibleCount) ? 'translateY(0)' : 'translateY(8px)',
             transition: 'opacity 0.4s ease, transform 0.4s ease',
           }}>
             {w}
@@ -127,11 +129,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [cd,          setCd]          = useState<Countdown>({ d: 0, h: 0, m: 0, s: 0 })
   const [attending,   setAttending]   = useState<boolean | null>(null)
   const [pax,         setPax]         = useState(1)
+  const [rsvpEvent,   setRsvpEvent]   = useState<0 | 1 | 2>(2)
   const [note,        setNote]        = useState('')
   const [rsvpDone,    setRsvpDone]    = useState(false)
   const [rsvpLoading, setRsvpLoading] = useState(false)
   const [messages,    setMessages]    = useState<Message[]>([])
   const [msgText,     setMsgText]     = useState('')
+  const [groupName,   setGroupName]   = useState('')
   const [msgDone,     setMsgDone]     = useState(false)
   const [msgLoading,  setMsgLoading]  = useState(false)
   const [copied,      setCopied]      = useState('')
@@ -149,6 +153,14 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const [lightboxClosing, setLightboxClosing] = useState(false)
   const [qrisDownloaded, setQrisDownloaded] = useState(false)
   const [qrisImgLoaded, setQrisImgLoaded] = useState(false)
+  const [showSkipBtn, setShowSkipBtn] = useState(false)
+  const [skipText, setSkipText] = useState(false)
+
+  const heroDoneRef = useRef(false)
+  const introDoneRef = useRef(false)
+  const heroTlRef = useRef<gsap.core.Timeline | null>(null)
+  const introTlRef = useRef<gsap.core.Timeline | null>(null)
+  const animationSkippedRef = useRef(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -170,6 +182,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const maxPax = guest.max_guests ?? 2
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
 
+  const mm = (guest.is_mm ?? 0)
   const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
 
   useEffect(() => {
@@ -218,8 +231,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       start: 'top 75%',
       once: true,
       onEnter: () => {
-        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-  
+        if (animationSkippedRef.current) return
+
+        const tl = gsap.timeline({
+          defaults: { ease: 'power3.out' },
+          onComplete: () => {
+            introDoneRef.current = true
+            if (heroDoneRef.current) setShowSkipBtn(false)
+          },
+        })
+        introTlRef.current = tl
+
         tl.fromTo(section.querySelector('.ia-salam-open'),
             { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 1.0 }, 0.3)
           .fromTo(section.querySelector('.ia-box'),
@@ -238,22 +260,33 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 5.8)
           .fromTo(section.querySelector('.ia-salam-close'),
             { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 1.0 }, 6.2)
-  
-        // Trigger CharReveal/WordReveal (they still use active prop)
-        setIntroActive(true)  // ← keep this state just for CharReveal/WordReveal
+
+        // Trigger Char,charForTextReveal/WordReveal (they still use active prop)
+        setIntroActive(true)
       },
     })
   }, [opened])
 
   useEffect(() => {
     if (!opened) return
-    
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+    setShowSkipBtn(true)
+    heroDoneRef.current = false
+    animationSkippedRef.current = false
+
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      onComplete: () => {
+        heroDoneRef.current = true
+        if (introDoneRef.current) setShowSkipBtn(false)
+      },
+    })
+    heroTlRef.current = tl
 
     tl.fromTo('[data-hero-bg]',
       { opacity: 0 },
       { opacity: 1, duration: 1.0 },
-      0)   
+      0)
     tl.fromTo('[data-hero="vanya"]',
         { y: 36, opacity: 0, filter: 'blur(10px)', letterSpacing: '10px' },
         { y: 0,  opacity: 1, filter: 'blur(0px)',  letterSpacing: '0.5px', duration: 1.9, clearProps: 'filter' },
@@ -300,7 +333,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           }
         },
         5.2)
-  
+
     return () => { tl.kill() }
   }, [opened])
 
@@ -356,6 +389,42 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     setMuted(prev => !prev)
   }
 
+  function skipAnimation() {
+    animationSkippedRef.current = true
+    heroTlRef.current?.kill()
+    introTlRef.current?.kill()
+
+    const heroTargets = '[data-hero-bg], [data-hero="vanya"], [data-hero="faiz"], [data-hero="dan"], [data-hero="bismillah"], [data-hero="label"], [data-hero="divider"], [data-hero="date"], [data-hero="save-date"], [data-hero="scroll-btn"]'
+    gsap.killTweensOf(heroTargets)
+    gsap.killTweensOf('[data-hero-countdown] > *')
+
+    gsap.fromTo(heroTargets,
+      { opacity: 0, y: 20, scale: 0.95, scaleX: 0.8, filter: 'blur(4px)' },
+      { opacity: 1, y: 0, scale: 1, scaleX: 1, filter: 'blur(0px)', duration: 0.5, ease: 'power2.out', stagger: 0.04 }
+    )
+    gsap.fromTo('[data-hero-countdown] > *',
+      { opacity: 0, y: 18, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'power2.out', stagger: 0.06 }
+    )
+
+    const scrollBtn = document.querySelector('[data-hero="scroll-btn"]') as HTMLElement
+    if (scrollBtn) scrollBtn.style.animation = 'nudgeDown 2.4s ease-in-out infinite'
+
+    const introTargets = '.ia-salam-open, .ia-box, .ia-line, .ia-ref, .ia-invite-1, .ia-guest, .ia-invite-2, .ia-salam-close'
+    gsap.killTweensOf(introTargets)
+    gsap.fromTo(introTargets,
+      { opacity: 0, y: 18, scale: 0.96 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'power2.out', stagger: 0.035 }
+    )
+
+    setIntroActive(true)
+    setSkipText(true)
+
+    heroDoneRef.current = true
+    introDoneRef.current = true
+    setShowSkipBtn(false)
+  }
+
   function applyTilt(ref: React.RefObject<HTMLDivElement | null>, e: React.MouseEvent<HTMLDivElement>, intensity = 7) {
     if (!ref.current || window.matchMedia('(hover: none)').matches) return
     const r = ref.current.getBoundingClientRect()
@@ -378,10 +447,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   }
 
   // ── Countdown ──────────────────────────────────────────────────────────────
+  const countdownDate = mm === 1
+    ? new Date('2026-07-11T10:00:00+07:00').getTime()
+    : new Date('2026-06-26T08:00:00+07:00').getTime()
+
   useEffect(() => {
-    const target = new Date('2026-06-26T08:00:00+07:00').getTime()
     const tick = () => {
-      const diff = target - Date.now()
+      const diff = countdownDate - Date.now()
       if (diff > 0) setCd({
         d: Math.floor(diff / 86400000),
         h: Math.floor(diff % 86400000 / 3600000),
@@ -392,7 +464,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [])
+  }, [countdownDate])
 
   useEffect(() => {
     if (!opened) return
@@ -539,7 +611,16 @@ export default function InviteClient({ guest }: { guest: Guest }) {
     const res = await fetch('/api/rsvp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guest_slug: guest.slug, attending, pax, note: cleanNote }),
+      body: JSON.stringify({
+        guest_slug: guest.slug,
+        attending,
+        pax,
+        note: cleanNote,
+        is_mm: mm === 2 ? rsvpEvent : mm,
+        guest_name: guest.is_group
+          ? `${truncateText(sanitizeText(groupName), 50)} - ${guest.name}`
+          : guest.name,
+      }),
     })
   
     if (res.ok) {
@@ -551,19 +632,24 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   async function submitMessage() {
     if (!msgText.trim() || guestMsgCount >= 3) return
+    if (guest.is_group && !groupName.trim()) return
     setMsgLoading(true)
 
     // Sanitize message client-side (defense in depth)
     const cleanMessage = truncateText(sanitizeText(msgText), 280)
 
+    const submittedGuestName = guest.is_group
+      ? `${truncateText(sanitizeText(groupName), 50)} - ${guest.name}`
+      : guest.name
+
     const res = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guest_slug: guest.slug, message: cleanMessage }),
+      body: JSON.stringify({ guest_slug: guest.slug, message: cleanMessage, guest_name: submittedGuestName }),
     })
 
     if (res.ok) {
-      const optimistic: Message = { guest_name: guest.name, message: cleanMessage, isNew: true }
+      const optimistic: Message = { guest_name: submittedGuestName, message: cleanMessage, isNew: true }
       setMessages(prev => [optimistic, ...prev])
       setMsgDone(true)
       setTimeout(loadMessages, 3000)
@@ -690,7 +776,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             fontFamily: F.body, fontSize: '13px', color: C.textLight,
             letterSpacing: '2px', marginBottom: '58px',
           }}>
-            Jum'at, 26 Juni 2026 · Jakarta
+            {mm === 1 ? "Sabtu, 11 Juli 2026 · Pekanbaru" : "Jum'at, 26 Juni 2026 · Jakarta"}
           </p>
           <div data-hero-countdown style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '8px' }}>
             {([
@@ -721,7 +807,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               Tandai Kalendarmu
             </p>
             
-            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T083000Z%2F20260626T140000Z&details=Akad+Nikah+15.30+WIB-selesai+%7C+Resepsi+18.30–21.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"
+            <a href={mm === 1 ? "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Ngunduh+Mantu+Vanya+%26+Faiz&dates=20260711T030000Z%2F20260711T090000Z&details=Ngunduh+Mantu+11.00%E2%80%9316.30+WIB&location=Gedung+Student+Center+Universitas+Riau%2C+Pekanbaru%2C+Riau&ctz=Asia%2FJakarta" : "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+Vanya+%26+Faiz&dates=20260626T083000Z%2F20260626T140000Z&details=Akad+Nikah+15.30+WIB-selesai+%7C+Resepsi+18.30%E2%80%9321.00+WIB&location=Pejaten+Terrace%2C+Jl.+Warung+Jati+Barat+No.39%2C+Jakarta+Selatan&ctz=Asia%2FJakarta"}
               target="_blank" rel="noopener noreferrer"
               className="save-date-btn shimmer-btn"
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.gold; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
@@ -746,7 +832,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               Save the Date
             </a>
             <p style={{ fontFamily: F.display, fontSize: '12px', fontStyle: 'italic', color: C.textGhost, margin: 0, letterSpacing: '0.5px' }}>
-              26 Juni 2026
+              {mm === 1 ? '11 Juli 2026' : '26 Juni 2026'}
             </p>
           </div>
           <div style={{ marginTop: '36px' }}>
@@ -810,7 +896,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   lineHeight: 2.5, direction: 'rtl', marginBottom: '22px',
                 }}
               >
-                <WordReveal startDelay={1.0} perWord={0.055} active={introActive}>
+                <WordReveal startDelay={1.0} perWord={0.055} active={introActive} skip={skipText}>
                   {'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجاً لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً'}
                 </WordReveal>
               </p>
@@ -829,7 +915,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
                 }}
               >
-                <CharReveal startDelay={2.0} perChar={0.008} active={introActive}>
+                <CharReveal startDelay={2.0} perChar={0.008} active={introActive} skip={skipText}>
                   {'"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."'}
                 </CharReveal>
               </p>
@@ -1310,40 +1396,97 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       </section>
       {/* ── EVENTS ───────────────────────────────────────────────────────── */}
       <section className="reveal" style={{ position: 'relative', overflow: 'hidden', padding: '80px 28px' }}>
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-          background: `radial-gradient(ellipse 65% 55% at 100% 0%, rgba(196,151,59,0.075) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 0% 100%, rgba(125,37,53,0.04) 0%, transparent 52%), linear-gradient(175deg, #FAF7F0 0%, #F7F1E8 48%, #FAF7F0 100%)`,
-        }} />
-        <div style={{ maxWidth: '424px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Plain white background */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: C.white }} />
+        <div style={{ maxWidth: '480px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <SectionLabel>Rangkaian Acara</SectionLabel>
-          <p style={{ fontFamily: F.display, fontSize: '24px', color: C.textDark, textAlign: 'center', marginBottom: '44px', lineHeight: 1.1, fontStyle: 'italic' }}>
-            Hari Istimewa Kami
+          <p style={{
+            fontFamily: F.display, fontSize: '24px', color: C.textDark,
+            textAlign: 'center', marginBottom: '48px', lineHeight: 1.1, fontStyle: 'italic',
+          }}>
+            {mm === 1 ? 'Ngunduh Mantu' : 'Hari Istimewa Kami'}
           </p>
-          {[
-            { gradient: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, glow: C.burgundy, label: 'Akad Nikah',          time: '15.30 WIB - selesai',          icon: '☪', revealClass: 'reveal-left'  },
-            { gradient: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`,         glow: C.navy,    label: 'Resepsi Pernikahan', time: '18.30 – 21.00 WIB', icon: '✿', revealClass: 'reveal-right' },
-          ].map((ev, i) => (
-            <div key={i} className={`portrait-card ${ev.revealClass}`} data-parallax style={{ borderRadius: '8px', marginBottom: i === 0 ? '14px' : 0, boxShadow: `0 8px 32px ${ev.glow}28, 0 2px 8px ${ev.glow}18`, overflow: 'hidden', color: C.white, position: 'relative' }}>
-              <SongketBand color="rgba(255,255,255,1)" opacity={0.05} />
-              <div style={{ background: ev.gradient, padding: '26px 28px 32px', position: 'relative' }}>
-                <div style={{ position: 'absolute', right: '-28px', top: '-28px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '18px' }}>
-                  <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, marginTop: '2px' }}>
-                    {ev.icon}
+          {/* Jakarta Card (mm=0 or mm=2) */}
+          {(mm === 0 || mm >= 2) && (
+            <div className="portrait-card reveal-left" data-parallax style={{ borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(125,37,53,0.14)', position: 'relative', background: C.white, marginBottom: mm >= 2 ? '20px' : undefined, transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease', cursor: 'pointer' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(125,37,53,0.22), 0 6px 20px rgba(44,24,16,0.08)' }} onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 32px rgba(125,37,53,0.14)' }}>
+              {/* Date header */}
+              <div style={{ background: C.white, padding: '24px 28px 6px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                {/* Flower decorations */}
+                <img src="/flower-m3.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: -9, left: -6, width: '100px', objectFit: 'contain', opacity: 0.55, pointerEvents: 'none' }} />
+                <img src="/flower-m4.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: 0, right: -3, width: '115px', objectFit: 'contain', opacity: 0.55, pointerEvents: 'none' }} />
+                <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', textTransform: 'uppercase', color: C.gold, lineHeight: 1, fontWeight: 700, position: 'relative', zIndex: 1 }}>Jakarta</p>
+                <p style={{ fontFamily: F.display, fontSize: '24px', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.3px', color: C.navyDeep, position: 'relative', zIndex: 1 }}>
+                  Jum'at, 26 Juni 2026
+                </p>
+              </div>
+              {/* Akad row */}
+              <div style={{ background: `linear-gradient(140deg, ${C.burgundy} 0%, ${C.burgundyDeep} 100%)`, padding: '20px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <img src="/icons/icon_akad.png" alt="" style={{ width: '40px', height: '40px', opacity: 0.8 }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', opacity: 0.55, marginBottom: '7px' }}>{ev.label}</p>
-                    <p style={{ fontFamily: F.display, fontSize: '26px', fontWeight: 600, lineHeight: 1.1, marginBottom: '10px' }}>Jum'at, 26 Juni 2026</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                      <div style={{ width: '14px', height: '1px', background: 'rgba(255,255,255,0.38)' }} />
-                      <p style={{ fontFamily: F.body, fontSize: '14px', opacity: 0.88 }}>{ev.time}</p>
-                    </div>
-                    <p style={{ fontFamily: F.body, fontSize: '13px', opacity: 0.58 }}>Pejaten Terrace, Jakarta Selatan</p>
+                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '4px', lineHeight: 1.4 }}>Akad Nikah</p>
+                    <p style={{ fontFamily: F.body, fontSize: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>15.30 WIB – selesai</p>
                   </div>
                 </div>
               </div>
-              <SongketBand color="rgba(255,255,255,1)" opacity={0.04} />
+              {/* Resepsi row */}
+              <div style={{ background: `linear-gradient(140deg, ${C.navy} 0%, ${C.navyDeep} 100%)`, padding: '20px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <img src="/icons/icon_resepsi.png" alt="" style={{ width: '40px', height: '40px', opacity: 0.8 }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '4px', lineHeight: 1.4 }}>Resepsi Pernikahan</p>
+                    <p style={{ fontFamily: F.body, fontSize: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>18.30 – 21.00 WIB</p>
+                  </div>
+                </div>
+              </div>
+              {/* Location footer */}
+              <div style={{ background: C.white, padding: '14px 28px', borderTop: `1.5px solid rgba(196,151,59,0.15)` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={C.textLight} strokeWidth="1.8" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                  <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.8, margin: 0 }}>Pejaten Terrace, Jakarta Selatan</p>
+                </div>
+              </div>
             </div>
-          ))}
+          )}
+
+          {/* Pekanbaru Card (mm=1 or mm=2) */}
+          {(mm === 1 || mm >= 2) && (
+            <div className="portrait-card reveal-right" data-parallax style={{ borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(196,151,59,0.14)', position: 'relative', background: C.white, transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease', cursor: 'pointer' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(196,151,59,0.22), 0 6px 20px rgba(44,24,16,0.08)' }} onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 32px rgba(196,151,59,0.14)' }}>
+              {/* Date header */}
+              <div style={{ background: C.white, padding: '24px 28px 6px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                {/* Flower decorations */}
+                <img src="/flower-m3.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: -9, left: -6, width: '100px', objectFit: 'contain', opacity: 0.55, pointerEvents: 'none' }} />
+                <img src="/flower-m4.png" alt="" aria-hidden="true" style={{ position: 'absolute', top: 0, right: -3, width: '115px', objectFit: 'contain', opacity: 0.55, pointerEvents: 'none' }} />
+                <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '4px', textTransform: 'uppercase', color: C.gold, marginBottom: '8px', lineHeight: 1, fontWeight: 700, position: 'relative', zIndex: 1 }}>Pekanbaru</p>
+                <p style={{ fontFamily: F.display, fontSize: '24px', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.3px', color: C.navyDeep, position: 'relative', zIndex: 1 }}>
+                  Sabtu, 11 Juli 2026
+                </p>
+              </div>
+              {/* Ngunduh Mantu row */}
+              <div style={{ background: `linear-gradient(140deg, ${C.gold} 0%, #9E7A2E 100%)`, padding: '20px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <img src="/icons/icon_ngunduh.png" alt="" style={{ width: '44px', height: '44px', opacity: 0.8 }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '4px', lineHeight: 1.4 }}>Ngunduh Mantu</p>
+                    <p style={{ fontFamily: F.body, fontSize: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>11.00 – 16.30 WIB</p>
+                  </div>
+                </div>
+              </div>
+              {/* Location footer */}
+              <div style={{ background: C.white, padding: '14px 28px', borderTop: `1.5px solid rgba(196,151,59,0.15)` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={C.textLight} strokeWidth="1.8" style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                  <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.8, margin: 0 }}>Gedung Student Center Universitas Riau, Pekanbaru</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1355,61 +1498,144 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <SectionLabel>Lokasi</SectionLabel>
           <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textMid, fontStyle: 'italic' }}>Temukan kami di sini</p>
         </div>
-        {/* Venue painting */}
-        <div style={{
-          position: 'relative',
-          maxWidth: '640px',
-          margin: '-10px auto 0px',
-          padding: '0 0px',
-          display: 'flex',
-          justifyContent: 'center',
-        }}>
-          <img
-            src="/pejaten-terrace.png"
-            alt="Pejaten Terrace"
-            style={{
-              width: '100%',
-              height: 'auto',
-              objectFit: 'contain',
-              display: 'block',
-              opacity: 0.92,
-            }}
-          />
-        </div>
-        <div style={{ maxWidth: '480px', margin: '20px auto', padding: '0px 24px 0', textAlign: 'center' }}>
-          <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '8px' }}>Pejaten Terrace</p>
-          <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2.1, marginBottom: '26px' }}>
-            Jl. Warung Jati Barat No.39<br />Pejaten Timur, Pasar Minggu, Jakarta Selatan
-          </p>
-          
-          <a href="https://maps.app.goo.gl/bxiGv4QxUE3u2bNPA"
-            target="_blank" rel="noopener noreferrer"
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.navy; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = C.navy }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px',
-              border: `1.5px solid ${C.navy}`, color: C.navy, background: 'transparent',
-              fontFamily: F.body, fontSize: '11px', letterSpacing: '2px',
-              textTransform: 'uppercase', textDecoration: 'none', borderRadius: '4px',
-              transition: 'background 0.3s ease, color 0.3s ease',
-            }}
-          >
-            📍 Buka di Google Maps
-          </a>
-        </div>
-        <div style={{ position: 'relative', marginTop: '30px' }}>
-          <SongketBand color={C.gold} opacity={0.11} />
-          {!mapLoaded && (
-            <div style={{ position: 'absolute', inset: 0, height: '280px', background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`, backgroundSize: '200% 100%', animation: 'shimmerSweepBg 1.8s infinite linear', zIndex: 1 }} />
-          )}
-          <iframe
-            onLoad={() => setMapLoaded(true)}
-            src="https://maps.google.com/maps?q=Pejaten+Terrace+Jl+Warung+Jati+Barat+No+39+Jakarta+Selatan&output=embed&hl=id"
-            width="100%" height="280" style={{ border: 'none', display: 'block' }}
-            loading="lazy" title="Pejaten Terrace"
-          />
-          <SongketBand color={C.gold} opacity={0.11} />
-        </div>
+        {/* Jakarta (mm=0 or mm=2) */}
+        {(mm === 0 || mm >= 2) && (
+          <>
+            {/* Venue painting */}
+            <div style={{
+              position: 'relative',
+              maxWidth: '640px',
+              margin: '-10px auto 0px',
+              padding: '0 0px',
+              display: 'flex',
+              justifyContent: 'center',
+            }}>
+              <img
+                src="/pejaten-terrace.png"
+                alt="Pejaten Terrace"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  display: 'block',
+                  opacity: 0.92,
+                }}
+              />
+            </div>
+            <div style={{ maxWidth: '480px', margin: '20px auto', padding: '0px 24px 0', textAlign: 'center' }}>
+              {mm >= 2 && (
+                <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: C.burgundy, marginBottom: '10px', fontWeight: 600 }}>
+                  Akad Nikah & Resepsi
+                </p>
+              )}
+              <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '8px' }}>
+                Pejaten Terrace
+              </p>
+              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2.1, marginBottom: '26px' }}>
+                Jl. Warung Jati Barat No.39<br />Pejaten Timur, Pasar Minggu, Jakarta Selatan
+              </p>
+
+              <a href="https://maps.app.goo.gl/bxiGv4QxUE3u2bNPA"
+                target="_blank" rel="noopener noreferrer"
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.navy; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = C.navy }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px',
+                  border: `1.5px solid ${C.navy}`, color: C.navy, background: 'transparent',
+                  fontFamily: F.body, fontSize: '11px', letterSpacing: '2px',
+                  textTransform: 'uppercase', textDecoration: 'none', borderRadius: '4px',
+                  transition: 'background 0.3s ease, color 0.3s ease',
+                }}
+              >
+                📍 Buka di Google Maps
+              </a>
+            </div>
+            {mm < 2 && (
+              <div style={{ position: 'relative', marginTop: '30px' }}>
+                <SongketBand color={C.gold} opacity={0.11} />
+                {!mapLoaded && (
+                  <div style={{ position: 'absolute', inset: 0, height: '280px', background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`, backgroundSize: '200% 100%', animation: 'shimmerSweepBg 1.8s infinite linear', zIndex: 1 }} />
+                )}
+                <iframe
+                  onLoad={() => setMapLoaded(true)}
+                  src="https://maps.google.com/maps?q=Pejaten+Terrace+Jl+Warung+Jati+Barat+No+39+Jakarta+Selatan&output=embed&hl=id"
+                  width="100%" height="280" style={{ border: 'none', display: 'block' }}
+                  loading="lazy" title="Pejaten Terrace"
+                />
+                <SongketBand color={C.gold} opacity={0.11} />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Pekanbaru (mm=1 or mm=2) */}
+        {(mm === 1 || mm >= 2) && (
+          <>
+            {/* Venue painting */}
+            <div style={{
+              position: 'relative',
+              maxWidth: '640px',
+              margin: '-60px auto 0px',
+              padding: '0 0px',
+              display: 'flex',
+              justifyContent: 'center',
+            }}>
+              <img
+                src="/student-center.png"
+                alt="Gedung Student Center Universitas Riau"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  display: 'block',
+                  opacity: 0.92,
+                }}
+              />
+            </div>
+            <div style={{ maxWidth: '480px', margin: '0px auto', padding: '0px 24px 0', textAlign: 'center' }}>
+              {mm >= 2 && (
+                <p style={{ fontFamily: F.body, fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', color: C.gold, marginBottom: '10px', fontWeight: 600 }}>
+                  Ngunduh Mantu
+                </p>
+              )}
+              <p style={{ fontFamily: F.display, fontSize: '26px', color: C.textDark, marginBottom: '8px' }}>
+                Gedung Student Center Universitas Riau
+              </p>
+              <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2.1, marginBottom: '26px' }}>
+                Jl. Muchtar Lutfi, Kampus Bina Widya<br />Simpang Baru, Tampan, Pekanbaru
+              </p>
+              <a href="https://maps.app.goo.gl/vxwd3FJGzLZVC4Ua8"
+                target="_blank" rel="noopener noreferrer"
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = C.navy; (e.currentTarget as HTMLAnchorElement).style.color = C.white }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = C.navy }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px',
+                  border: `1.5px solid ${C.navy}`, color: C.navy, background: 'transparent',
+                  fontFamily: F.body, fontSize: '11px', letterSpacing: '2px',
+                  textTransform: 'uppercase', textDecoration: 'none', borderRadius: '4px',
+                  transition: 'background 0.3s ease, color 0.3s ease',
+                }}
+              >
+                📍 Buka di Google Maps
+              </a>
+            </div>
+            {mm < 2 && (
+              <div style={{ position: 'relative', marginTop: '30px' }}>
+                <SongketBand color={C.gold} opacity={0.11} />
+                {!mapLoaded && (
+                  <div style={{ position: 'absolute', inset: 0, height: '280px', background: `linear-gradient(90deg, ${C.cream} 25%, ${C.ivory} 50%, ${C.cream} 75%)`, backgroundSize: '200% 100%', animation: 'shimmerSweepBg 1.8s infinite linear', zIndex: 1 }} />
+                )}
+                <iframe
+                  onLoad={() => setMapLoaded(true)}
+                  src="https://maps.google.com/maps?q=Gedung+Student+Center+Universitas+Riau+Pekanbaru+Riau&output=embed&hl=id"
+                  width="100%" height="280" style={{ border: 'none', display: 'block' }}
+                  loading="lazy" title="Gedung Student Center Universitas Riau"
+                />
+                <SongketBand color={C.gold} opacity={0.11} />
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       {/* ── RSVP ─────────────────────────────────────────────────────────── */}
@@ -1431,9 +1657,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 <p style={{ fontFamily: F.display, fontSize: '28px', color: C.burgundy, marginBottom: '10px' }}>Terima kasih, {guest.name.split(' ')[0]}!</p>
                 <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 1.9 }}>
                   {attending
-                    ? <>Konfirmasi kehadiranmu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</>
-                    : <>Konfirmasimu sudah kami terima dengan baik.<br />Semoga kita bisa bertemu di lain kesempatan.</>
-                  }
+                    ? (mm === 1
+                      ? <>Konfirmasi kehadiranmu untuk acara Ngunduh Mantu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</>
+                      : mm === 2
+                      ? <>Konfirmasi kehadiranmu untuk kedua acara sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</>
+                      : <>Konfirmasi kehadiranmu sudah kami terima dengan baik.<br />Kami nantikan kehadiranmu!</>)
+                    : <>Konfirmasimu sudah kami terima dengan baik.<br />Semoga kita bisa bertemu di lain kesempatan.</>}
                 </p>
               </div>
               <SongketBand color={C.burgundy} opacity={0.05} />
@@ -1465,28 +1694,91 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </button>
                 ))}
               </div>
-              {attending === true && maxPax > 1 && (
+              {attending === true && (maxPax > 1 || mm === 2) && (
                 <div style={{
                   display: 'grid',
                   gridTemplateRows: paxVisible ? '1fr' : '0fr',
                   opacity: paxVisible ? 1 : 0,
                   transform: paxVisible ? 'translateY(0px)' : 'translateY(-12px)',
-                  marginBottom: paxVisible ? '20px' : '0px',
+                  marginBottom: paxVisible ? '28px' : '0px',
                   transition: 'grid-template-rows 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.45s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1), margin-bottom 0.55s cubic-bezier(0.16,1,0.3,1)',
                 }}>
                   <div style={{ overflow: 'hidden', minHeight: 0 }}>
-                    <div style={{ textAlign: 'left', background: C.cream, borderRadius: '6px', padding: '20px 20px 18px' }}>
-                      <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, marginBottom: '14px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-                        Jumlah tamu yang hadir
-                      </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <button onClick={() => setPax(p => Math.max(1, p - 1))} className="pax-btn" style={{ width: '40px', height: '40px', borderRadius: '4px', border: `1.5px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>−</button>
-                        <span key={pax} style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, minWidth: '44px', textAlign: 'center', lineHeight: 1, animation: 'paxTick 0.28s cubic-bezier(0.34,1.56,0.64,1) both' }}>{pax}</span>
-                        <button onClick={() => setPax(p => Math.min(maxPax, p + 1))} className="pax-btn" style={{ width: '40px', height: '40px', borderRadius: '4px', border: `1.5px solid ${C.burgundy}`, background: C.white, color: C.burgundy, fontSize: '20px', cursor: 'pointer' }}>+</button>
-                        <span style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight }}>orang</span>
-                      </div>
+                    <div style={{ textAlign: 'left', background: C.cream, borderRadius: '8px', padding: '24px 22px 20px' }}>
+                      {/* ── Pax counter ── */}
+                      {maxPax > 1 && (
+                        <div style={{ marginBottom: mm === 2 ? '22px' : '4px' }}>
+                          <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, marginBottom: '14px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                            Jumlah tamu yang hadir
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <button disabled={pax <= 1} onClick={() => setPax(p => Math.max(1, p - 1))} className="pax-btn" style={{ width: '40px', height: '40px', borderRadius: '4px', border: `1.5px solid ${pax <= 1 ? `${C.burgundy}40` : C.burgundy}`, background: C.white, color: pax <= 1 ? `${C.burgundy}40` : C.burgundy, fontSize: '20px', cursor: pax <= 1 ? 'not-allowed' : 'pointer', opacity: pax <= 1 ? 0.5 : 1, transition: 'opacity 0.2s ease' }}>−</button>
+                            <span key={pax} style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, minWidth: '44px', textAlign: 'center', lineHeight: 1, animation: 'paxTick 0.28s cubic-bezier(0.34,1.56,0.64,1) both' }}>{pax}</span>
+                            <button disabled={pax >= maxPax} onClick={() => setPax(p => Math.min(maxPax, p + 1))} className="pax-btn" style={{ width: '40px', height: '40px', borderRadius: '4px', border: `1.5px solid ${pax >= maxPax ? `${C.burgundy}40` : C.burgundy}`, background: C.white, color: pax >= maxPax ? `${C.burgundy}40` : C.burgundy, fontSize: '20px', cursor: pax >= maxPax ? 'not-allowed' : 'pointer', opacity: pax >= maxPax ? 0.5 : 1, transition: 'opacity 0.2s ease' }}>+</button>
+                            <span style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight }}>orang</span>
+                          </div>
+                        </div>
+                      )}
+                      {/* ── Event selector (mm === 2) ── */}
+                      {mm === 2 && (
+                        <div style={{ marginBottom: '24px' }}>
+                          <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, marginBottom: '10px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                            Konfirmasi Kehadiran untuk Acara
+                          </p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {([
+                              { val: 0, label: 'Resepsi', sub: 'Jakarta, 26 Juni 2026', color: C.navy },
+                              { val: 1, label: 'Ngunduh Mantu', sub: 'Pekanbaru, 11 Juli 2026', color: C.gold },
+                              { val: 2, label: 'Keduanya', sub: 'Jakarta & Pekanbaru', color: C.burgundy },
+                            ] as const).map(({ val, label, sub, color }) => {
+                              const active = rsvpEvent === val
+                              return (
+                                <button
+                                  key={val}
+                                  onClick={() => setRsvpEvent(val)}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    padding: '14px 16px', width: '100%', textAlign: 'left',
+                                    fontFamily: F.body, fontSize: '14px', fontWeight: 600,
+                                    cursor: 'pointer', borderRadius: '6px',
+                                    border: `1.5px solid ${active ? color : 'rgba(196,151,59,0.15)'}`,
+                                    background: active ? `${color}08` : C.white,
+                                    transition: 'all 0.2s ease',
+                                  }}
+                                >
+                                  <div style={{
+                                    width: '18px', height: '18px', borderRadius: '50%',
+                                    border: `2px solid ${active ? color : 'rgba(196,151,59,0.35)'}`,
+                                    background: active ? color : 'transparent',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0,
+                                    transition: 'all 0.2s ease',
+                                  }}>
+                                    {active && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: C.white }} />}
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                                    <span style={{ color: C.textDark }}>{label}</span>
+                                    <span style={{ fontSize: '11px', fontWeight: 400, color: color }}>{sub}</span>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+                </div>
+              )}
+              {guest.is_group && (
+                <div style={{ marginBottom: '24px' }}>
+                  <input
+                    type="text" value={groupName} onChange={e => setGroupName(e.target.value.slice(0, 50))} maxLength={50}
+                    placeholder="Masukkan nama Anda" required
+                    style={{ width: '100%', padding: '14px 16px', border: `1.5px solid ${groupName.trim() ? 'rgba(196,151,59,0.28)' : 'rgba(196,151,59,0.45)'}`, borderRadius: '5px', fontFamily: F.body, fontSize: '14px', color: C.textDark, background: '#FAFAF8', lineHeight: 1.8, boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s ease' }}
+                    onFocus={e => e.currentTarget.style.borderColor = C.gold}
+                    onBlur={e => e.currentTarget.style.borderColor = groupName.trim() ? 'rgba(196,151,59,0.28)' : 'rgba(196,151,59,0.45)'}
+                  />
                 </div>
               )}
               <textarea
@@ -1499,18 +1791,18 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </div>
               <button
                 onClick={() => submitRsvp()}
-                disabled={attending === null || rsvpLoading}
-                className={attending !== null ? 'shimmer-btn' : ''}
-                onMouseEnter={e => { if (attending !== null) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.burgundyDeep}, #3a0f1a)`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(125,37,53,0.44)` } }}
-                onMouseLeave={e => { if (attending !== null) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(125,37,53,0.26)` } }}
+                disabled={attending === null || rsvpLoading || (!!guest.is_group && !groupName.trim())}
+                className={attending !== null && (!guest.is_group || groupName.trim()) ? 'shimmer-btn' : ''}
+                onMouseEnter={e => { if (attending !== null && (!guest.is_group || groupName.trim())) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.burgundyDeep}, #3a0f1a)`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(125,37,53,0.44)` } }}
+                onMouseLeave={e => { if (attending !== null && (!guest.is_group || groupName.trim())) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(125,37,53,0.26)` } }}
                 style={{
                   width: '100%', padding: '16px',
-                  background: attending !== null ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})` : '#E8E0DC',
-                  color: attending !== null ? C.white : '#B0A09A',
+                  background: attending !== null && (!guest.is_group || groupName.trim()) ? `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDeep})` : '#E8E0DC',
+                  color: attending !== null && (!guest.is_group || groupName.trim()) ? C.white : '#B0A09A',
                   border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px',
                   letterSpacing: '3.5px', textTransform: 'uppercase',
-                  cursor: attending !== null ? 'pointer' : 'not-allowed',
-                  boxShadow: attending !== null ? `0 4px 18px rgba(125,37,53,0.26)` : 'none',
+                  cursor: attending !== null && (!guest.is_group || groupName.trim()) ? 'pointer' : 'not-allowed',
+                  boxShadow: attending !== null && (!guest.is_group || groupName.trim()) ? `0 4px 18px rgba(125,37,53,0.26)` : 'none',
                   transition: 'all 0.3s ease',
                 }}
               >
@@ -1588,7 +1880,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
           <div style={{ padding: '24px 24px 26px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, background: `linear-gradient(135deg, rgba(125,37,53,0.1), rgba(30,58,95,0.1))`, border: `1px solid ${C.gold}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🎁</div>
+              <img src="/icons/gift.png" alt="Gift" style={{ width: '32px', height: '32px', flexShrink: 0, objectFit: 'contain' }} />
               <div>
                 <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, margin: 0, lineHeight: 1.2 }}>Vanya Alverissa</p>
                 <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, margin: 0, letterSpacing: '0.5px' }}>Penerima kado</p>
@@ -1630,7 +1922,18 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               <SongketBand color={C.navy} opacity={0.04} />
             </div>
           ) : (
-            <div style={{ marginBottom: '44px' }}>
+            <div style={{ marginBottom: '28px' }}>
+              {guest.is_group && (
+                <div style={{ marginBottom: '16px' }}>
+                  <input
+                    type="text" value={groupName} onChange={e => setGroupName(e.target.value.slice(0, 50))} maxLength={50}
+                    placeholder="Masukkan nama Anda" required
+                    style={{ width: '100%', padding: '14px 16px', border: `1.5px solid ${groupName.trim() ? 'rgba(196,151,59,0.28)' : 'rgba(196,151,59,0.45)'}`, borderRadius: '5px', fontFamily: F.body, fontSize: '14px', color: C.textDark, background: '#FAFAF8', lineHeight: 1.8, boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s ease' }}
+                    onFocus={e => e.currentTarget.style.borderColor = C.gold}
+                    onBlur={e => e.currentTarget.style.borderColor = groupName.trim() ? 'rgba(196,151,59,0.28)' : 'rgba(196,151,59,0.45)'}
+                  />
+                </div>
+              )}
               <textarea
                 value={msgText} onChange={e => setMsgText(e.target.value.slice(0, 280))} maxLength={280}
                 placeholder="Tulis ucapan untuk mempelai..." rows={4}
@@ -1641,11 +1944,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </div>
               <button
                 onClick={submitMessage}
-                disabled={!msgText.trim() || msgLoading || guestMsgCount >= 3}
-                className={msgText.trim() && guestMsgCount < 3 ? 'shimmer-btn' : ''}
-                onMouseEnter={e => { if (msgText.trim() && guestMsgCount < 3) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(30,58,95,0.44)` } }}
-                onMouseLeave={e => { if (msgText.trim() && guestMsgCount < 3) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(30,58,95,0.26)` } }}
-                style={{ width: '100%', padding: '15px', background: msgText.trim() && guestMsgCount < 3 ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC', color: msgText.trim() && guestMsgCount < 3 ? C.white : '#B0A09A', border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3.5px', textTransform: 'uppercase', cursor: msgText.trim() && guestMsgCount < 3 ? 'pointer' : 'not-allowed', boxShadow: msgText.trim() && guestMsgCount < 3 ? `0 4px 18px rgba(30,58,95,0.26)` : 'none', transition: 'all 0.3s ease' }}
+                disabled={!msgText.trim() || msgLoading || guestMsgCount >= 3 || (!!guest.is_group && !groupName.trim())}
+                className={msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim()) ? 'shimmer-btn' : ''}
+                onMouseEnter={e => { if (msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim())) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navyDeep}, #0a1a2e)`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px rgba(30,58,95,0.44)` } }}
+                onMouseLeave={e => { if (msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim())) { (e.currentTarget as HTMLButtonElement).style.background = `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 18px rgba(30,58,95,0.26)` } }}
+                style={{ width: '100%', padding: '15px', background: msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim()) ? `linear-gradient(135deg, ${C.navy}, ${C.navyDeep})` : '#E8E0DC', color: msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim()) ? C.white : '#B0A09A', border: 'none', borderRadius: '5px', fontFamily: F.body, fontSize: '11px', letterSpacing: '3.5px', textTransform: 'uppercase', cursor: msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim()) ? 'pointer' : 'not-allowed', boxShadow: msgText.trim() && guestMsgCount < 3 && (!guest.is_group || groupName.trim()) ? `0 4px 18px rgba(30,58,95,0.26)` : 'none', transition: 'all 0.3s ease' }}
               >
                 {msgLoading ? 'Mengirim...' : 'Kirim Ucapan'}
               </button>
@@ -1658,21 +1961,15 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, letterSpacing: '2px', textTransform: 'uppercase' }}>{messages.length} ucapan</p>
-                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  {[0.5, 0.8, 1].map((o, i) => <div key={i} style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.gold, opacity: o }} />)}
-                </div>
-              </div>
               <div id="messages-scroll" data-lenis-prevent style={{ height: '300px', overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '4px', scrollbarWidth: 'thin', scrollbarColor: `${C.gold}40 transparent` }}>
                 {messages.map((msg, i) => (
                   <div key={`${msg.id ?? 'opt'}-${i}`} className={msg.isNew ? 'msg-new' : ''} style={{ background: msg.isNew ? `linear-gradient(135deg, rgba(125,37,53,0.04), rgba(196,151,59,0.06))` : i % 2 === 0 ? '#FAFAF8' : C.cream, borderRadius: '8px', padding: '0 20px', border: msg.isNew ? `1px solid rgba(196,151,59,0.35)` : `1px solid rgba(196,151,59,0.13)`, boxShadow: msg.isNew ? `0 4px 20px rgba(125,37,53,0.08)` : '0 2px 10px rgba(44,24,16,0.03)', flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                       <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: msg.isNew ? `linear-gradient(135deg, rgba(125,37,53,0.2), rgba(196,151,59,0.2))` : `linear-gradient(135deg, rgba(125,37,53,0.12), rgba(30,58,95,0.12))`, border: `1px solid ${C.gold}${msg.isNew ? '55' : '28'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F.display, fontSize: '15px', fontWeight: 600, color: C.burgundy, flexShrink: 0, marginTop: '16px' }}>
-                        {msg.guest_name.charAt(0).toUpperCase()}
+                        {msg.guest_name.split(' - ')[0].charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1, marginBottom: '0px' }}>{msg.guest_name}</p>
+                        <p style={{ fontFamily: F.display, fontSize: '18px', fontWeight: 600, color: C.burgundy, lineHeight: 1, marginBottom: '0px' }}>{msg.guest_name.split(' - ')[0]}</p>
                         {msg.isNew && <p style={{ fontFamily: F.body, fontSize: '10px', color: C.gold, letterSpacing: '1.5px', marginTop: '3px' }}>BARU SAJA</p>}
                       </div>
                     </div>
@@ -1680,7 +1977,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                   </div>
                 ))}
               </div>
-              <div style={{ position: 'absolute', top: '36px', left: 0, right: '6px', height: '30px', background: `linear-gradient(to bottom, ${C.white}, transparent)`, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: '6px', height: '30px', background: `linear-gradient(to bottom, ${C.white}, transparent)`, pointerEvents: 'none' }} />
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: '6px', height: '40px', background: `linear-gradient(to bottom, transparent, ${C.white})`, pointerEvents: 'none' }} />
             </div>
           )}
@@ -1717,7 +2014,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
               <Diamond size={3} color="rgba(196,151,59,0.38)" />
-              <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.38, letterSpacing: '3px', textTransform: 'uppercase' }}>26 Juni 2026 · Jakarta</p>
+              <p style={{ fontFamily: F.body, fontSize: '10px', opacity: 0.38, letterSpacing: '3px', textTransform: 'uppercase' }}>{mm === 1 ? '11 Juli 2026 · Pekanbaru' : '26 Juni 2026 · Jakarta'}</p>
               <Diamond size={3} color="rgba(196,151,59,0.38)" />
             </div>
           </div>
@@ -1732,8 +2029,20 @@ export default function InviteClient({ guest }: { guest: Guest }) {
       onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
       onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
     >
-      {muted ? '🔇' : '🎵'}
+      <img src={muted ? '/icons/music-off.png' : '/icons/music-on.png'} alt={muted ? 'Nyalakan musik' : 'Matikan musik'} style={{ width: '18px', height: '18px', objectFit: 'contain', display: 'block', opacity: 0.7 }} />
+
     </button>
+    {/* ── FLOATING SKIP BUTTON ─────────────────────────────────────────────── */}
+    {showSkipBtn && (
+      <button
+        onClick={skipAnimation} title="Lewati animasi"
+        style={{ position: 'fixed', bottom: '84px', right: '24px', zIndex: 999, width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(250,247,240,0.15)', backdropFilter: 'blur(12px) saturate(160%)', WebkitBackdropFilter: 'blur(12px) saturate(160%)', border: `1.5px solid rgba(196,151,59,0.35)`, color: C.gold, fontSize: '16px', boxShadow: '0 4px 20px rgba(125,37,53,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s ease, opacity 0.3s ease', animation: 'fadeIn 0.4s ease forwards' }}
+        onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
+        onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+      >
+        <img src={'/icons/forward.png'} alt={muted ? 'Nyalakan musik' : 'Matikan musik'} style={{ width: '20px', height: '20px', objectFit: 'contain', display: 'block', opacity: 0.7 }} />
+      </button>
+    )}
     {/* ── RSVP DUPLICATE WARNING ───────────────────────────────────────────── */}
     {showRsvpWarning && (
       <>

@@ -1,5 +1,5 @@
 // ─── Types ──────────────────────────────────────────────────────────────────
-export type Guest = { id: number; name: string; slug: string; created_at: string; max_guests?: number | null; is_group?: boolean | null }
+export type Guest = { id: number; name: string; slug: string; created_at: string; max_guests?: number | null; is_group?: boolean | null; is_mm?: number | null }
 export type Message  = { id?: number; guest_name: string; guest_slug?: string; message: string; isNew?: boolean }
 export type Countdown = { d: number; h: number; m: number; s: number }
 

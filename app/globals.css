@@ -327,9 +327,12 @@ a {
 .pax-btn:active {
   transform: scale(0.88) !important;
 }
-.pax-btn:hover {
+.pax-btn:not(:disabled):hover {
   background: #7D2535 !important;
   color: white !important;
+}
+.pax-btn:disabled {
+  cursor: not-allowed !important;
 }
 
 @keyframes copyRipple {

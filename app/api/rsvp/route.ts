@@ -15,8 +15,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const guestSlugRaw = body?.guest_slug
+    const guestNameRaw = body?.guest_name
     const attending = body?.attending
     const pax = body?.pax
+    const isMm = body?.is_mm
     const noteRaw = body?.note
 
     // --- Validate and sanitize slug ---
@@ -57,12 +59,20 @@ export async function POST(req: NextRequest) {
     if (attending && pax > maxPax)
       return NextResponse.json({ error: 'Pax exceeds allowance' }, { status: 400 })
 
-    const rsvpData = {
+    const finalGuestName = guestNameRaw
+      ? sanitizeText(String(guestNameRaw))
+      : guest.name
+
+    const rsvpData: Record<string, unknown> = {
       guest_slug: validSlug,
-      guest_name: guest.name,
+      guest_name: finalGuestName,
       attending,
       pax: attending ? pax : 0,
       note: truncateText(sanitizedNote, NOTE_MAX),
+    }
+
+    if (isMm !== null && typeof isMm === 'number') {
+      rsvpData.is_mm = isMm
     }
 
     // Group guests: always insert a new row
