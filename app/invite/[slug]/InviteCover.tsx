@@ -12,6 +12,9 @@ interface Props {
 
 export default function InviteCover({ guest, onOpen, preview }: Props) {
   const [hovered, setHovered] = useState(false)
+  const mm = (guest.is_mm ?? 0)
+  const firstName = mm === 1 ? 'Faiz' : 'Vanya'
+  const secondName = mm === 1 ? 'Vanya' : 'Faiz'
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const cardRef        = useRef<HTMLDivElement>(null)
@@ -297,7 +300,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
                   letterSpacing: '1px', lineHeight: 1.0, margin: 0,
                 }}
               >
-                <span className="gold-shimmer-text">Vanya</span>
+                <span className="gold-shimmer-text">{firstName}</span>
               </p>
 
               <div
@@ -325,7 +328,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
                   letterSpacing: '1px', lineHeight: 1.0, margin: 0,
                 }}
               >
-                <span className="gold-shimmer-text">Faiz</span>
+                <span className="gold-shimmer-text">{secondName}</span>
               </p>
 
               <div
@@ -348,7 +351,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
                 fontFamily: F.body, fontSize: '11px',
                 color: C.textLight, letterSpacing: '2.5px',
               }}>
-                26 JUNI 2026 · JAKARTA
+                {mm === 1 ? "11 JULI 2026 · PEKANBARU" : "26 JUNI 2026 · JAKARTA"}
               </p>
               <div style={{ height: '1px', width: '20px', background: `${C.gold}50` }} />
             </div>

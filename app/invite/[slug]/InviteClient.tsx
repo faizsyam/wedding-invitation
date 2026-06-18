@@ -183,6 +183,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
   const guestMsgCount = messages.filter(m => m.guest_slug === guest.slug || m.isNew).length
 
   const mm = (guest.is_mm ?? 0)
+  const firstName = mm === 1 ? 'Faiz' : 'Vanya'
+  const secondName = mm === 1 ? 'Vanya' : 'Faiz'
   const S: React.CSSProperties = { maxWidth: '480px', margin: '0 auto', padding: '80px 28px' }
 
   useEffect(() => {
@@ -755,7 +757,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             color: C.textDark, lineHeight: 1.0, letterSpacing: '0.5px',
             marginTop: '-2px', marginBottom: '-2px',
           }}>
-            <span className="gold-shimmer-text">Vanya</span>
+            <span className="gold-shimmer-text">{firstName}</span>
           </p>
           <div data-hero="dan" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -770,7 +772,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             color: C.textDark, lineHeight: 1.0, letterSpacing: '0.5px',
             marginTop: '-2px', marginBottom: '36px',
           }}>
-            <span className="gold-shimmer-text">Faiz</span>
+            <span className="gold-shimmer-text">{secondName}</span>
           </p>
           <p data-hero="date" style={{
             fontFamily: F.body, fontSize: '13px', color: C.textLight,
@@ -1193,12 +1195,12 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               <div className="portrait-card" style={{ flex: 1, minHeight: 0, overflow: 'hidden', background: '#E0D8CC' }}>
                 <img
                   src="/gallery/together.webp"
-                  alt="Vanya & Faiz"
+                  alt={`${firstName} & ${secondName}`}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
               <div style={{ height: '58px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ fontFamily: F.display, fontSize: '15px', color: '#8B7355', fontStyle: 'italic', margin: 0 }}>Vanya &amp; Faiz</p>
+                <p style={{ fontFamily: F.display, fontSize: '15px', color: '#8B7355', fontStyle: 'italic', margin: 0 }}>{firstName} &amp; {secondName}</p>
                 <p style={{ fontFamily: F.body, fontSize: '10px', color: C.gold, letterSpacing: '2.5px', textTransform: 'uppercase', margin: '4px 0 0' }}>2026</p>
               </div>
             </div>
@@ -1487,6 +1489,17 @@ export default function InviteClient({ guest }: { guest: Guest }) {
               </div>
             </div>
           )}
+
+          {/* ── Footnote for mm=1 ── */}
+          {mm === 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '32px' }}>
+              <div style={{ height: '2px', flex: 1, background: `linear-gradient(90deg, transparent, ${C.gold}55, transparent)` }} />
+              <p style={{ fontFamily: F.display, fontSize: '14px', color: `${C.textLight}99`, letterSpacing: '0.4px', fontStyle: 'italic', margin: 0 }}>
+                Akad &amp; Resepsi dilaksanakan di Jakarta, 26 Juni 2026
+              </p>
+              <div style={{ height: '2px', flex: 1, background: `linear-gradient(90deg, transparent, ${C.gold}55, transparent)` }} />
+            </div>
+          )}
         </div>
       </section>
 
@@ -1647,7 +1660,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <SectionLabel>Konfirmasi Kehadiran</SectionLabel>
           <p style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, marginBottom: '10px', lineHeight: 1.05 }}>Apakah kamu hadir?</p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2, marginBottom: '42px' }}>
-            Mohon konfirmasi paling lambat<br /><span style={{ color: C.burgundy, fontWeight: 600 }}>19 Juni 2026</span>
+            Mohon konfirmasi paling lambat<br /><span style={{ color: C.burgundy, fontWeight: 600 }}>{mm === 1 ? "4 Juli 2026" : "22 Juni 2026"}</span>
           </p>
           {rsvpDone ? (
             <div className="success-bounce" style={{ border: `1px solid rgba(125,37,53,0.18)`, borderRadius: '8px', overflow: 'hidden', background: 'rgba(125,37,53,0.025)', position: 'relative' }}>
@@ -2004,13 +2017,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </p>
             <PucukRebungDivider color="rgba(196,151,59,0.48)" />
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
-              <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px,10vw,48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, margin: 0 }}>Vanya</p>
+              <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px,10vw,48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, margin: 0 }}>{firstName}</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                 <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
                 <p style={{ fontFamily: F.display, fontSize: '18px', opacity: 0.42, margin: 0 }}>&amp;</p>
                 <div style={{ height: '1px', width: '36px', background: 'rgba(196,151,59,0.3)' }} />
               </div>
-              <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px,10vw,48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, margin: 0 }}>Faiz</p>
+              <p className="footer-name-shimmer" style={{ fontFamily: F.display, fontSize: 'clamp(36px,10vw,48px)', fontWeight: 300, letterSpacing: '2px', lineHeight: 1.05, margin: 0 }}>{secondName}</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
               <Diamond size={3} color="rgba(196,151,59,0.38)" />
