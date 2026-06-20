@@ -1710,7 +1710,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           <SectionLabel>Konfirmasi Kehadiran</SectionLabel>
           <p style={{ fontFamily: F.display, fontSize: '38px', color: C.textDark, marginBottom: '10px', lineHeight: 1.05 }}>Apakah kamu hadir?</p>
           <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, lineHeight: 2, marginBottom: '42px' }}>
-            Mohon konfirmasi paling lambat<br /><span style={{ color: C.burgundy, fontWeight: 600 }}>{mm === 1 ? "4 Juli 2026" : "22 Juni 2026"}</span>
+            Mohon konfirmasi paling lambat<br /><span style={{ color: C.burgundy, fontWeight: 600 }}>{mm === 1 ? "10 Juli 2026" : "24 Juni 2026"}</span>
           </p>
           {rsvpDone ? (
             <div className="success-bounce" style={{ border: `1px solid rgba(125,37,53,0.18)`, borderRadius: '8px', overflow: 'hidden', background: 'rgba(125,37,53,0.025)', position: 'relative' }}>
