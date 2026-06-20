@@ -260,7 +260,7 @@ export default function InviteCover({ guest, onOpen, preview }: Props) {
 
             {/* Section label */}
             <div ref={labelRef}>
-              <SectionLabel>Undangan Pernikahan</SectionLabel>
+              <SectionLabel>Undangan {mm === 1 ? 'Ngunduh Mantu' : 'Pernikahan'}</SectionLabel>
             </div>
 
             {/* Guest name — only in live mode */}

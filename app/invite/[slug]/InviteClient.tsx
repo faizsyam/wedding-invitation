@@ -362,11 +362,13 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
   // ── Audio ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const audio = new Audio('/it_aint_over_til_its_over.mp3')
+    const audio = new Audio(mm === 1 ? '/melayu.m4a' : '/it_aint_over_til_its_over.mp3')
     audio.loop = true
     audio.volume = 0.4
     audioRef.current = audio
-    const tryPlay = () => audio.play().catch(() => {})
+    const tryPlay = () => {
+      setTimeout(() => audio.play().catch(() => {}), mm === 1 ? 1500 : 0)
+    }
     const handleVisibility = () => document.hidden ? audio.pause() : audio.play().catch(() => {})
     document.addEventListener('click', tryPlay, { once: true })
     document.addEventListener('visibilitychange', handleVisibility)
@@ -747,7 +749,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
           </p>
           <div data-hero="label">
-            <SectionLabel>Undangan Pernikahan</SectionLabel>
+            <SectionLabel>Undangan {mm === 1 ? 'Ngunduh Mantu' : 'Pernikahan'}</SectionLabel>
           </div>
           <div data-hero="divider" style={{ transformOrigin: 'center' }}>
             <PucukRebungDivider />
@@ -973,7 +975,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                 lineHeight: 2, fontStyle: 'italic', marginBottom: '0',
               } as React.CSSProperties}
             >
-              untuk hadir memberikan do'a restu pada acara pernikahan kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
+              untuk hadir memberikan do'a restu pada acara {mm === 1 ? 'ngunduh mantu putra-putri' : 'pernikahan'} kami. Kehadiran Anda adalah kehormatan dan kebahagiaan yang sangat berarti bagi kami sekeluarga.
             </p>
           </div>
           <p
@@ -1440,7 +1442,7 @@ export default function InviteClient({ guest }: { guest: Guest }) {
                     <img src="/icons/icon_resepsi.png" alt="" style={{ width: '40px', height: '40px', opacity: 0.8 }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '4px', lineHeight: 1.4 }}>Resepsi Pernikahan</p>
+                    <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '4px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '4px', lineHeight: 1.4 }}>Resepsi {mm === 1 ? 'Ngunduh Mantu' : 'Pernikahan'}</p>
                     <p style={{ fontFamily: F.body, fontSize: '15px', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>18.30 – 21.00 WIB</p>
                   </div>
                 </div>
@@ -1492,12 +1494,60 @@ export default function InviteClient({ guest }: { guest: Guest }) {
 
           {/* ── Footnote for mm=1 ── */}
           {mm === 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '32px' }}>
-              <div style={{ height: '2px', flex: 1, background: `linear-gradient(90deg, transparent, ${C.gold}55, transparent)` }} />
-              <p style={{ fontFamily: F.display, fontSize: '14px', color: `${C.textLight}99`, letterSpacing: '0.4px', fontStyle: 'italic', margin: 0 }}>
-                Akad &amp; Resepsi dilaksanakan di Jakarta, 26 Juni 2026
-              </p>
-              <div style={{ height: '2px', flex: 1, background: `linear-gradient(90deg, transparent, ${C.gold}55, transparent)` }} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px' }}>
+              <div style={{
+                position: 'relative',
+                padding: '18px 32px',
+                background: `linear-gradient(135deg, ${C.cream}, rgba(196,151,59,0.04))`,
+                border: `1.5px solid rgba(196,151,59,0.22)`,
+                borderRadius: '12px',
+                boxShadow: '0 4px 24px rgba(44,24,16,0.06)',
+                textAlign: 'center',
+              }}>
+                {/* Corner accents */}
+                <div style={{
+                  position: 'absolute', top: '-1px', left: '-1px',
+                  width: '18px', height: '18px',
+                  borderTop: `2px solid ${C.gold}`,
+                  borderLeft: `2px solid ${C.gold}`,
+                  borderRadius: '8px 0 0 0',
+                  opacity: 0.5,
+                }} />
+                <div style={{
+                  position: 'absolute', top: '-1px', right: '-1px',
+                  width: '18px', height: '18px',
+                  borderTop: `2px solid ${C.gold}`,
+                  borderRight: `2px solid ${C.gold}`,
+                  borderRadius: '0 8px 0 0',
+                  opacity: 0.5,
+                }} />
+                <div style={{
+                  position: 'absolute', bottom: '-1px', left: '-1px',
+                  width: '18px', height: '18px',
+                  borderBottom: `2px solid ${C.gold}`,
+                  borderLeft: `2px solid ${C.gold}`,
+                  borderRadius: '0 0 0 8px',
+                  opacity: 0.5,
+                }} />
+                <div style={{
+                  position: 'absolute', bottom: '-1px', right: '-1px',
+                  width: '18px', height: '18px',
+                  borderBottom: `2px solid ${C.gold}`,
+                  borderRight: `2px solid ${C.gold}`,
+                  borderRadius: '0 0 8px 0',
+                  opacity: 0.5,
+                }} />
+                <p style={{
+                  fontFamily: F.display, fontSize: '14px',
+                  color: C.textMid,
+                  letterSpacing: '0.8px',
+                  margin: 0,
+                  lineHeight: 1.6,
+                }}>
+                  Akad &amp; Resepsi dilaksanakan di{' '}
+                  <span style={{ color: C.gold, fontWeight: 600 }}>Jakarta, 26 Juni 2026</span>
+                </p>
+              </div>
             </div>
           )}
         </div>
