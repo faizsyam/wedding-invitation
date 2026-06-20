@@ -1840,11 +1840,11 @@ export default function InviteClient({ guest }: { guest: Guest }) {
           </div>
           <div style={{ padding: '8px 24px 26px' }}>
             <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark }}>Bank BCA</p>
-            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginTop: '-8px', marginBottom: '5px' }}>8288061851</p>
-            <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>a.n. Vanya Alverissa</p>
+            <p style={{ fontFamily: F.body, fontSize: '28px', fontWeight: 700, color: C.burgundy, letterSpacing: '3px', marginTop: '-8px', marginBottom: '5px' }}>{mm === 1 ? '7311114526' : '8288061851'}</p>
+            <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textLight, marginBottom: '20px' }}>{mm === 1 ? 'a.n. Faizuddarain Syam' : 'a.n. Vanya Alverissa'}</p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
-                onClick={() => copyText('8288061851', 'rek')}
+                onClick={() => copyText(mm === 1 ? '7311114526' : '8288061851', 'rek')}
                 className={copied === 'rek' ? '' : 'shimmer-btn'}
                 onMouseEnter={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = C.burgundy; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
                 onMouseLeave={e => { if (copied !== 'rek') { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.burgundy } }}
@@ -1856,6 +1856,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             </div>
           </div>
 
+        {mm !== 1 && (
+          <>
         {/* ── QRIS separator ── */}
         <div style={{ margin: '0 24px', height: '1px', background: `linear-gradient(to right, transparent, rgba(196,151,59,0.28), transparent)` }} />
 
@@ -1884,6 +1886,8 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             Lihat QRIS
           </button>
         </div>
+          </>
+        )}
 
         </div>
         {/* Kirim Kado */}
@@ -1895,18 +1899,22 @@ export default function InviteClient({ guest }: { guest: Guest }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <img src="/icons/gift.png" alt="Gift" style={{ width: '32px', height: '32px', flexShrink: 0, objectFit: 'contain' }} />
               <div>
-                <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, margin: 0, lineHeight: 1.2 }}>Vanya Alverissa</p>
+                <p style={{ fontFamily: F.display, fontSize: '22px', color: C.textDark, margin: 0, lineHeight: 1.2 }}>{mm === 1 ? 'Faizuddarain Syam' : 'Vanya Alverissa'}</p>
                 <p style={{ fontFamily: F.body, fontSize: '11px', color: C.textLight, margin: 0, letterSpacing: '0.5px' }}>Penerima kado</p>
               </div>
             </div>
             <div style={{ background: C.cream, borderRadius: '6px', padding: '14px 16px', marginBottom: '20px', border: `1px solid rgba(196,151,59,0.12)` }}>
               <p style={{ fontFamily: F.body, fontSize: '9px', letterSpacing: '2.5px', textTransform: 'uppercase', color: C.textLight, marginBottom: '8px' }}>Alamat Pengiriman</p>
               <p style={{ fontFamily: F.body, fontSize: '13px', color: C.textDark, lineHeight: 2, margin: 0 }}>
-                Jl. Bona Sarana Indah Blok E No. 12<br />RT 01/RW 02, Kelurahan Panunggangan Utara<br />Kecamatan Pinang, Kota Tangerang
+                {mm === 1 ? (
+                  <>Jl. Bangau Sakti, Gg. Pipit II RT 02/RW 04 (Samping kos-kosan IKHWAN), Simpang Baru-Pekanbaru, 28293</>
+                ) : (
+                  <>Jl. Bona Sarana Indah Blok E No. 12<br />RT 01/RW 02, Kelurahan Panunggangan Utara<br />Kecamatan Pinang, Kota Tangerang</>
+                )}
               </p>
             </div>
             <button
-              onClick={() => copyText('Jl. Bona Sarana Indah Blok E No. 12 RT 01/RW 02, Kelurahan Panunggangan Utara, Kecamatan Pinang, Kota Tangerang', 'alamat')}
+              onClick={() => copyText(mm === 1 ? 'Jl. Bangau Sakti, Gg. Pipit II RT 02/RW 04 (Samping kos-kosan IKHWAN), Simpang Baru-Pekanbaru, 28293' : 'Jl. Bona Sarana Indah Blok E No. 12 RT 01/RW 02, Kelurahan Panunggangan Utara, Kecamatan Pinang, Kota Tangerang', 'alamat')}
               className={copied === 'alamat' ? '' : 'shimmer-btn'}
               onMouseEnter={e => { if (copied !== 'alamat') { (e.currentTarget as HTMLButtonElement).style.background = C.navy; (e.currentTarget as HTMLButtonElement).style.color = C.white } }}
               onMouseLeave={e => { if (copied !== 'alamat') { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = C.navy } }}
